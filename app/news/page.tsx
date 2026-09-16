@@ -4,21 +4,25 @@ type NewsItem = {
   pubDate: string | null;
 };
 
-export default async function NewsPage() {
+async function getNews() {
   const res = await fetch(
-    "https://purple-sector-li6kv4p9g-purple-delta2.vercel.app/api/news",
+    "https://purple-sector-six.vercel.app/api/news",
     {
       cache: "no-store",
     }
   );
 
-  const news: NewsItem[] = await res.json();
+  return res.json();
+}
+
+export default async function NewsPage() {
+  const news: NewsItem[] = await getNews();
 
   return (
     <main
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+        background: "#05071f",
         color: "white",
         padding: "40px",
         fontFamily: "Arial",
@@ -39,31 +43,16 @@ export default async function NewsPage() {
         ← Home
       </a>
 
-      <h1
-        style={{
-          fontSize: "42px",
-          marginBottom: "10px",
-        }}
-      >
-        📰 F1 News
-      </h1>
-
-      <p
-        style={{
-          color: "#a9adff",
-          marginBottom: "30px",
-        }}
-      >
-        Latest Formula 1 Headlines
-      </p>
+      <h1>📰 Latest F1 News</h1>
 
       <div
         style={{
           display: "grid",
           gap: "20px",
+          marginTop: "30px",
         }}
       >
-        {news.map((item, index) => (
+        {news.slice(0, 10).map((item, index) => (
           <a
             key={index}
             href={item.link}
@@ -80,20 +69,15 @@ export default async function NewsPage() {
                 border: "1px solid #2b347a",
                 borderRadius: "20px",
                 padding: "20px",
-                transition: "0.2s",
               }}
             >
               <h2>{item.title}</h2>
 
-              <p
-                style={{
-                  color: "#a9adff",
-                }}
-              >
-                {item.pubDate || "Latest"}
+              <p style={{ color: "#a9adff" }}>
+                {item.pubDate || "Formula1.com"}
               </p>
 
-              <p>🔗 Read Article</p>
+              <p>Read Article →</p>
             </div>
           </a>
         ))}

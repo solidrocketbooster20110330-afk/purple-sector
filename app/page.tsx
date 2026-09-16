@@ -9,15 +9,13 @@ export default function HomePage() {
         fontFamily: "Arial",
       }}
     >
-      <h1 style={{ color: "#a855f7" }}>🟣 PurpleSector</h1>
+      <h1>🟣 PurpleSector</h1>
+      <p>F1 Dashboard</p>
 
-      <h2>F1 Dashboard</h2>
-
-      <p>Welcome to PurpleSector.</p>
+      <h2>Features</h2>
 
       <ul>
-        <li>Next Grand Prix</li>
-        <li>Previous Race Result</li>
+        <li>Next Race Schedule</li>
         <li>Driver Standings</li>
         <li>Constructor Standings</li>
         <li>Latest F1 News</li>

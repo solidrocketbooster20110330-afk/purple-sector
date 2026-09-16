@@ -1,46 +1,77 @@
-export default function StandingsPage() {
-  const drivers = [
-    ["#1 Max Verstappen", 412],
-    ["#4 Lando Norris", 387],
-    ["#63 George Russell", 301],
-    ["#16 Charles Leclerc", 287],
-    ["#81 Oscar Piastri", 271],
-    ["#44 Lewis Hamilton", 243],
-    ["#55 Carlos Sainz", 221],
-    ["#14 Fernando Alonso", 168],
-    ["#22 Yuki Tsunoda", 112],
-    ["#23 Alex Albon", 91],
-  ];
+type DriverStanding = {
+  position: string;
+  points: string;
+  Driver: {
+    givenName: string;
+    familyName: string;
+  };
+};
+
+export default async function StandingsPage() {
+  const res = await fetch(
+    "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
+    {
+      next: { revalidate: 3600 },
+    }
+  );
+
+  const data = await res.json();
+
+  const drivers: DriverStanding[] =
+    data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
 
   return (
     <main
       style={{
         minHeight: "100vh",
-        background: "#05071f",
+        background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
         color: "white",
         padding: "40px",
         fontFamily: "Arial",
       }}
     >
+      <a
+        href="/"
+        style={{
+          display: "inline-block",
+          color: "white",
+          textDecoration: "none",
+          background: "#1a2157",
+          padding: "10px 18px",
+          borderRadius: "10px",
+          marginBottom: "25px",
+        }}
+      >
+        ← Home
+      </a>
+
       <h1>🏆 Driver Championship</h1>
 
       <div
         style={{
           background: "#131942",
+          border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
           marginTop: "20px",
         }}
       >
-        {drivers.map((driver, index) => (
+        {drivers.slice(0, 20).map((driver) => (
           <div
-            key={index}
+            key={driver.position}
             style={{
-              padding: "12px 0",
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "14px 0",
               borderBottom: "1px solid #2b347a",
             }}
           >
-            {index + 1}. {driver[0]} — {driver[1]} pts
+            <span>
+              {driver.position}. {driver.Driver.givenName}{" "}
+              {driver.Driver.familyName}
+            </span>
+
+            <strong>{driver.points} pts</strong>
           </div>
         ))}
       </div>

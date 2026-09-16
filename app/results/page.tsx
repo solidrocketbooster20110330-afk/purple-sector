@@ -1,4 +1,5 @@
 type RaceResult = {
+  number: string;
   position: string;
   grid: string;
   points: string;
@@ -73,12 +74,13 @@ export default async function ResultsPage() {
           border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
+          overflowX: "auto",
         }}
       >
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "60px 1fr 80px 140px 80px",
+            gridTemplateColumns: "60px 60px 1.5fr 1fr 70px 140px 60px",
             gap: "10px",
             paddingBottom: "12px",
             borderBottom: "2px solid #2b347a",
@@ -87,27 +89,47 @@ export default async function ResultsPage() {
           }}
         >
           <div>POS</div>
+          <div>NO</div>
           <div>DRIVER</div>
+          <div>TEAM</div>
           <div>GRID</div>
           <div>STATUS</div>
           <div>PTS</div>
         </div>
 
-        {results.map((driver) => (
-          <div
-            key={driver.position}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "60px 1fr 80px 140px 80px",
-              gap: "10px",
-              padding: "14px 0",
-              borderBottom: "1px solid #2b347a",
-              alignItems: "center",
-            }}
-          >
-            <strong>P{driver.position}</strong>
+        {results.map((driver) => {
+          const statusText =
+            driver.position === "1"
+              ? "🏆 Winner"
+              : driver.status === "Finished"
+              ? driver.Time?.time ?? "Finished"
+              : "DNF";
 
-            <div>
+          return (
+            <div
+              key={driver.position}
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "60px 60px 1.5fr 1fr 70px 140px 60px",
+                gap: "10px",
+                padding: "14px 0",
+                borderBottom: "1px solid #2b347a",
+                alignItems: "center",
+              }}
+            >
+              <strong>
+                {driver.position === "1"
+                  ? "🥇"
+                  : driver.position === "2"
+                  ? "🥈"
+                  : driver.position === "3"
+                  ? "🥉"
+                  : `P${driver.position}`}
+              </strong>
+
+              <div>#{driver.number}</div>
+
               <div>
                 {driver.Driver.givenName}{" "}
                 {driver.Driver.familyName}
@@ -116,26 +138,32 @@ export default async function ResultsPage() {
               <div
                 style={{
                   color: "#a9adff",
-                  fontSize: "13px",
                 }}
               >
                 {driver.Constructor.name}
               </div>
+
+              <div>P{driver.grid}</div>
+
+              <div
+                style={{
+                  color:
+                    statusText === "DNF"
+                      ? "#ff4d4d"
+                      : "white",
+                  fontWeight:
+                    statusText === "DNF"
+                      ? "bold"
+                      : "normal",
+                }}
+              >
+                {statusText}
+              </div>
+
+              <strong>{driver.points}</strong>
             </div>
-
-            <div>P{driver.grid}</div>
-
-            <div>
-              {driver.status === "Finished"
-                ? driver.position === "1"
-                  ? "🏆 Winner"
-                  : driver.Time?.time ?? "Finished"
-                : `⚠️ ${driver.status}`}
-            </div>
-
-            <strong>{driver.points}</strong>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </main>
   );

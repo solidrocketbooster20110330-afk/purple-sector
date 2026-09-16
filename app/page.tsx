@@ -83,17 +83,6 @@ export default async function HomePage() {
   const news: NewsItem[] =
     newsData.items?.slice(0, 3) || [];
 
-  const navBtn = {
-    background: "#131942",
-    border: "1px solid #2b347a",
-    borderRadius: "12px",
-    padding: "10px 18px",
-    color: "white",
-    textDecoration: "none",
-    fontWeight: "bold",
-    display: "inline-block",
-  };
-
   const cardStyle = {
     background: "#131942",
     border: "1px solid #2b347a",
@@ -109,6 +98,7 @@ export default async function HomePage() {
           "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
         color: "white",
         padding: "40px",
+        paddingBottom: "100px",
         fontFamily: "Arial",
       }}
     >
@@ -131,38 +121,26 @@ export default async function HomePage() {
         Ultimate Formula 1 Dashboard
       </p>
 
-      <nav
+      {/* NEXT RACE */}
+
+      <a
+        href="/schedule"
         style={{
-          display: "flex",
-          gap: "12px",
-          marginBottom: "30px",
-          flexWrap: "wrap",
+          ...cardStyle,
+          textDecoration: "none",
+          color: "white",
+          display: "block",
+          marginBottom: "20px",
         }}
       >
-        <a href="/" style={navBtn}>
-          🏠 Home
-        </a>
+        <h2>🏁 NEXT RACE →</h2>
 
-        <a href="/schedule" style={navBtn}>
-          📅 Schedule
-        </a>
+        <h3>{race.raceName}</h3>
 
-        <a href="/standings" style={navBtn}>
-          🏆 Standings
-        </a>
+        <p>{race.date}</p>
 
-        <a href="/constructors" style={navBtn}>
-          🏁 Constructors
-        </a>
-
-        <a href="/news" style={navBtn}>
-          📰 News
-        </a>
-
-        <a href="/results" style={navBtn}>
-          🏎️ Results
-        </a>
-      </nav>
+        <p>{race.Circuit.circuitName}</p>
+      </a>
 
       <div
         style={{
@@ -173,60 +151,33 @@ export default async function HomePage() {
         }}
       >
         <div style={cardStyle}>
-          <h2>🏁 Next Race</h2>
-
-          <h3>{race.raceName}</h3>
-
-          <p>📅 {race.date}</p>
-
-          <p>
-            📍 {race.Circuit.circuitName}
-          </p>
-        </div>
-
-        <div style={cardStyle}>
           <h2>👨‍🏎️ Driver Standings</h2>
 
           <div style={{ lineHeight: "2" }}>
             {drivers
               .slice(0, 5)
               .map((driver) => (
-                <div
-                  key={driver.position}
-                >
+                <div key={driver.position}>
                   {driver.position}.{" "}
-                  {
-                    driver.Driver
-                      .givenName
-                  }{" "}
-                  {
-                    driver.Driver
-                      .familyName
-                  }{" "}
-                  — {driver.points}
+                  {driver.Driver.givenName}{" "}
+                  {driver.Driver.familyName} —{" "}
+                  {driver.points}
                 </div>
               ))}
           </div>
         </div>
 
         <div style={cardStyle}>
-          <h2>
-            🏆 Constructor Standings
-          </h2>
+          <h2>🏆 Constructor Standings</h2>
 
           <div style={{ lineHeight: "2" }}>
             {constructors
               .slice(0, 5)
               .map((team) => (
-                <div
-                  key={team.position}
-                >
+                <div key={team.position}>
                   {team.position}.{" "}
-                  {
-                    team.Constructor
-                      .name
-                  }{" "}
-                  — {team.points}
+                  {team.Constructor.name} —{" "}
+                  {team.points}
                 </div>
               ))}
           </div>
@@ -245,25 +196,83 @@ export default async function HomePage() {
                   rel="noopener noreferrer"
                   style={{
                     color: "white",
-                    textDecoration:
-                      "none",
-                    display:
-                      "block",
-                    marginBottom:
-                      "10px",
+                    textDecoration: "none",
+                    display: "block",
+                    marginBottom: "10px",
                   }}
                 >
                   • {item.title}
                 </a>
               ))
             ) : (
-              <div>
-                No news available
-              </div>
+              <div>No news available</div>
             )}
           </div>
+
+          <a
+            href="/news"
+            style={{
+              color: "#a9adff",
+              textDecoration: "none",
+              fontWeight: "bold",
+              display: "inline-block",
+              marginTop: "10px",
+            }}
+          >
+            More News →
+          </a>
         </div>
+      </div>
+
+      {/* BOTTOM NAV */}
+
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          background: "#131942",
+          borderTop: "1px solid #2b347a",
+          display: "flex",
+          justifyContent: "space-around",
+          padding: "16px 0",
+          zIndex: 999,
+        }}
+      >
+        <a
+          href="/"
+          style={{
+            color: "white",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
+          🏠 Home
+        </a>
+
+        <a
+          href="/results"
+          style={{
+            color: "white",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
+          🏁 Results
+        </a>
+
+        <a
+          href="/schedule"
+          style={{
+            color: "white",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
+          📅 Schedule
+        </a>
       </div>
     </main>
   );
-    }
+}

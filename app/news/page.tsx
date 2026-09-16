@@ -47,4 +47,11 @@ export default function NewsPage() {
               padding: "20px",
             }}
           >
-            <
+            <h2>{item.title}</h2>
+            <p>{item.date}</p>
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}

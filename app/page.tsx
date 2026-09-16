@@ -1,4 +1,54 @@
-export default function HomePage() {
+type DriverStanding = {
+  position: string;
+  points: string;
+  Driver: {
+    givenName: string;
+    familyName: string;
+  };
+};
+
+type ConstructorStanding = {
+  position: string;
+  points: string;
+  Constructor: {
+    name: string;
+  };
+};
+
+type Race = {
+  raceName: string;
+  Circuit: {
+    circuitName: string;
+  };
+  date: string;
+};
+
+export default async function HomePage() {
+  const [driversRes, constructorsRes, raceRes] = await Promise.all([
+    fetch("https://api.jolpi.ca/ergast/f1/current/driverstandings.json", {
+      next: { revalidate: 3600 },
+    }),
+    fetch("https://api.jolpi.ca/ergast/f1/current/constructorstandings.json", {
+      next: { revalidate: 3600 },
+    }),
+    fetch("https://api.jolpi.ca/ergast/f1/current/next.json", {
+      next: { revalidate: 3600 },
+    }),
+  ]);
+
+  const driversData = await driversRes.json();
+  const constructorsData = await constructorsRes.json();
+  const raceData = await raceRes.json();
+
+  const drivers: DriverStanding[] =
+    driversData.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+
+  const constructors: ConstructorStanding[] =
+    constructorsData.MRData.StandingsTable.StandingsLists[0]
+      .ConstructorStandings;
+
+  const race: Race = raceData.MRData.RaceTable.Races[0];
+
   const navBtn = {
     background: "#131942",
     border: "1px solid #2b347a",
@@ -54,29 +104,12 @@ export default function HomePage() {
           flexWrap: "wrap",
         }}
       >
-        <a href="/" style={navBtn}>
-          🏠 Home
-        </a>
-
-        <a href="/schedule" style={navBtn}>
-          📅 Schedule
-        </a>
-
-        <a href="/standings" style={navBtn}>
-          🏆 Standings
-        </a>
-
-        <a href="/constructors" style={navBtn}>
-          🏁 Constructors
-        </a>
-
-        <a href="/news" style={navBtn}>
-          📰 News
-        </a>
-
-        <a href="/results" style={navBtn}>
-          🏎️ Results
-        </a>
+        <a href="/" style={navBtn}>🏠 Home</a>
+        <a href="/schedule" style={navBtn}>📅 Schedule</a>
+        <a href="/standings" style={navBtn}>🏆 Standings</a>
+        <a href="/constructors" style={navBtn}>🏁 Constructors</a>
+        <a href="/news" style={navBtn}>📰 News</a>
+        <a href="/results" style={navBtn}>🏎️ Results</a>
       </nav>
 
       <div
@@ -88,20 +121,21 @@ export default function HomePage() {
       >
         <div style={cardStyle}>
           <h2>🏁 Next Race</h2>
-          <h3>Singapore Grand Prix</h3>
-          <p>📅 Sept 20, 2026</p>
-          <p>📍 Marina Bay Street Circuit</p>
+          <h3>{race.raceName}</h3>
+          <p>📅 {race.date}</p>
+          <p>📍 {race.Circuit.circuitName}</p>
         </div>
 
         <div style={cardStyle}>
           <h2>👨‍🏎️ Driver Standings</h2>
 
           <div style={{ lineHeight: "2" }}>
-            <div>🥇 #1 Max Verstappen — 412</div>
-            <div>🥈 #4 Lando Norris — 387</div>
-            <div>🥉 #63 George Russell — 301</div>
-            <div>4️⃣ #16 Charles Leclerc — 287</div>
-            <div>5️⃣ #81 Oscar Piastri — 271</div>
+            {drivers.slice(0, 5).map((driver) => (
+              <div key={driver.position}>
+                {driver.position}. {driver.Driver.givenName}{" "}
+                {driver.Driver.familyName} — {driver.points}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -109,21 +143,20 @@ export default function HomePage() {
           <h2>🏆 Constructor Standings</h2>
 
           <div style={{ lineHeight: "2" }}>
-            <div>🥇 McLaren — 658</div>
-            <div>🥈 Red Bull Racing — 602</div>
-            <div>🥉 Mercedes — 519</div>
-            <div>4️⃣ Ferrari — 487</div>
-            <div>5️⃣ Aston Martin — 211</div>
+            {constructors.slice(0, 5).map((team) => (
+              <div key={team.position}>
+                {team.position}. {team.Constructor.name} — {team.points}
+              </div>
+            ))}
           </div>
         </div>
 
         <div style={cardStyle}>
           <h2>📰 Latest News</h2>
-
           <div style={{ lineHeight: "2" }}>
-            <div>• Verstappen extends championship lead</div>
-            <div>• McLaren wins constructor battle</div>
-            <div>• Singapore GP preparations underway</div>
+            <div>🚧 News API coming soon</div>
+            <div>🏎️ PurpleSector development in progress</div>
+            <div>🟣 Live standings now enabled</div>
           </div>
         </div>
       </div>

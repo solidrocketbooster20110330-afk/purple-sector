@@ -5,7 +5,7 @@ export default function HomePage() {
         minHeight: "100vh",
         background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
         color: "white",
-        padding: "24px",
+        padding: "40px",
         fontFamily: "Arial",
       }}
     >
@@ -19,59 +19,6 @@ export default function HomePage() {
         🟣 PurpleSector
       </h1>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          marginBottom: "30px",
-          flexWrap: "wrap",
-        }}
-      >
-        <a
-          href="/"
-          style={{
-            color: "#a855f7",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          🏠 Home
-        </a>
-
-        <a
-          href="/schedule"
-          style={{
-            color: "#a855f7",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          📅 Schedule
-        </a>
-
-        <a
-          href="/standings"
-          style={{
-            color: "#a855f7",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          🏆 Standings
-        </a>
-
-        <a
-          href="/news"
-          style={{
-            color: "#a855f7",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          📰 News
-        </a>
-      </div>
-
       <p
         style={{
           color: "#a9adff",
@@ -84,11 +31,65 @@ export default function HomePage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
+          gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))",
           gap: "20px",
         }}
       >
         <div
           style={{
             background: "#131942",
-            border:
+            border: "1px solid #2b347a",
+            borderRadius: "20px",
+            padding: "20px",
+          }}
+        >
+          <h2>🏁 Next Race</h2>
+          <p>Loading...</p>
+        </div>
+
+        <div
+          style={{
+            background: "#131942",
+            border: "1px solid #2b347a",
+            borderRadius: "20px",
+            padding: "20px",
+          }}
+        >
+          <h2>👨‍🏎️ Driver Standings</h2>
+
+          <div style={{ lineHeight: "1.8" }}>
+            <div>1. #1 Max Verstappen - 412</div>
+            <div>2. #4 Lando Norris - 387</div>
+            <div>3. #63 George Russell - 301</div>
+            <div>4. #16 Charles Leclerc - 287</div>
+            <div>5. #81 Oscar Piastri - 271</div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#131942",
+            border: "1px solid #2b347a",
+            borderRadius: "20px",
+            padding: "20px",
+          }}
+        >
+          <h2>🏆 Constructor Standings</h2>
+          <p>Loading...</p>
+        </div>
+
+        <div
+          style={{
+            background: "#131942",
+            border: "1px solid #2b347a",
+            borderRadius: "20px",
+            padding: "20px",
+          }}
+        >
+          <h2>📰 Latest News</h2>
+          <p>Loading...</p>
+        </div>
+      </div>
+    </main>
+  );
+}

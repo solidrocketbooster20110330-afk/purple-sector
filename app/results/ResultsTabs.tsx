@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ResultsTabs() {
-  const [tab, setTab] = useState("race");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const tab =
+    searchParams.get("type") ??
+    "race";
 
   const buttonStyle = (
     active: boolean
@@ -30,7 +35,9 @@ export default function ResultsTabs() {
     >
       <button
         onClick={() =>
-          setTab("race")
+          router.push(
+            "/results?type=race"
+          )
         }
         style={buttonStyle(
           tab === "race"
@@ -41,7 +48,9 @@ export default function ResultsTabs() {
 
       <button
         onClick={() =>
-          setTab("qualifying")
+          router.push(
+            "/results?type=qualifying"
+          )
         }
         style={buttonStyle(
           tab === "qualifying"
@@ -52,7 +61,9 @@ export default function ResultsTabs() {
 
       <button
         onClick={() =>
-          setTab("practice")
+          router.push(
+            "/results?type=practice"
+          )
         }
         style={buttonStyle(
           tab === "practice"

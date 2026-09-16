@@ -35,6 +35,7 @@ export default function HomePage() {
           gap: "20px",
         }}
       >
+        {/* Next Race */}
         <div
           style={{
             background: "#131942",
@@ -44,9 +45,13 @@ export default function HomePage() {
           }}
         >
           <h2>🏁 Next Race</h2>
-          <p>Loading...</p>
+
+          <h3>Singapore Grand Prix</h3>
+          <p>📅 Sept 20, 2026</p>
+          <p>📍 Marina Bay Street Circuit</p>
         </div>
 
+        {/* Driver Standings */}
         <div
           style={{
             background: "#131942",
@@ -66,6 +71,7 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Constructor */}
         <div
           style={{
             background: "#131942",
@@ -75,9 +81,17 @@ export default function HomePage() {
           }}
         >
           <h2>🏆 Constructor Standings</h2>
-          <p>Loading...</p>
+
+          <div style={{ lineHeight: "1.8" }}>
+            <div>1. McLaren - 658</div>
+            <div>2. Red Bull Racing - 602</div>
+            <div>3. Mercedes - 519</div>
+            <div>4. Ferrari - 487</div>
+            <div>5. Aston Martin - 211</div>
+          </div>
         </div>
 
+        {/* News */}
         <div
           style={{
             background: "#131942",
@@ -87,7 +101,12 @@ export default function HomePage() {
           }}
         >
           <h2>📰 Latest News</h2>
-          <p>Loading...</p>
+
+          <div style={{ lineHeight: "1.8" }}>
+            <div>• Verstappen extends championship lead</div>
+            <div>• McLaren wins constructor battle</div>
+            <div>• Singapore GP preparations underway</div>
+          </div>
         </div>
       </div>
     </main>

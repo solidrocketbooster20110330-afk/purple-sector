@@ -1,29 +1,9 @@
 export default function HomePage() {
-  const cards = [
-    {
-      title: "🏁 Next Race",
-      value: "Loading...",
-    },
-    {
-      title: "👨‍🏎️ Driver Standings",
-      value: "Loading...",
-    },
-    {
-      title: "🏆 Constructor",
-      value: "Loading...",
-    },
-    {
-      title: "📰 Latest News",
-      value: "Loading...",
-    },
-  ];
-
   return (
     <main
       style={{
         minHeight: "100vh",
-        background:
-          "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+        background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
         color: "white",
         padding: "24px",
         fontFamily: "Arial",
@@ -33,10 +13,64 @@ export default function HomePage() {
         style={{
           fontSize: "56px",
           fontWeight: "bold",
+          marginBottom: "10px",
         }}
       >
         🟣 PurpleSector
       </h1>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "20px",
+          marginBottom: "30px",
+          flexWrap: "wrap",
+        }}
+      >
+        <a
+          href="/"
+          style={{
+            color: "#a855f7",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
+          🏠 Home
+        </a>
+
+        <a
+          href="/schedule"
+          style={{
+            color: "#a855f7",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
+          📅 Schedule
+        </a>
+
+        <a
+          href="/standings"
+          style={{
+            color: "#a855f7",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
+          🏆 Standings
+        </a>
+
+        <a
+          href="/news"
+          style={{
+            color: "#a855f7",
+            textDecoration: "none",
+            fontWeight: "bold",
+          }}
+        >
+          📰 News
+        </a>
+      </div>
 
       <p
         style={{
@@ -50,26 +84,11 @@ export default function HomePage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit,minmax(250px,1fr))",
+          gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
           gap: "20px",
         }}
       >
-        {cards.map((card) => (
-          <div
-            key={card.title}
-            style={{
-              background: "#131942",
-              border: "1px solid #2b347a",
-              borderRadius: "20px",
-              padding: "20px",
-            }}
-          >
-            <h2>{card.title}</h2>
-            <p>{card.value}</p>
-          </div>
-        ))}
-      </div>
-    </main>
-  );
-}
+        <div
+          style={{
+            background: "#131942",
+            border:

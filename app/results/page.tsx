@@ -1,11 +1,26 @@
-export default function ResultsPage() {
-  const results = [
-    ["Max Verstappen", "Red Bull Racing"],
-    ["Lando Norris", "McLaren"],
-    ["George Russell", "Mercedes"],
-    ["Charles Leclerc", "Ferrari"],
-    ["Oscar Piastri", "McLaren"],
-  ];
+type RaceResult = {
+  position: string;
+  Driver: {
+    givenName: string;
+    familyName: string;
+  };
+  Constructor: {
+    name: string;
+  };
+};
+
+export default async function ResultsPage() {
+  const res = await fetch(
+    "https://api.jolpi.ca/ergast/f1/current/last/results.json",
+    {
+      next: { revalidate: 3600 },
+    }
+  );
+
+  const data = await res.json();
+
+  const race = data.MRData.RaceTable.Races[0];
+  const results: RaceResult[] = race.Results;
 
   return (
     <main
@@ -33,8 +48,14 @@ export default function ResultsPage() {
       </a>
 
       <h1>🏁 Last Race Results</h1>
-      <p style={{ color: "#a9adff" }}>
-        Latest Grand Prix Classification
+
+      <p
+        style={{
+          color: "#a9adff",
+          marginBottom: "20px",
+        }}
+      >
+        {race.raceName}
       </p>
 
       <div
@@ -43,42 +64,26 @@ export default function ResultsPage() {
           border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
-          marginTop: "20px",
         }}
       >
-        {results.map((driver, index) => (
+        {results.slice(0, 10).map((driver) => (
           <div
-            key={index}
+            key={driver.position}
             style={{
               display: "flex",
               justifyContent: "space-between",
-              padding: "15px 0",
-              borderBottom:
-                index === results.length - 1
-                  ? "none"
-                  : "1px solid #2b347a",
+              padding: "14px 0",
+              borderBottom: "1px solid #2b347a",
             }}
           >
             <span>
-              {index + 1}. {driver[0]}
+              {driver.position}. {driver.Driver.givenName}{" "}
+              {driver.Driver.familyName}
             </span>
 
-            <span>{driver[1]}</span>
+            <strong>{driver.Constructor.name}</strong>
           </div>
         ))}
-      </div>
-
-      <div
-        style={{
-          background: "#131942",
-          border: "1px solid #2b347a",
-          borderRadius: "20px",
-          padding: "20px",
-          marginTop: "20px",
-        }}
-      >
-        <h2>⚡ Fastest Lap</h2>
-        <p>#81 Oscar Piastri</p>
       </div>
     </main>
   );

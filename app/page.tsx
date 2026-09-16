@@ -27,6 +27,21 @@ export default function HomePage() {
       >
         Ultimate Formula 1 Dashboard
       </p>
+      <div
+  style={{
+    display: "flex",
+    gap: "20px",
+    marginBottom: "30px",
+  }}
+>
+  <a href="/" style={{ color: "white" }}>
+    Home
+  </a>
+
+  <a href="/standings" style={{ color: "white" }}>
+    Standings
+  </a>
+</div>
 
       <div
         style={{

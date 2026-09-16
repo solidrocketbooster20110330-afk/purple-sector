@@ -1,4 +1,23 @@
-export default function SchedulePage() {
+type Race = {
+  raceName: string;
+  Circuit: {
+    circuitName: string;
+  };
+  date: string;
+};
+
+export default async function SchedulePage() {
+  const res = await fetch(
+    "https://api.jolpi.ca/ergast/f1/current/next.json",
+    {
+      next: { revalidate: 3600 },
+    }
+  );
+
+  const data = await res.json();
+
+  const race: Race = data.MRData.RaceTable.Races[0];
+
   return (
     <main
       style={{
@@ -35,9 +54,9 @@ export default function SchedulePage() {
           marginTop: "20px",
         }}
       >
-        <h2>🇸🇬 Singapore Grand Prix</h2>
-        <p>📅 Sept 20, 2026</p>
-        <p>📍 Marina Bay Street Circuit</p>
+        <h2>🏁 {race.raceName}</h2>
+        <p>📅 {race.date}</p>
+        <p>📍 {race.Circuit.circuitName}</p>
       </div>
     </main>
   );

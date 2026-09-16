@@ -69,9 +69,10 @@ export default function HomePage() {
         <a href="/news" style={navBtn}>
           📰 News
         </a>
+        
         <a href="/results" style={navBtn}>
-  🏁 Results
-</a>
+         🏁 Results
+        </a>
       </nav>
 
       <div

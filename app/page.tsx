@@ -33,6 +33,7 @@ export default function HomePage() {
           display: "flex",
           gap: "15px",
           marginBottom: "35px",
+          flexWrap: "wrap",
         }}
       >
         <a
@@ -73,18 +74,19 @@ export default function HomePage() {
         >
           📅 Schedule
         </a>
+
         <a
-  href="/news"
-  style={{
-    color: "white",
-    textDecoration: "none",
-    background: "#1a2157",
-    padding: "10px 18px",
-    borderRadius: "10px",
-  }}
->
-  📰 News
-</a>
+          href="/news"
+          style={{
+            color: "white",
+            textDecoration: "none",
+            background: "#1a2157",
+            padding: "10px 18px",
+            borderRadius: "10px",
+          }}
+        >
+          📰 News
+        </a>
       </div>
 
       <div
@@ -103,7 +105,6 @@ export default function HomePage() {
           }}
         >
           <h2>🏁 Next Race</h2>
-
           <h3>Singapore Grand Prix</h3>
           <p>📅 Sept 20, 2026</p>
           <p>📍 Marina Bay Street Circuit</p>
@@ -159,7 +160,7 @@ export default function HomePage() {
 
           <div style={{ lineHeight: "1.8" }}>
             <div>• Verstappen extends championship lead</div>
-            <div>• McLaren wins constructor battle</div>
+            <div>• McLaren closes gap in constructor standings</div>
             <div>• Singapore GP preparations underway</div>
           </div>
         </div>

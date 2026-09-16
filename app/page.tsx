@@ -26,39 +26,48 @@ type Race = {
 type NewsItem = {
   title: string;
   link: string;
-  pubDate: string | null;
 };
 
 export default async function HomePage() {
-  const [driversRes, constructorsRes, raceRes, newsRes] =
-    await Promise.all([
-      fetch(
-        "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
-        {
-          next: { revalidate: 3600 },
-        }
-      ),
-      fetch(
-        "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
-        {
-          next: { revalidate: 3600 },
-        }
-      ),
-      fetch("https://api.jolpi.ca/ergast/f1/current/next.json", {
+  const [
+    driversRes,
+    constructorsRes,
+    raceRes,
+    newsRes,
+  ] = await Promise.all([
+    fetch(
+      "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
+      {
         next: { revalidate: 3600 },
-      }),
-      fetch(
-        "https://purple-sector-li6kv4p9g-purple-delta2.vercel.app/api/news",
-        {
-          cache: "no-store",
-        }
-      ),
-    ]);
+      }
+    ),
+
+    fetch(
+      "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
+      {
+        next: { revalidate: 3600 },
+      }
+    ),
+
+    fetch(
+      "https://api.jolpi.ca/ergast/f1/current/next.json",
+      {
+        next: { revalidate: 3600 },
+      }
+    ),
+
+    fetch(
+      "https://api.rss2json.com/v1/api.json?rss_url=https://www.formula1.com/content/fom-website/en/latest/all.xml",
+      {
+        next: { revalidate: 3600 },
+      }
+    ),
+  ]);
 
   const driversData = await driversRes.json();
   const constructorsData = await constructorsRes.json();
   const raceData = await raceRes.json();
-  const news: NewsItem[] = await newsRes.json();
+  const newsData = await newsRes.json();
 
   const drivers: DriverStanding[] =
     driversData.MRData.StandingsTable.StandingsLists[0]
@@ -70,6 +79,9 @@ export default async function HomePage() {
 
   const race: Race =
     raceData.MRData.RaceTable.Races[0];
+
+  const news: NewsItem[] =
+    newsData.items?.slice(0, 3) || [];
 
   const navBtn = {
     background: "#131942",
@@ -127,12 +139,29 @@ export default async function HomePage() {
           flexWrap: "wrap",
         }}
       >
-        <a href="/" style={navBtn}>🏠 Home</a>
-        <a href="/schedule" style={navBtn}>📅 Schedule</a>
-        <a href="/standings" style={navBtn}>🏆 Standings</a>
-        <a href="/constructors" style={navBtn}>🏁 Constructors</a>
-        <a href="/news" style={navBtn}>📰 News</a>
-        <a href="/results" style={navBtn}>🏎️ Results</a>
+        <a href="/" style={navBtn}>
+          🏠 Home
+        </a>
+
+        <a href="/schedule" style={navBtn}>
+          📅 Schedule
+        </a>
+
+        <a href="/standings" style={navBtn}>
+          🏆 Standings
+        </a>
+
+        <a href="/constructors" style={navBtn}>
+          🏁 Constructors
+        </a>
+
+        <a href="/news" style={navBtn}>
+          📰 News
+        </a>
+
+        <a href="/results" style={navBtn}>
+          🏎️ Results
+        </a>
       </nav>
 
       <div
@@ -145,37 +174,59 @@ export default async function HomePage() {
       >
         <div style={cardStyle}>
           <h2>🏁 Next Race</h2>
+
           <h3>{race.raceName}</h3>
+
           <p>📅 {race.date}</p>
-          <p>📍 {race.Circuit.circuitName}</p>
+
+          <p>
+            📍 {race.Circuit.circuitName}
+          </p>
         </div>
 
         <div style={cardStyle}>
           <h2>👨‍🏎️ Driver Standings</h2>
 
           <div style={{ lineHeight: "2" }}>
-            {drivers.slice(0, 5).map((driver) => (
-              <div key={driver.position}>
-                {driver.position}.{" "}
-                {driver.Driver.givenName}{" "}
-                {driver.Driver.familyName} —{" "}
-                {driver.points}
-              </div>
-            ))}
+            {drivers
+              .slice(0, 5)
+              .map((driver) => (
+                <div
+                  key={driver.position}
+                >
+                  {driver.position}.{" "}
+                  {
+                    driver.Driver
+                      .givenName
+                  }{" "}
+                  {
+                    driver.Driver
+                      .familyName
+                  }{" "}
+                  — {driver.points}
+                </div>
+              ))}
           </div>
         </div>
 
         <div style={cardStyle}>
-          <h2>🏆 Constructor Standings</h2>
+          <h2>
+            🏆 Constructor Standings
+          </h2>
 
           <div style={{ lineHeight: "2" }}>
             {constructors
               .slice(0, 5)
               .map((team) => (
-                <div key={team.position}>
+                <div
+                  key={team.position}
+                >
                   {team.position}.{" "}
-                  {team.Constructor.name} —{" "}
-                  {team.points}
+                  {
+                    team.Constructor
+                      .name
+                  }{" "}
+                  — {team.points}
                 </div>
               ))}
           </div>
@@ -184,20 +235,35 @@ export default async function HomePage() {
         <div style={cardStyle}>
           <h2>📰 Latest News</h2>
 
-          <div style={{ lineHeight: "1.8" }}>
-            {news.slice(0, 3).map((item) => (
-              <div
-                key={item.link}
-                style={{
-                  marginBottom: "10px",
-                }}
-              >
-                • {item.title}
+          <div style={{ lineHeight: "2" }}>
+            {news.length > 0 ? (
+              news.map((item) => (
+                <a
+                  key={item.link}
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: "white",
+                    textDecoration:
+                      "none",
+                    display:
+                      "block",
+                    marginBottom:
+                      "10px",
+                  }}
+                >
+                  • {item.title}
+                </a>
+              ))
+            ) : (
+              <div>
+                No news available
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
     </main>
   );
-}
+    }

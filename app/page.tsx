@@ -22,26 +22,58 @@ export default function HomePage() {
       <p
         style={{
           color: "#a9adff",
-          marginBottom: "40px",
+          marginBottom: "20px",
         }}
       >
         Ultimate Formula 1 Dashboard
       </p>
-      <div
-  style={{
-    display: "flex",
-    gap: "20px",
-    marginBottom: "30px",
-  }}
->
-  <a href="/" style={{ color: "white" }}>
-    Home
-  </a>
 
-  <a href="/standings" style={{ color: "white" }}>
-    Standings
-  </a>
-</div>
+      <div
+        style={{
+          display: "flex",
+          gap: "15px",
+          marginBottom: "35px",
+        }}
+      >
+        <a
+          href="/"
+          style={{
+            color: "white",
+            textDecoration: "none",
+            background: "#1a2157",
+            padding: "10px 18px",
+            borderRadius: "10px",
+          }}
+        >
+          🏠 Home
+        </a>
+
+        <a
+          href="/standings"
+          style={{
+            color: "white",
+            textDecoration: "none",
+            background: "#1a2157",
+            padding: "10px 18px",
+            borderRadius: "10px",
+          }}
+        >
+          🏆 Standings
+        </a>
+
+        <a
+          href="/schedule"
+          style={{
+            color: "white",
+            textDecoration: "none",
+            background: "#1a2157",
+            padding: "10px 18px",
+            borderRadius: "10px",
+          }}
+        >
+          📅 Schedule
+        </a>
+      </div>
 
       <div
         style={{
@@ -50,7 +82,6 @@ export default function HomePage() {
           gap: "20px",
         }}
       >
-        {/* Next Race */}
         <div
           style={{
             background: "#131942",
@@ -66,7 +97,6 @@ export default function HomePage() {
           <p>📍 Marina Bay Street Circuit</p>
         </div>
 
-        {/* Driver Standings */}
         <div
           style={{
             background: "#131942",
@@ -86,7 +116,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Constructor */}
         <div
           style={{
             background: "#131942",
@@ -106,7 +135,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* News */}
         <div
           style={{
             background: "#131942",

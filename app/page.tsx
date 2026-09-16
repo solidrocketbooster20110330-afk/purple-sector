@@ -66,12 +66,16 @@ export default function HomePage() {
           🏆 Standings
         </a>
 
+        <a href="/constructors" style={navBtn}>
+          🏁 Constructors
+        </a>
+
         <a href="/news" style={navBtn}>
           📰 News
         </a>
-        
+
         <a href="/results" style={navBtn}>
-         🏁 Results
+          🏎️ Results
         </a>
       </nav>
 
@@ -84,11 +88,8 @@ export default function HomePage() {
       >
         <div style={cardStyle}>
           <h2>🏁 Next Race</h2>
-
           <h3>Singapore Grand Prix</h3>
-
           <p>📅 Sept 20, 2026</p>
-
           <p>📍 Marina Bay Street Circuit</p>
         </div>
 

@@ -7,9 +7,6 @@ type Race = {
   date: string;
   Circuit: {
     circuitName: string;
-    Location: {
-      country: string;
-    };
   };
 };
 
@@ -26,6 +23,11 @@ export default async function SchedulePage() {
   const races: Race[] =
     data.MRData.RaceTable.Races;
 
+  const nextRace = races.find(
+    (race) =>
+      new Date(race.date) >= new Date()
+  ) || races[races.length - 1];
+
   return (
     <main
       style={{
@@ -40,111 +42,104 @@ export default async function SchedulePage() {
     >
       <h1
         style={{
-          fontSize: "34px",
-          marginBottom: "6px",
+          fontSize: "36px",
+          marginBottom: "20px",
         }}
       >
-        🏁 2026 Season
+        📅 Schedule
       </h1>
 
-      <p
+      <Link
+        href={`/schedule/${nextRace.round}`}
         style={{
-          color: "#a9adff",
+          display: "block",
+          background: "#131942",
+          border: "1px solid #2b347a",
+          borderRadius: "20px",
+          padding: "24px",
           marginBottom: "24px",
+          textDecoration: "none",
+          color: "white",
         }}
       >
-        Formula 1 Calendar
-      </p>
+        <div
+          style={{
+            color: "#a9adff",
+            marginBottom: "8px",
+            fontSize: "13px",
+          }}
+        >
+          NEXT RACE
+        </div>
 
-      <div
+        <div
+          style={{
+            fontSize: "28px",
+            fontWeight: "bold",
+          }}
+        >
+          {nextRace.raceName}
+        </div>
+
+        <div
+          style={{
+            marginTop: "10px",
+            color: "#c7cbff",
+          }}
+        >
+          {nextRace.date} →
+        </div>
+      </Link>
+
+      <h2
         style={{
-          display: "grid",
-          gap: "14px",
+          marginBottom: "15px",
+          color: "#a9adff",
         }}
       >
+        2026 SEASON
+      </h2>
+
+      <div>
         {races.map((race) => (
           <Link
             key={race.round}
             href={`/schedule/${race.round}`}
             style={{
+              display: "flex",
+              justifyContent:
+                "space-between",
+              alignItems: "center",
+              padding: "18px",
+              marginBottom: "12px",
+              background: "#131942",
+              border:
+                "1px solid #2b347a",
+              borderRadius: "14px",
               textDecoration: "none",
               color: "white",
             }}
           >
-            <div
-              style={{
-                background: "#131942",
-                border:
-                  "1px solid #2b347a",
-                borderRadius: "18px",
-                padding: "18px",
-                display: "flex",
-                justifyContent:
-                  "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    color: "#a9adff",
-                    fontSize: "13px",
-                    marginBottom: "4px",
-                  }}
-                >
-                  ROUND {race.round}
-                </div>
-
-                <div
-                  style={{
-                    fontWeight: "bold",
-                    fontSize: "18px",
-                  }}
-                >
-                  {race.raceName}
-                </div>
-
-                <div
-                  style={{
-                    color: "#c7cbff",
-                    marginTop: "4px",
-                  }}
-                >
-                  {
-                    race.Circuit.Location
-                      .country
-                  }
-                </div>
+            <div>
+              <div
+                style={{
+                  fontWeight: "bold",
+                }}
+              >
+                {race.raceName}
               </div>
 
               <div
                 style={{
-                  textAlign: "right",
+                  color: "#a9adff",
+                  fontSize: "14px",
                 }}
               >
-                <div>
-                  {new Date(
-                    race.date
-                  ).toLocaleDateString(
-                    "en-US",
-                    {
-                      month: "short",
-                      day: "numeric",
-                    }
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    color: "#a9adff",
-                    marginTop: "6px",
-                    fontSize: "20px",
-                  }}
-                >
-                  →
-                </div>
+                Round {race.round}
               </div>
             </div>
+
+            <div>→</div>
           </Link>
         ))}
       </div>

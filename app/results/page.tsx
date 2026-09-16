@@ -1,4 +1,5 @@
 import BottomNav from "../components/BottomNav";
+import ResultsTabs from "./ResultsTabs";
 
 type RaceResult = {
   number: string;
@@ -51,7 +52,7 @@ export default async function ResultsPage() {
           marginBottom: "6px",
         }}
       >
-        🏁 Race Results
+        🏁 Results
       </h1>
 
       <p
@@ -62,6 +63,8 @@ export default async function ResultsPage() {
       >
         {race.raceName}
       </p>
+
+      <ResultsTabs />
 
       <div
         style={{
@@ -96,9 +99,7 @@ export default async function ResultsPage() {
         {results.map((driver) => {
           let statusText = "";
 
-          if (driver.position === "1") {
-            statusText = "🏆 Winner";
-          } else if (
+          if (
             driver.status.includes("Lap")
           ) {
             const laps =

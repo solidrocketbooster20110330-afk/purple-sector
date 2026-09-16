@@ -1,3 +1,5 @@
+import BottomNav from "../components/BottomNav";
+
 type RaceResult = {
   number: string;
   position: string;
@@ -44,21 +46,6 @@ export default async function ResultsPage() {
         fontFamily: "Arial",
       }}
     >
-      <a
-        href="/"
-        style={{
-          display: "inline-block",
-          color: "white",
-          textDecoration: "none",
-          background: "#1a2157",
-          padding: "10px 18px",
-          borderRadius: "10px",
-          marginBottom: "25px",
-        }}
-      >
-        ← Home
-      </a>
-
       <h1
         style={{
           marginBottom: "6px",
@@ -114,7 +101,11 @@ export default async function ResultsPage() {
           } else if (
             driver.status.includes("Lap")
           ) {
-            statusText = driver.status;
+            const laps =
+              driver.status.match(/\d+/)?.[0] ??
+              "1";
+
+            statusText = `+${laps} Lap`;
           } else if (
             driver.status === "Finished"
           ) {
@@ -204,58 +195,7 @@ export default async function ResultsPage() {
         })}
       </div>
 
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          background: "#131942",
-          borderTop:
-            "1px solid #2b347a",
-          display: "flex",
-          justifyContent:
-            "space-around",
-          padding: "16px 0",
-          zIndex: 999,
-        }}
-      >
-        <a
-          href="/"
-          style={{
-            color: "white",
-            textDecoration:
-              "none",
-            fontWeight: "bold",
-          }}
-        >
-          🏠 Home
-        </a>
-
-        <a
-          href="/results"
-          style={{
-            color: "#a855f7",
-            textDecoration:
-              "none",
-            fontWeight: "bold",
-          }}
-        >
-          🏁 Results
-        </a>
-
-        <a
-          href="/schedule"
-          style={{
-            color: "white",
-            textDecoration:
-              "none",
-            fontWeight: "bold",
-          }}
-        >
-          📅 Schedule
-        </a>
-      </div>
+      <BottomNav />
     </main>
   );
 }

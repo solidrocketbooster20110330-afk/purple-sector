@@ -9,9 +9,47 @@ export default function ResultsTabs() {
         marginBottom: "20px",
       }}
     >
-      <button>🏁 Race</button>
-      <button>⚡ Qualifying</button>
-      <button>🛠 Practice</button>
+      <button
+        style={{
+          flex: 1,
+          padding: "12px",
+          borderRadius: "12px",
+          border: "none",
+          background: "#7c3aed",
+          color: "white",
+          fontWeight: "bold",
+        }}
+      >
+        🏁 Race
+      </button>
+
+      <button
+        style={{
+          flex: 1,
+          padding: "12px",
+          borderRadius: "12px",
+          border: "none",
+          background: "#131942",
+          color: "white",
+          fontWeight: "bold",
+        }}
+      >
+        ⚡ Qualifying
+      </button>
+
+      <button
+        style={{
+          flex: 1,
+          padding: "12px",
+          borderRadius: "12px",
+          border: "none",
+          background: "#131942",
+          color: "white",
+          fontWeight: "bold",
+        }}
+      >
+        🛠 Practice
+      </button>
     </div>
   );
 }

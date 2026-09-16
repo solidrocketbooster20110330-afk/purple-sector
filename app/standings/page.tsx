@@ -1,14 +1,32 @@
-export default function StandingsPage() {
+async function getDrivers() {
+  const res = await fetch(
+    "https://api.openf1.org/v1/drivers?session_key=latest",
+    { cache: "no-store" }
+  );
+
+  return res.json();
+}
+
+export default async function StandingsPage() {
+  const drivers = await getDrivers();
+
   return (
-    <main>
-      <h1>🏆 Championship Standings</h1>
-      <div>
-  <p>1. #1 Max Verstappen - 412</p>
-  <p>2. #4 Lando Norris - 387</p>
-  <p>3. #63 George Russell - 301</p>
-  <p>4. #16 Charles Leclerc - 287</p>
-  <p>5. #81 Oscar Piastri - 271</p>
-</div>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#05071f",
+        color: "white",
+        padding: "24px",
+        fontFamily: "Arial",
+      }}
+    >
+      <h1>🏆 Driver List</h1>
+
+      {drivers.slice(0, 20).map((driver: any) => (
+        <div key={driver.driver_number}>
+          #{driver.driver_number} {driver.full_name}
+        </div>
+      ))}
     </main>
   );
 }

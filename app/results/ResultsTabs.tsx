@@ -5,71 +5,61 @@ import { useState } from "react";
 export default function ResultsTabs() {
   const [tab, setTab] = useState("race");
 
-  const btnStyle = (active: boolean) => ({
+  const buttonStyle = (
+    active: boolean
+  ) => ({
     flex: 1,
     padding: "12px",
-    borderRadius: "10px",
+    borderRadius: "12px",
     border: "none",
     cursor: "pointer",
-    fontWeight: "bold",
-    background: active ? "#a855f7" : "#131942",
+    background: active
+      ? "#7c3aed"
+      : "#131942",
     color: "white",
+    fontWeight: "bold",
   });
 
   return (
     <div
       style={{
+        display: "flex",
+        gap: "10px",
         marginBottom: "20px",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "20px",
-        }}
+      <button
+        onClick={() =>
+          setTab("race")
+        }
+        style={buttonStyle(
+          tab === "race"
+        )}
       >
-        <button
-          style={btnStyle(tab === "race")}
-          onClick={() => setTab("race")}
-        >
-          Race
-        </button>
+        🏁 Race
+      </button>
 
-        <button
-          style={btnStyle(tab === "qualifying")}
-          onClick={() =>
-            setTab("qualifying")
-          }
-        >
-          Qualifying
-        </button>
-
-        <button
-          style={btnStyle(tab === "practice")}
-          onClick={() =>
-            setTab("practice")
-          }
-        >
-          Practice
-        </button>
-      </div>
-
-      <div
-        style={{
-          color: "#a9adff",
-          fontSize: "14px",
-        }}
+      <button
+        onClick={() =>
+          setTab("qualifying")
+        }
+        style={buttonStyle(
+          tab === "qualifying"
+        )}
       >
-        {tab === "race" &&
-          "Race Results"}
+        ⚡ Qualifying
+      </button>
 
-        {tab === "qualifying" &&
-          "Qualifying Results"}
-
-        {tab === "practice" &&
-          "Practice Results"}
-      </div>
+      <button
+        onClick={() =>
+          setTab("practice")
+        }
+        style={buttonStyle(
+          tab === "practice"
+        )}
+      >
+        🛠 Practice
+      </button>
     </div>
   );
 }

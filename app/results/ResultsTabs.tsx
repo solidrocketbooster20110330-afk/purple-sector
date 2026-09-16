@@ -1,6 +1,26 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 export default function ResultsTabs() {
+  const pathname = usePathname();
+
+  const buttonStyle = (
+    active: boolean
+  ) => ({
+    flex: 1,
+    padding: "12px",
+    borderRadius: "12px",
+    textDecoration: "none",
+    textAlign: "center" as const,
+    background: active
+      ? "#7c3aed"
+      : "#131942",
+    color: "white",
+    fontWeight: "bold",
+  });
+
   return (
     <div
       style={{
@@ -9,47 +29,24 @@ export default function ResultsTabs() {
         marginBottom: "20px",
       }}
     >
-      <button
-        style={{
-          flex: 1,
-          padding: "12px",
-          borderRadius: "12px",
-          border: "none",
-          background: "#7c3aed",
-          color: "white",
-          fontWeight: "bold",
-        }}
+      <Link
+        href="/results"
+        style={buttonStyle(
+          pathname === "/results"
+        )}
       >
         🏁 Race
-      </button>
+      </Link>
 
-      <button
-        style={{
-          flex: 1,
-          padding: "12px",
-          borderRadius: "12px",
-          border: "none",
-          background: "#131942",
-          color: "white",
-          fontWeight: "bold",
-        }}
+      <Link
+        href="/results/qualifying"
+        style={buttonStyle(
+          pathname ===
+            "/results/qualifying"
+        )}
       >
         ⚡ Qualifying
-      </button>
-
-      <button
-        style={{
-          flex: 1,
-          padding: "12px",
-          borderRadius: "12px",
-          border: "none",
-          background: "#131942",
-          color: "white",
-          fontWeight: "bold",
-        }}
-      >
-        🛠 Practice
-      </button>
+      </Link>
     </div>
   );
 }

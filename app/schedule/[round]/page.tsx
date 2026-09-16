@@ -20,28 +20,23 @@ export default async function RoundPage({
   const race =
     data.MRData.RaceTable.Races[0];
 
-  if (!race) {
-    return (
-      <main
-        style={{
-          minHeight: "100vh",
-          background:
-            "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
-          color: "white",
-          padding: "24px",
-        }}
-      >
-        Race not found
-      </main>
-    );
-  }
-
-  const sessionCard = {
+  const cardStyle = {
     background: "#131942",
     border: "1px solid #2b347a",
     borderRadius: "16px",
     padding: "18px",
     marginBottom: "14px",
+  };
+
+  const resultBtn = {
+    display: "inline-block",
+    marginTop: "12px",
+    padding: "10px 14px",
+    background: "#1f2a6b",
+    borderRadius: "10px",
+    textDecoration: "none",
+    color: "white",
+    fontWeight: "bold",
   };
 
   return (
@@ -108,82 +103,66 @@ export default async function RoundPage({
         </div>
       </div>
 
-      <div style={sessionCard}>
-        <h2>🏁 Race</h2>
-
-        <div
-          style={{
-            color: "#a9adff",
-            marginBottom: "12px",
-          }}
-        >
-          Grand Prix Session
+      <div style={cardStyle}>
+        <h2>🛠 FP1</h2>
+        <div style={{ color: "#a9adff" }}>
+          Practice Session 1
         </div>
-
         <Link
           href="/results"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            background: "#1f2a6b",
-            padding: "10px 14px",
-            borderRadius: "10px",
-            display: "inline-block",
-          }}
+          style={resultBtn}
         >
           View Results →
         </Link>
       </div>
 
-      <div style={sessionCard}>
-        <h2>⚡ Qualifying</h2>
-
-        <div
-          style={{
-            color: "#a9adff",
-            marginBottom: "12px",
-          }}
+      <div style={cardStyle}>
+        <h2>🛠 FP2</h2>
+        <div style={{ color: "#a9adff" }}>
+          Practice Session 2
+        </div>
+        <Link
+          href="/results"
+          style={resultBtn}
         >
+          View Results →
+        </Link>
+      </div>
+
+      <div style={cardStyle}>
+        <h2>🛠 FP3</h2>
+        <div style={{ color: "#a9adff" }}>
+          Practice Session 3
+        </div>
+        <Link
+          href="/results"
+          style={resultBtn}
+        >
+          View Results →
+        </Link>
+      </div>
+
+      <div style={cardStyle}>
+        <h2>⚡ Qualifying</h2>
+        <div style={{ color: "#a9adff" }}>
           Qualifying Session
         </div>
-
         <Link
           href="/results"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            background: "#1f2a6b",
-            padding: "10px 14px",
-            borderRadius: "10px",
-            display: "inline-block",
-          }}
+          style={resultBtn}
         >
           View Results →
         </Link>
       </div>
 
-      <div style={sessionCard}>
-        <h2>🛠 Practice</h2>
-
-        <div
-          style={{
-            color: "#a9adff",
-            marginBottom: "12px",
-          }}
-        >
-          FP1 • FP2 • FP3
+      <div style={cardStyle}>
+        <h2>🏁 Race</h2>
+        <div style={{ color: "#a9adff" }}>
+          Grand Prix
         </div>
-
         <Link
           href="/results"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            background: "#1f2a6b",
-            padding: "10px 14px",
-            borderRadius: "10px",
-            display: "inline-block",
-          }}
+          style={resultBtn}
         >
           View Results →
         </Link>

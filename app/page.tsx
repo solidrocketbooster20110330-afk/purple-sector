@@ -23,31 +23,53 @@ type Race = {
   date: string;
 };
 
+type NewsItem = {
+  title: string;
+  link: string;
+  pubDate: string | null;
+};
+
 export default async function HomePage() {
-  const [driversRes, constructorsRes, raceRes] = await Promise.all([
-    fetch("https://api.jolpi.ca/ergast/f1/current/driverstandings.json", {
-      next: { revalidate: 3600 },
-    }),
-    fetch("https://api.jolpi.ca/ergast/f1/current/constructorstandings.json", {
-      next: { revalidate: 3600 },
-    }),
-    fetch("https://api.jolpi.ca/ergast/f1/current/next.json", {
-      next: { revalidate: 3600 },
-    }),
-  ]);
+  const [driversRes, constructorsRes, raceRes, newsRes] =
+    await Promise.all([
+      fetch(
+        "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
+        {
+          next: { revalidate: 3600 },
+        }
+      ),
+      fetch(
+        "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
+        {
+          next: { revalidate: 3600 },
+        }
+      ),
+      fetch("https://api.jolpi.ca/ergast/f1/current/next.json", {
+        next: { revalidate: 3600 },
+      }),
+      fetch(
+        "https://purple-sector-li6kv4p9g-purple-delta2.vercel.app/api/news",
+        {
+          cache: "no-store",
+        }
+      ),
+    ]);
 
   const driversData = await driversRes.json();
   const constructorsData = await constructorsRes.json();
   const raceData = await raceRes.json();
+  const news: NewsItem[] = await newsRes.json();
 
   const drivers: DriverStanding[] =
-    driversData.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+    driversData.MRData.StandingsTable.StandingsLists[0]
+      .DriverStandings;
 
   const constructors: ConstructorStanding[] =
     constructorsData.MRData.StandingsTable.StandingsLists[0]
       .ConstructorStandings;
 
-  const race: Race = raceData.MRData.RaceTable.Races[0];
+  const race: Race =
+    raceData.MRData.RaceTable.Races[0];
 
   const navBtn = {
     background: "#131942",
@@ -71,7 +93,8 @@ export default async function HomePage() {
     <main
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+        background:
+          "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
         color: "white",
         padding: "40px",
         fontFamily: "Arial",
@@ -115,7 +138,8 @@ export default async function HomePage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit,minmax(320px,1fr))",
           gap: "20px",
         }}
       >
@@ -132,8 +156,10 @@ export default async function HomePage() {
           <div style={{ lineHeight: "2" }}>
             {drivers.slice(0, 5).map((driver) => (
               <div key={driver.position}>
-                {driver.position}. {driver.Driver.givenName}{" "}
-                {driver.Driver.familyName} — {driver.points}
+                {driver.position}.{" "}
+                {driver.Driver.givenName}{" "}
+                {driver.Driver.familyName} —{" "}
+                {driver.points}
               </div>
             ))}
           </div>
@@ -143,20 +169,32 @@ export default async function HomePage() {
           <h2>🏆 Constructor Standings</h2>
 
           <div style={{ lineHeight: "2" }}>
-            {constructors.slice(0, 5).map((team) => (
-              <div key={team.position}>
-                {team.position}. {team.Constructor.name} — {team.points}
-              </div>
-            ))}
+            {constructors
+              .slice(0, 5)
+              .map((team) => (
+                <div key={team.position}>
+                  {team.position}.{" "}
+                  {team.Constructor.name} —{" "}
+                  {team.points}
+                </div>
+              ))}
           </div>
         </div>
 
         <div style={cardStyle}>
           <h2>📰 Latest News</h2>
-          <div style={{ lineHeight: "2" }}>
-            <div>🚧 News API coming soon</div>
-            <div>🏎️ PurpleSector development in progress</div>
-            <div>🟣 Live standings now enabled</div>
+
+          <div style={{ lineHeight: "1.8" }}>
+            {news.slice(0, 3).map((item) => (
+              <div
+                key={item.link}
+                style={{
+                  marginBottom: "10px",
+                }}
+              >
+                • {item.title}
+              </div>
+            ))}
           </div>
         </div>
       </div>

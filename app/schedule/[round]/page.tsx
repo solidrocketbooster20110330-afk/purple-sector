@@ -1,6 +1,11 @@
 import Link from "next/link";
 import BottomNav from "../../components/BottomNav";
 
+type Session = {
+  date?: string;
+  time?: string;
+};
+
 export default async function RoundPage({
   params,
 }: {
@@ -19,6 +24,80 @@ export default async function RoundPage({
 
   const race =
     data.MRData.RaceTable.Races[0];
+
+  const formatSession = (
+    session?: Session
+  ) => {
+    if (!session?.date) return "TBA";
+
+    const date = new Date(
+      `${session.date}T${
+        session.time ?? "00:00:00Z"
+      }`
+    );
+
+    return date.toLocaleString(
+      "en-US",
+      {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
+  };
+
+  const sessions = [
+    {
+      title: "FP1",
+      time: formatSession(
+        race.FirstPractice
+      ),
+    },
+
+    race.SecondPractice && {
+      title: "FP2",
+      time: formatSession(
+        race.SecondPractice
+      ),
+    },
+
+    race.ThirdPractice && {
+      title: "FP3",
+      time: formatSession(
+        race.ThirdPractice
+      ),
+    },
+
+    race.SprintQualifying && {
+      title: "Sprint Qualifying",
+      time: formatSession(
+        race.SprintQualifying
+      ),
+    },
+
+    race.Sprint && {
+      title: "Sprint",
+      time: formatSession(
+        race.Sprint
+      ),
+    },
+
+    {
+      title: "Qualifying",
+      time: formatSession(
+        race.Qualifying
+      ),
+    },
+
+    {
+      title: "Race",
+      time: formatSession({
+        date: race.date,
+        time: race.time,
+      }),
+    },
+  ].filter(Boolean);
 
   const cardStyle = {
     background: "#131942",
@@ -103,70 +182,29 @@ export default async function RoundPage({
         </div>
       </div>
 
-      <div style={cardStyle}>
-        <h2>🛠 FP1</h2>
-        <div style={{ color: "#a9adff" }}>
-          Practice Session 1
-        </div>
-        <Link
-          href="/results"
-          style={resultBtn}
+      {sessions.map((session: any) => (
+        <div
+          key={session.title}
+          style={cardStyle}
         >
-          View Results →
-        </Link>
-      </div>
+          <h2>{session.title}</h2>
 
-      <div style={cardStyle}>
-        <h2>🛠 FP2</h2>
-        <div style={{ color: "#a9adff" }}>
-          Practice Session 2
-        </div>
-        <Link
-          href="/results"
-          style={resultBtn}
-        >
-          View Results →
-        </Link>
-      </div>
+          <div
+            style={{
+              color: "#a9adff",
+            }}
+          >
+            {session.time}
+          </div>
 
-      <div style={cardStyle}>
-        <h2>🛠 FP3</h2>
-        <div style={{ color: "#a9adff" }}>
-          Practice Session 3
+          <Link
+            href="/results"
+            style={resultBtn}
+          >
+            View Results →
+          </Link>
         </div>
-        <Link
-          href="/results"
-          style={resultBtn}
-        >
-          View Results →
-        </Link>
-      </div>
-
-      <div style={cardStyle}>
-        <h2>⚡ Qualifying</h2>
-        <div style={{ color: "#a9adff" }}>
-          Qualifying Session
-        </div>
-        <Link
-          href="/results"
-          style={resultBtn}
-        >
-          View Results →
-        </Link>
-      </div>
-
-      <div style={cardStyle}>
-        <h2>🏁 Race</h2>
-        <div style={{ color: "#a9adff" }}>
-          Grand Prix
-        </div>
-        <Link
-          href="/results"
-          style={resultBtn}
-        >
-          View Results →
-        </Link>
-      </div>
+      ))}
 
       <BottomNav />
     </main>

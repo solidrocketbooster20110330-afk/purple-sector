@@ -1,9 +1,18 @@
 type RaceResult = {
   position: string;
+  grid: string;
+  points: string;
+  status: string;
+
+  Time?: {
+    time: string;
+  };
+
   Driver: {
     givenName: string;
     familyName: string;
   };
+
   Constructor: {
     name: string;
   };
@@ -66,22 +75,65 @@ export default async function ResultsPage() {
           padding: "20px",
         }}
       >
-        {results.slice(0, 10).map((driver) => (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "60px 1fr 80px 140px 80px",
+            gap: "10px",
+            paddingBottom: "12px",
+            borderBottom: "2px solid #2b347a",
+            color: "#a9adff",
+            fontWeight: "bold",
+          }}
+        >
+          <div>POS</div>
+          <div>DRIVER</div>
+          <div>GRID</div>
+          <div>STATUS</div>
+          <div>PTS</div>
+        </div>
+
+        {results.map((driver) => (
           <div
             key={driver.position}
             style={{
-              display: "flex",
-              justifyContent: "space-between",
+              display: "grid",
+              gridTemplateColumns: "60px 1fr 80px 140px 80px",
+              gap: "10px",
               padding: "14px 0",
               borderBottom: "1px solid #2b347a",
+              alignItems: "center",
             }}
           >
-            <span>
-              {driver.position}. {driver.Driver.givenName}{" "}
-              {driver.Driver.familyName}
-            </span>
+            <strong>P{driver.position}</strong>
 
-            <strong>{driver.Constructor.name}</strong>
+            <div>
+              <div>
+                {driver.Driver.givenName}{" "}
+                {driver.Driver.familyName}
+              </div>
+
+              <div
+                style={{
+                  color: "#a9adff",
+                  fontSize: "13px",
+                }}
+              >
+                {driver.Constructor.name}
+              </div>
+            </div>
+
+            <div>P{driver.grid}</div>
+
+            <div>
+              {driver.status === "Finished"
+                ? driver.position === "1"
+                  ? "🏆 Winner"
+                  : driver.Time?.time ?? "Finished"
+                : `⚠️ ${driver.status}`}
+            </div>
+
+            <strong>{driver.points}</strong>
           </div>
         ))}
       </div>

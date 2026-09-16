@@ -1,3 +1,5 @@
+import BottomNav from "./components/BottomNav";
+
 type DriverStanding = {
   position: string;
   points: string;
@@ -17,9 +19,6 @@ type ConstructorStanding = {
 
 type Race = {
   raceName: string;
-  Circuit: {
-    circuitName: string;
-  };
   date: string;
 };
 
@@ -34,6 +33,7 @@ export default async function HomePage() {
     constructorsRes,
     raceRes,
     newsRes,
+    resultRes,
   ] = await Promise.all([
     fetch(
       "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
@@ -62,42 +62,53 @@ export default async function HomePage() {
         next: { revalidate: 3600 },
       }
     ),
+
+    fetch(
+      "https://api.jolpi.ca/ergast/f1/current/last/results.json",
+      {
+        next: { revalidate: 3600 },
+      }
+    ),
   ]);
 
   const driversData = await driversRes.json();
   const constructorsData = await constructorsRes.json();
   const raceData = await raceRes.json();
   const newsData = await newsRes.json();
+  const resultData = await resultRes.json();
 
-  const drivers: DriverStanding[] =
-    driversData.MRData.StandingsTable.StandingsLists[0]
-      .DriverStandings;
+  const drivers =
+    driversData.MRData.StandingsTable
+      .StandingsLists[0].DriverStandings;
 
-  const constructors: ConstructorStanding[] =
-    constructorsData.MRData.StandingsTable.StandingsLists[0]
-      .ConstructorStandings;
+  const constructors =
+    constructorsData.MRData.StandingsTable
+      .StandingsLists[0].ConstructorStandings;
 
   const race: Race =
     raceData.MRData.RaceTable.Races[0];
+
+  const lastRace =
+    resultData.MRData.RaceTable.Races[0];
+
+  const winner = lastRace.Results[0];
 
   const news: NewsItem[] =
     newsData.items?.slice(0, 3) || [];
 
   const raceDate = new Date(race.date);
 
-  const raceDateText = raceDate.toLocaleDateString(
-    "en-US",
-    {
+  const raceDateText =
+    raceDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-    }
-  );
+    });
 
-  const cardStyle = {
-    background: "#131942",
+  const card = {
+    background: "#11152f",
     border: "1px solid #2b347a",
-    borderRadius: "20px",
-    padding: "20px",
+    borderRadius: "18px",
+    padding: "18px",
   };
 
   return (
@@ -105,18 +116,17 @@ export default async function HomePage() {
       style={{
         minHeight: "100vh",
         background:
-          "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+          "linear-gradient(180deg,#05071f 0%,#090d28 100%)",
         color: "white",
-        padding: "24px",
-        paddingBottom: "100px",
+        padding: "20px",
+        paddingBottom: "90px",
         fontFamily: "Arial",
       }}
     >
       <h1
         style={{
-          fontSize: "42px",
-          fontWeight: "bold",
-          marginBottom: "6px",
+          fontSize: "38px",
+          marginBottom: "5px",
         }}
       >
         🟣 PurpleSector
@@ -124,8 +134,8 @@ export default async function HomePage() {
 
       <p
         style={{
-          color: "#a9adff",
-          marginBottom: "25px",
+          color: "#9fa7ff",
+          marginBottom: "20px",
         }}
       >
         Formula 1 Dashboard
@@ -134,18 +144,17 @@ export default async function HomePage() {
       <a
         href="/schedule"
         style={{
-          ...cardStyle,
+          ...card,
           display: "block",
           textDecoration: "none",
           color: "white",
           marginBottom: "20px",
-          padding: "28px",
         }}
       >
         <div
           style={{
-            color: "#a9adff",
-            fontSize: "14px",
+            color: "#9fa7ff",
+            fontSize: "13px",
             marginBottom: "8px",
           }}
         >
@@ -154,9 +163,8 @@ export default async function HomePage() {
 
         <div
           style={{
-            fontSize: "30px",
+            fontSize: "28px",
             fontWeight: "bold",
-            marginBottom: "10px",
           }}
         >
           {race.raceName}
@@ -164,139 +172,158 @@ export default async function HomePage() {
 
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
+            marginTop: "8px",
             color: "#c7cbff",
           }}
         >
-          <span>{raceDateText}</span>
-          <span>→</span>
+          {raceDateText} →
         </div>
       </a>
 
       <div
         style={{
-          display: "grid",
-          gap: "20px",
+          ...card,
+          marginBottom: "20px",
         }}
       >
-        <div style={cardStyle}>
-          <h2>👨‍🏎️ Driver Standings</h2>
-
-          <div style={{ lineHeight: "2" }}>
-            {drivers.slice(0, 5).map((driver) => (
-              <div key={driver.position}>
-                {driver.position}.{" "}
-                {driver.Driver.familyName}
-                {" — "}
-                {driver.points}
-              </div>
-            ))}
-          </div>
+        <div
+          style={{
+            color: "#9fa7ff",
+            fontSize: "13px",
+            marginBottom: "8px",
+          }}
+        >
+          LAST RESULT
         </div>
 
-        <div style={cardStyle}>
-          <h2>🏆 Constructor Standings</h2>
-
-          <div style={{ lineHeight: "2" }}>
-            {constructors.slice(0, 5).map((team) => (
-              <div key={team.position}>
-                {team.position}.{" "}
-                {team.Constructor.name}
-                {" — "}
-                {team.points}
-              </div>
-            ))}
-          </div>
+        <div
+          style={{
+            fontSize: "22px",
+            fontWeight: "bold",
+            marginBottom: "8px",
+          }}
+        >
+          {lastRace.raceName}
         </div>
 
-        <div style={cardStyle}>
-          <h2>📰 Latest News</h2>
-
-          {news.length > 0 ? (
-            news.map((item) => (
-              <a
-                key={item.link}
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "white",
-                  textDecoration: "none",
-                  display: "block",
-                  marginBottom: "12px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                • {item.title}
-              </a>
-            ))
-          ) : (
-            <div>No news available</div>
-          )}
-
-          <a
-            href="/news"
-            style={{
-              color: "#a9adff",
-              textDecoration: "none",
-              fontWeight: "bold",
-            }}
-          >
-            More News →
-          </a>
+        <div>
+          🏆 {winner.Driver.givenName}{" "}
+          {winner.Driver.familyName}
         </div>
+
+        <a
+          href="/results"
+          style={{
+            color: "#a855f7",
+            textDecoration: "none",
+            display: "inline-block",
+            marginTop: "10px",
+          }}
+        >
+          View Results →
+        </a>
       </div>
 
       <div
         style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          background: "#131942",
-          borderTop: "1px solid #2b347a",
-          display: "flex",
-          justifyContent: "space-around",
-          padding: "16px 0",
-          zIndex: 999,
+          ...card,
+          marginBottom: "20px",
         }}
       >
+        <h2>Drivers</h2>
+
+        {drivers.slice(0, 5).map((d: DriverStanding) => (
+          <div
+            key={d.position}
+            style={{
+              display: "flex",
+              justifyContent:
+                "space-between",
+              padding: "8px 0",
+            }}
+          >
+            <span>
+              {d.position}.{" "}
+              {d.Driver.familyName}
+            </span>
+
+            <strong>{d.points}</strong>
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          ...card,
+          marginBottom: "20px",
+        }}
+      >
+        <h2>Constructors</h2>
+
+        {constructors
+          .slice(0, 5)
+          .map(
+            (
+              team: ConstructorStanding
+            ) => (
+              <div
+                key={team.position}
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  padding: "8px 0",
+                }}
+              >
+                <span>
+                  {team.position}.{" "}
+                  {
+                    team.Constructor
+                      .name
+                  }
+                </span>
+
+                <strong>
+                  {team.points}
+                </strong>
+              </div>
+            )
+          )}
+      </div>
+
+      <div style={card}>
+        <h2>Latest News</h2>
+
+        {news.map((item) => (
+          <a
+            key={item.link}
+            href={item.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "block",
+              color: "white",
+              textDecoration: "none",
+              marginBottom: "12px",
+            }}
+          >
+            • {item.title}
+          </a>
+        ))}
+
         <a
-          href="/"
+          href="/news"
           style={{
             color: "#a855f7",
             textDecoration: "none",
             fontWeight: "bold",
           }}
         >
-          🏠 Home
-        </a>
-
-        <a
-          href="/results"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          🏁 Results
-        </a>
-
-        <a
-          href="/schedule"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          📅 Schedule
+          More News →
         </a>
       </div>
+
+      <BottomNav />
     </main>
   );
 }

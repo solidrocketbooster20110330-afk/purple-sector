@@ -73,6 +73,18 @@ export default function HomePage() {
         >
           📅 Schedule
         </a>
+        <a
+  href="/news"
+  style={{
+    color: "white",
+    textDecoration: "none",
+    background: "#1a2157",
+    padding: "10px 18px",
+    borderRadius: "10px",
+  }}
+>
+  📰 News
+</a>
       </div>
 
       <div

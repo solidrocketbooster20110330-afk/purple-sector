@@ -1,12 +1,12 @@
 type NewsItem = {
   title: string;
   link: string;
-  pubDate: string;
+  pubDate: string | null;
 };
 
 export default async function NewsPage() {
   const res = await fetch(
-    `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ""}/api/news`,
+    "https://purple-sector-li6kv4p9g-purple-delta2.vercel.app/api/news",
     {
       cache: "no-store",
     }
@@ -39,13 +39,28 @@ export default async function NewsPage() {
         ← Home
       </a>
 
-      <h1>📰 F1 News</h1>
+      <h1
+        style={{
+          fontSize: "42px",
+          marginBottom: "10px",
+        }}
+      >
+        📰 F1 News
+      </h1>
+
+      <p
+        style={{
+          color: "#a9adff",
+          marginBottom: "30px",
+        }}
+      >
+        Latest Formula 1 Headlines
+      </p>
 
       <div
         style={{
           display: "grid",
           gap: "20px",
-          marginTop: "30px",
         }}
       >
         {news.map((item, index) => (
@@ -65,15 +80,20 @@ export default async function NewsPage() {
                 border: "1px solid #2b347a",
                 borderRadius: "20px",
                 padding: "20px",
+                transition: "0.2s",
               }}
             >
               <h2>{item.title}</h2>
 
-              <p style={{ color: "#a9adff" }}>
-                {item.pubDate.split(" ")[0]}
+              <p
+                style={{
+                  color: "#a9adff",
+                }}
+              >
+                {item.pubDate || "Latest"}
               </p>
 
-              <p>Read Article →</p>
+              <p>🔗 Read Article</p>
             </div>
           </a>
         ))}

@@ -1,14 +1,21 @@
+import Link from "next/link";
+import BottomNav from "../components/BottomNav";
+
 type Race = {
+  round: string;
   raceName: string;
+  date: string;
   Circuit: {
     circuitName: string;
+    Location: {
+      country: string;
+    };
   };
-  date: string;
 };
 
 export default async function SchedulePage() {
   const res = await fetch(
-    "https://api.jolpi.ca/ergast/f1/current/next.json",
+    "https://api.jolpi.ca/ergast/f1/current.json",
     {
       next: { revalidate: 3600 },
     }
@@ -16,48 +23,133 @@ export default async function SchedulePage() {
 
   const data = await res.json();
 
-  const race: Race = data.MRData.RaceTable.Races[0];
+  const races: Race[] =
+    data.MRData.RaceTable.Races;
 
   return (
     <main
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+        background:
+          "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
         color: "white",
-        padding: "40px",
+        padding: "24px",
+        paddingBottom: "100px",
         fontFamily: "Arial",
       }}
     >
-      <a
-        href="/"
+      <h1
         style={{
-          display: "inline-block",
-          color: "white",
-          textDecoration: "none",
-          background: "#1a2157",
-          padding: "10px 18px",
-          borderRadius: "10px",
-          marginBottom: "25px",
+          fontSize: "34px",
+          marginBottom: "6px",
         }}
       >
-        ← Home
-      </a>
+        🏁 2026 Season
+      </h1>
 
-      <h1>📅 Next Race Schedule</h1>
+      <p
+        style={{
+          color: "#a9adff",
+          marginBottom: "24px",
+        }}
+      >
+        Formula 1 Calendar
+      </p>
 
       <div
         style={{
-          background: "#131942",
-          border: "1px solid #2b347a",
-          borderRadius: "20px",
-          padding: "25px",
-          marginTop: "20px",
+          display: "grid",
+          gap: "14px",
         }}
       >
-        <h2>🏁 {race.raceName}</h2>
-        <p>📅 {race.date}</p>
-        <p>📍 {race.Circuit.circuitName}</p>
+        {races.map((race) => (
+          <Link
+            key={race.round}
+            href={`/schedule/${race.round}`}
+            style={{
+              textDecoration: "none",
+              color: "white",
+            }}
+          >
+            <div
+              style={{
+                background: "#131942",
+                border:
+                  "1px solid #2b347a",
+                borderRadius: "18px",
+                padding: "18px",
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    color: "#a9adff",
+                    fontSize: "13px",
+                    marginBottom: "4px",
+                  }}
+                >
+                  ROUND {race.round}
+                </div>
+
+                <div
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "18px",
+                  }}
+                >
+                  {race.raceName}
+                </div>
+
+                <div
+                  style={{
+                    color: "#c7cbff",
+                    marginTop: "4px",
+                  }}
+                >
+                  {
+                    race.Circuit.Location
+                      .country
+                  }
+                </div>
+              </div>
+
+              <div
+                style={{
+                  textAlign: "right",
+                }}
+              >
+                <div>
+                  {new Date(
+                    race.date
+                  ).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                    }
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    color: "#a9adff",
+                    marginTop: "6px",
+                    fontSize: "20px",
+                  }}
+                >
+                  →
+                </div>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
+
+      <BottomNav />
     </main>
   );
 }

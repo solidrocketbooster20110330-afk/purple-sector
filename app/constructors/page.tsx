@@ -1,11 +1,23 @@
-export default function ConstructorsPage() {
-  const teams = [
-    ["McLaren", 658],
-    ["Red Bull Racing", 602],
-    ["Mercedes", 519],
-    ["Ferrari", 487],
-    ["Aston Martin", 211],
-  ];
+type ConstructorStanding = {
+  position: string;
+  points: string;
+  Constructor: {
+    name: string;
+  };
+};
+
+export default async function ConstructorsPage() {
+  const res = await fetch(
+    "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
+    {
+      next: { revalidate: 3600 },
+    }
+  );
+
+  const data = await res.json();
+
+  const constructors: ConstructorStanding[] =
+    data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
 
   return (
     <main
@@ -17,24 +29,6 @@ export default function ConstructorsPage() {
         fontFamily: "Arial",
       }}
     >
-      <h1
-        style={{
-          fontSize: "42px",
-          marginBottom: "10px",
-        }}
-      >
-        🏆 Constructor Championship
-      </h1>
-
-      <p
-        style={{
-          color: "#a9adff",
-          marginBottom: "30px",
-        }}
-      >
-        2026 Formula 1 Constructor Standings
-      </p>
-
       <a
         href="/"
         style={{
@@ -50,6 +44,17 @@ export default function ConstructorsPage() {
         ← Home
       </a>
 
+      <h1>🏆 Constructor Championship</h1>
+
+      <p
+        style={{
+          color: "#a9adff",
+          marginBottom: "30px",
+        }}
+      >
+        Live Formula 1 Constructor Standings
+      </p>
+
       <div
         style={{
           background: "#131942",
@@ -58,25 +63,25 @@ export default function ConstructorsPage() {
           padding: "20px",
         }}
       >
-        {teams.map((team, index) => (
+        {constructors.map((team, index) => (
           <div
-            key={team[0]}
+            key={team.position}
             style={{
               display: "flex",
               justifyContent: "space-between",
               padding: "16px 0",
               borderBottom:
-                index === teams.length - 1
+                index === constructors.length - 1
                   ? "none"
                   : "1px solid #2b347a",
               fontSize: "20px",
             }}
           >
             <span>
-              {index + 1}. {team[0]}
+              {team.position}. {team.Constructor.name}
             </span>
 
-            <strong>{team[1]} pts</strong>
+            <strong>{team.points} pts</strong>
           </div>
         ))}
       </div>

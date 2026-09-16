@@ -83,6 +83,16 @@ export default async function HomePage() {
   const news: NewsItem[] =
     newsData.items?.slice(0, 3) || [];
 
+  const raceDate = new Date(race.date);
+
+  const raceDateText = raceDate.toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+    }
+  );
+
   const cardStyle = {
     background: "#131942",
     border: "1px solid #2b347a",
@@ -97,16 +107,16 @@ export default async function HomePage() {
         background:
           "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
         color: "white",
-        padding: "40px",
+        padding: "24px",
         paddingBottom: "100px",
         fontFamily: "Arial",
       }}
     >
       <h1
         style={{
-          fontSize: "56px",
+          fontSize: "42px",
           fontWeight: "bold",
-          marginBottom: "10px",
+          marginBottom: "6px",
         }}
       >
         🟣 PurpleSector
@@ -115,38 +125,58 @@ export default async function HomePage() {
       <p
         style={{
           color: "#a9adff",
-          marginBottom: "30px",
+          marginBottom: "25px",
         }}
       >
-        Ultimate Formula 1 Dashboard
+        Formula 1 Dashboard
       </p>
-
-      {/* NEXT RACE */}
 
       <a
         href="/schedule"
         style={{
           ...cardStyle,
+          display: "block",
           textDecoration: "none",
           color: "white",
-          display: "block",
           marginBottom: "20px",
+          padding: "28px",
         }}
       >
-        <h2>🏁 NEXT RACE →</h2>
+        <div
+          style={{
+            color: "#a9adff",
+            fontSize: "14px",
+            marginBottom: "8px",
+          }}
+        >
+          NEXT RACE
+        </div>
 
-        <h3>{race.raceName}</h3>
+        <div
+          style={{
+            fontSize: "30px",
+            fontWeight: "bold",
+            marginBottom: "10px",
+          }}
+        >
+          {race.raceName}
+        </div>
 
-        <p>{race.date}</p>
-
-        <p>{race.Circuit.circuitName}</p>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            color: "#c7cbff",
+          }}
+        >
+          <span>{raceDateText}</span>
+          <span>→</span>
+        </div>
       </a>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit,minmax(320px,1fr))",
           gap: "20px",
         }}
       >
@@ -154,16 +184,14 @@ export default async function HomePage() {
           <h2>👨‍🏎️ Driver Standings</h2>
 
           <div style={{ lineHeight: "2" }}>
-            {drivers
-              .slice(0, 5)
-              .map((driver) => (
-                <div key={driver.position}>
-                  {driver.position}.{" "}
-                  {driver.Driver.givenName}{" "}
-                  {driver.Driver.familyName} —{" "}
-                  {driver.points}
-                </div>
-              ))}
+            {drivers.slice(0, 5).map((driver) => (
+              <div key={driver.position}>
+                {driver.position}.{" "}
+                {driver.Driver.familyName}
+                {" — "}
+                {driver.points}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -171,43 +199,43 @@ export default async function HomePage() {
           <h2>🏆 Constructor Standings</h2>
 
           <div style={{ lineHeight: "2" }}>
-            {constructors
-              .slice(0, 5)
-              .map((team) => (
-                <div key={team.position}>
-                  {team.position}.{" "}
-                  {team.Constructor.name} —{" "}
-                  {team.points}
-                </div>
-              ))}
+            {constructors.slice(0, 5).map((team) => (
+              <div key={team.position}>
+                {team.position}.{" "}
+                {team.Constructor.name}
+                {" — "}
+                {team.points}
+              </div>
+            ))}
           </div>
         </div>
 
         <div style={cardStyle}>
           <h2>📰 Latest News</h2>
 
-          <div style={{ lineHeight: "2" }}>
-            {news.length > 0 ? (
-              news.map((item) => (
-                <a
-                  key={item.link}
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    color: "white",
-                    textDecoration: "none",
-                    display: "block",
-                    marginBottom: "10px",
-                  }}
-                >
-                  • {item.title}
-                </a>
-              ))
-            ) : (
-              <div>No news available</div>
-            )}
-          </div>
+          {news.length > 0 ? (
+            news.map((item) => (
+              <a
+                key={item.link}
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "white",
+                  textDecoration: "none",
+                  display: "block",
+                  marginBottom: "12px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                • {item.title}
+              </a>
+            ))
+          ) : (
+            <div>No news available</div>
+          )}
 
           <a
             href="/news"
@@ -215,16 +243,12 @@ export default async function HomePage() {
               color: "#a9adff",
               textDecoration: "none",
               fontWeight: "bold",
-              display: "inline-block",
-              marginTop: "10px",
             }}
           >
             More News →
           </a>
         </div>
       </div>
-
-      {/* BOTTOM NAV */}
 
       <div
         style={{
@@ -243,7 +267,7 @@ export default async function HomePage() {
         <a
           href="/"
           style={{
-            color: "white",
+            color: "#a855f7",
             textDecoration: "none",
             fontWeight: "bold",
           }}

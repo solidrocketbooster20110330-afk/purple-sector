@@ -1,18 +1,19 @@
-import Link from "next/link";
 import BottomNav from "../../../components/BottomNav";
 
 type PracticeResult = {
   position: string;
+
   Driver: {
+    permanentNumber?: string;
     givenName: string;
     familyName: string;
   };
+
   Constructor: {
     name: string;
   };
-  Time: {
-    time: string;
-  };
+
+  time: string;
 };
 
 export default async function PracticePage({
@@ -23,7 +24,7 @@ export default async function PracticePage({
   const { round } = await params;
 
   const res = await fetch(
-    `https://api.jolpi.ca/ergast/f1/current/${round}/1/results.json`,
+    `https://api.jolpi.ca/ergast/f1/current/${round}/practice/1.json`,
     {
       next: { revalidate: 3600 },
     }
@@ -35,7 +36,7 @@ export default async function PracticePage({
     data.MRData.RaceTable.Races[0];
 
   const results: PracticeResult[] =
-    race.Results;
+    race.PracticeResults;
 
   return (
     <main
@@ -49,23 +50,7 @@ export default async function PracticePage({
         fontFamily: "Arial",
       }}
     >
-      <Link
-        href="/schedule"
-        style={{
-          color: "#a9adff",
-          textDecoration: "none",
-        }}
-      >
-        ← Schedule
-      </Link>
-
-      <h1
-        style={{
-          marginTop: "20px",
-        }}
-      >
-        🛠 Practice 1
-      </h1>
+      <h1>🛠 Practice Results</h1>
 
       <p
         style={{
@@ -84,7 +69,7 @@ export default async function PracticePage({
           padding: "20px",
         }}
       >
-        {results.map((driver) => (
+        {results?.map((driver) => (
           <div
             key={driver.position}
             style={{
@@ -98,6 +83,9 @@ export default async function PracticePage({
             </strong>
 
             <div>
+              #
+              {driver.Driver
+                .permanentNumber ?? "-"}{" "}
               {driver.Driver.givenName}{" "}
               {driver.Driver.familyName}
             </div>
@@ -110,8 +98,13 @@ export default async function PracticePage({
               {driver.Constructor.name}
             </div>
 
-            <div>
-              {driver.Time.time}
+            <div
+              style={{
+                marginTop: "6px",
+                fontSize: "14px",
+              }}
+            >
+              {driver.time}
             </div>
           </div>
         ))}

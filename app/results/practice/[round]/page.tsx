@@ -1,4 +1,4 @@
-import BottomNav from "../../../components/BottomNav";
+
 
 type PracticeResult = {
   position: string;
@@ -110,7 +110,7 @@ export default async function PracticePage({
         ))}
       </div>
 
-      <BottomNav />
+      
     </main>
   );
 }

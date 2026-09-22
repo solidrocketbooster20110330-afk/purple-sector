@@ -1,4 +1,5 @@
 import BottomNav from "../../../components/BottomNav";
+import ResultsTabs from "../../ResultsTabs";
 
 type SessionResult = {
   position: number;
@@ -129,6 +130,8 @@ export default async function Practice3Page({
         {raceName}
       </p>
 
+      <ResultsTabs />
+
       <div
         style={{
           background: "#131942",
@@ -157,10 +160,7 @@ export default async function Practice3Page({
                 </strong>
 
                 <div>
-                  #
-                  {
-                    driver.driver_number
-                  }{" "}
+                  #{driver.driver_number}{" "}
                   {driver.full_name}
                 </div>
 

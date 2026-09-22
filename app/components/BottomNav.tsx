@@ -52,6 +52,18 @@ export default function BottomNav() {
         <div>🏁</div>
         <div style={{ fontSize: "12px" }}>Results</div>
       </Link>
+
+      <Link
+        href="/championship"
+        style={{
+          color: "white",
+          textDecoration: "none",
+          textAlign: "center",
+        }}
+      >
+        <div>🏆</div>
+        <div style={{ fontSize: "12px" }}>Championship</div>
+      </Link>
     </div>
   );
 }

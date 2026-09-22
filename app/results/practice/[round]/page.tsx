@@ -2,9 +2,10 @@ import BottomNav from "../../../components/BottomNav";
 import ResultsTabs from "../../ResultsTabs";
 
 type Session = {
-  session_name?: string;
-  date_start?: string;
-  session_key?: number;
+  session_key: number;
+  session_name: string;
+  session_type: string;
+  date_start: string;
 };
 
 type SessionResult = {
@@ -18,34 +19,15 @@ type Driver = {
   team_name: string;
 };
 
-export default async function PracticePage({
-  params,
-}: {
-  params: Promise<{ round: string }>;
-}) {
-  const { round } = await params;
-
-  const raceRes = await fetch(
-    `https://api.jolpi.ca/ergast/f1/current/${round}.json`,
-    {
-      next: { revalidate: 3600 },
-    }
-  );
-
-  const raceData = await raceRes.json();
-
-  const race =
-    raceData?.MRData?.RaceTable?.Races?.[0];
-
-  const raceName =
-    race?.raceName ?? `Round ${round}`;
-
+export default async function PracticePage() {
   let mergedResults: Array<{
     position: number;
     driver_number: number;
     full_name: string;
     team_name: string;
   }> = [];
+
+  let raceName = "Latest FP1";
 
   try {
     const sessionRes = await fetch(
@@ -58,18 +40,31 @@ export default async function PracticePage({
     const sessions: Session[] =
       await sessionRes.json();
 
-    const fp1Sessions = sessions.filter(
-  (s) =>
-    s.session_name ===
-    "Practice 1"
-);
+    const fp1Sessions = sessions
+      .filter(
+        (s) =>
+          s.session_name === "Practice 1"
+      )
+      .sort(
+        (a, b) =>
+          new Date(
+            b.date_start
+          ).getTime() -
+          new Date(
+            a.date_start
+          ).getTime()
+      );
 
-const sessionKey =
-  fp1Sessions[
-    fp1Sessions.length - 1
-  ]?.session_key;
-    
-    if (sessionKey) {
+    const latestSession =
+      fp1Sessions[0];
+
+    if (latestSession) {
+      raceName =
+        latestSession.session_name;
+
+      const sessionKey =
+        latestSession.session_key;
+
       const [resultsRes, driversRes] =
         await Promise.all([
           fetch(
@@ -80,21 +75,11 @@ const sessionKey =
           ),
         ]);
 
-      const resultsData =
+      const results: SessionResult[] =
         await resultsRes.json();
 
-      const driversData =
-        await driversRes.json();
-
-      const results: SessionResult[] =
-        Array.isArray(resultsData)
-          ? resultsData
-          : [];
-
       const drivers: Driver[] =
-        Array.isArray(driversData)
-          ? driversData
-          : [];
+        await driversRes.json();
 
       mergedResults = results.map(
         (result) => {
@@ -106,7 +91,8 @@ const sessionKey =
             );
 
           return {
-            position: result.position,
+            position:
+              result.position,
             driver_number:
               result.driver_number,
             full_name:
@@ -156,8 +142,11 @@ const sessionKey =
           padding: "20px",
         }}
       >
-        {mergedResults.length === 0 ? (
-          <p>FP1 데이터 없음</p>
+        {mergedResults.length ===
+        0 ? (
+          <p>
+            FP1 데이터 없음
+          </p>
         ) : (
           mergedResults.map(
             (driver) => (
@@ -166,13 +155,17 @@ const sessionKey =
                   driver.driver_number
                 }
                 style={{
-                  padding: "12px 0",
+                  padding:
+                    "12px 0",
                   borderBottom:
                     "1px solid #2b347a",
                 }}
               >
                 <strong>
-                  P{driver.position}
+                  P
+                  {
+                    driver.position
+                  }
                 </strong>
 
                 <div>
@@ -180,15 +173,20 @@ const sessionKey =
                   {
                     driver.driver_number
                   }{" "}
-                  {driver.full_name}
+                  {
+                    driver.full_name
+                  }
                 </div>
 
                 <div
                   style={{
-                    color: "#a9adff",
+                    color:
+                      "#a9adff",
                   }}
                 >
-                  {driver.team_name}
+                  {
+                    driver.team_name
+                  }
                 </div>
               </div>
             )

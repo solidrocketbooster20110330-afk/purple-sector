@@ -1,4 +1,5 @@
 import BottomNav from "../../components/BottomNav";
+import ResultsTabs from "../ResultsTabs";
 
 type QualifyingResult = {
   position: string;
@@ -56,6 +57,8 @@ export default async function QualifyingPage() {
         {race.raceName}
       </p>
 
+      <ResultsTabs />
+
       <div
         style={{
           background: "#131942",
@@ -96,9 +99,7 @@ export default async function QualifyingPage() {
                 fontSize: "14px",
               }}
             >
-              Q1: {driver.Q1 ?? "-"} |
-              Q2: {driver.Q2 ?? "-"} |
-              Q3: {driver.Q3 ?? "-"}
+              Q1: {driver.Q1 ?? "-"} | Q2: {driver.Q2 ?? "-"} | Q3: {driver.Q3 ?? "-"}
             </div>
           </div>
         ))}

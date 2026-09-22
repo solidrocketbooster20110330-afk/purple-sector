@@ -1,19 +1,6 @@
-
-
-type PracticeResult = {
-  position: string;
-
-  Driver: {
-    permanentNumber?: string;
-    givenName: string;
-    familyName: string;
-  };
-
-  Constructor: {
-    name: string;
-  };
-
-  time: string;
+type PracticeSession = {
+  title: string;
+  description: string;
 };
 
 export default async function PracticePage({
@@ -23,20 +10,20 @@ export default async function PracticePage({
 }) {
   const { round } = await params;
 
-  const res = await fetch(
-    `https://api.jolpi.ca/ergast/f1/current/${round}/practice/1.json`,
+  const sessions: PracticeSession[] = [
     {
-      next: { revalidate: 3600 },
-    }
-  );
-
-  const data = await res.json();
-
-  const race =
-    data.MRData.RaceTable.Races[0];
-
-  const results: PracticeResult[] =
-    race.PracticeResults;
+      title: "🛠 FP1",
+      description: "Free Practice 1",
+    },
+    {
+      title: "🛠 FP2",
+      description: "Free Practice 2",
+    },
+    {
+      title: "🛠 FP3",
+      description: "Free Practice 3",
+    },
+  ];
 
   return (
     <main
@@ -58,59 +45,40 @@ export default async function PracticePage({
           marginBottom: "20px",
         }}
       >
-        {race.raceName}
+        Round {round}
       </p>
 
-      <div
-        style={{
-          background: "#131942",
-          border: "1px solid #2b347a",
-          borderRadius: "20px",
-          padding: "20px",
-        }}
-      >
-        {results?.map((driver) => (
-          <div
-            key={driver.position}
+      {sessions.map((session) => (
+        <div
+          key={session.title}
+          style={{
+            background: "#131942",
+            border: "1px solid #2b347a",
+            borderRadius: "20px",
+            padding: "20px",
+            marginBottom: "16px",
+          }}
+        >
+          <h2>{session.title}</h2>
+
+          <p
             style={{
-              padding: "12px 0",
-              borderBottom:
-                "1px solid #2b347a",
+              color: "#a9adff",
             }}
           >
-            <strong>
-              P{driver.position}
-            </strong>
+            {session.description}
+          </p>
 
-            <div>
-              #
-              {driver.Driver
-                .permanentNumber ?? "-"}{" "}
-              {driver.Driver.givenName}{" "}
-              {driver.Driver.familyName}
-            </div>
-
-            <div
-              style={{
-                color: "#a9adff",
-              }}
-            >
-              {driver.Constructor.name}
-            </div>
-
-            <div
-              style={{
-                marginTop: "6px",
-                fontSize: "14px",
-              }}
-            >
-              {driver.time}
-            </div>
+          <div
+            style={{
+              marginTop: "12px",
+              color: "#c7cbff",
+            }}
+          >
+            OpenF1 연동 예정
           </div>
-        ))}
-      </div>
-
-      
+        </div>
+      ))}
     </main>
   );
 }

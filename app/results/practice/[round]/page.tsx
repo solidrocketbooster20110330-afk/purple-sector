@@ -1,6 +1,12 @@
 import BottomNav from "../../../components/BottomNav";
 import ResultsTabs from "../../ResultsTabs";
 
+type Session = {
+  session_name?: string;
+  date_start?: string;
+  session_key?: number;
+};
+
 type SessionResult = {
   position: number;
   driver_number: number;
@@ -49,49 +55,79 @@ export default async function PracticePage({
       }
     );
 
-    const sessions = await sessionRes.json();
+    const sessions: Session[] =
+      await sessionRes.json();
+
+    const fp1Sessions = sessions
+      .filter(
+        (s) =>
+          s.session_name?.includes(
+            "Practice 1"
+          )
+      )
+      .sort(
+        (a, b) =>
+          new Date(
+            b.date_start ?? ""
+          ).getTime() -
+          new Date(
+            a.date_start ?? ""
+          ).getTime()
+      );
 
     const sessionKey =
-      sessions?.[0]?.session_key;
+      fp1Sessions[0]?.session_key;
 
-    const [resultsRes, driversRes] =
-      await Promise.all([
-        fetch(
-          `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
-        ),
-        fetch(
-          `https://api.openf1.org/v1/drivers?session_key=${sessionKey}`
-        ),
-      ]);
+    if (sessionKey) {
+      const [resultsRes, driversRes] =
+        await Promise.all([
+          fetch(
+            `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
+          ),
+          fetch(
+            `https://api.openf1.org/v1/drivers?session_key=${sessionKey}`
+          ),
+        ]);
 
-    const results: SessionResult[] =
-      await resultsRes.json();
+      const resultsData =
+        await resultsRes.json();
 
-    const drivers: Driver[] =
-      await driversRes.json();
+      const driversData =
+        await driversRes.json();
 
-    mergedResults = results.map(
-      (result) => {
-        const driver =
-          drivers.find(
-            (d) =>
-              d.driver_number ===
-              result.driver_number
-          );
+      const results: SessionResult[] =
+        Array.isArray(resultsData)
+          ? resultsData
+          : [];
 
-        return {
-          position: result.position,
-          driver_number:
-            result.driver_number,
-          full_name:
-            driver?.full_name ??
-            "Unknown Driver",
-          team_name:
-            driver?.team_name ??
-            "Unknown Team",
-        };
-      }
-    );
+      const drivers: Driver[] =
+        Array.isArray(driversData)
+          ? driversData
+          : [];
+
+      mergedResults = results.map(
+        (result) => {
+          const driver =
+            drivers.find(
+              (d) =>
+                d.driver_number ===
+                result.driver_number
+            );
+
+          return {
+            position: result.position,
+            driver_number:
+              result.driver_number,
+            full_name:
+              driver?.full_name ??
+              "Unknown Driver",
+            team_name:
+              driver?.team_name ??
+              "Unknown Team",
+          };
+        }
+      );
+    }
   } catch (error) {
     console.error(error);
   }
@@ -108,7 +144,7 @@ export default async function PracticePage({
         fontFamily: "Arial",
       }}
     >
-      <h1>🛠 Practice Results</h1>
+      <h1>🛠 Practice 1 Results</h1>
 
       <p
         style={{
@@ -129,38 +165,42 @@ export default async function PracticePage({
           padding: "20px",
         }}
       >
-        {mergedResults.map(
-          (driver) => (
-            <div
-              key={
-                driver.driver_number
-              }
-              style={{
-                padding: "12px 0",
-                borderBottom:
-                  "1px solid #2b347a",
-              }}
-            >
-              <strong>
-                P{driver.position}
-              </strong>
-
-              <div>
-                #
-                {
-                  driver.driver_number
-                }{" "}
-                {driver.full_name}
-              </div>
-
+        {mergedResults.length === 0 ? (
+          <p>FP1 데이터 없음</p>
+        ) : (
+          mergedResults.map(
+            (driver) => (
               <div
+                key={
+                  driver.driver_number
+                }
                 style={{
-                  color: "#a9adff",
+                  padding: "12px 0",
+                  borderBottom:
+                    "1px solid #2b347a",
                 }}
               >
-                {driver.team_name}
+                <strong>
+                  P{driver.position}
+                </strong>
+
+                <div>
+                  #
+                  {
+                    driver.driver_number
+                  }{" "}
+                  {driver.full_name}
+                </div>
+
+                <div
+                  style={{
+                    color: "#a9adff",
+                  }}
+                >
+                  {driver.team_name}
+                </div>
               </div>
-            </div>
+            )
           )
         )}
       </div>

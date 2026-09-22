@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BottomNav from "../../../components/BottomNav";
+import ResultsTabs from "../../ResultsTabs";
 
 type RaceResult = {
   number: string;
@@ -38,11 +39,8 @@ export default async function RacePage({
 
   const data = await res.json();
 
-  const race =
-    data.MRData.RaceTable.Races[0];
-
-  const results: RaceResult[] =
-    race.Results;
+  const race = data.MRData.RaceTable.Races[0];
+  const results: RaceResult[] = race.Results;
 
   return (
     <main
@@ -84,6 +82,8 @@ export default async function RacePage({
         {race.raceName}
       </p>
 
+      <ResultsTabs />
+
       <div
         style={{
           background: "#131942",
@@ -117,9 +117,7 @@ export default async function RacePage({
         {results.map((driver) => {
           let statusText = "";
 
-          if (
-            driver.status.includes("Lap")
-          ) {
+          if (driver.status.includes("Lap")) {
             const laps =
               driver.status.match(/\d+/)?.[0] ??
               "1";
@@ -164,14 +162,8 @@ export default async function RacePage({
               </div>
 
               <div>
-                {
-                  driver.Driver
-                    .givenName
-                }{" "}
-                {
-                  driver.Driver
-                    .familyName
-                }
+                {driver.Driver.givenName}{" "}
+                {driver.Driver.familyName}
               </div>
 
               <div
@@ -179,10 +171,7 @@ export default async function RacePage({
                   color: "#a9adff",
                 }}
               >
-                {
-                  driver.Constructor
-                    .name
-                }
+                {driver.Constructor.name}
               </div>
 
               <div>
@@ -192,13 +181,11 @@ export default async function RacePage({
               <div
                 style={{
                   color:
-                    statusText ===
-                    "DNF"
+                    statusText === "DNF"
                       ? "#ff4d4d"
                       : "white",
                   fontWeight:
-                    statusText ===
-                    "DNF"
+                    statusText === "DNF"
                       ? "bold"
                       : "normal",
                 }}
@@ -217,4 +204,4 @@ export default async function RacePage({
       <BottomNav />
     </main>
   );
-  }
+}

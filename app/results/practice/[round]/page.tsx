@@ -1,12 +1,5 @@
 import BottomNav from "../../../components/BottomNav";
 
-type DriverResult = {
-  driver_number: number;
-  full_name: string;
-  team_name: string;
-  position: number;
-};
-
 export default async function PracticePage({
   params,
 }: {
@@ -29,27 +22,21 @@ export default async function PracticePage({
   const raceName =
     race?.raceName ?? `Round ${round}`;
 
-  let results: DriverResult[] = [];
+  let sessions: unknown = null;
 
   try {
     const sessionRes = await fetch(
-      "https://api.openf1.org/v1/sessions?session_name=Practice 1&year=2026"
+      "https://api.openf1.org/v1/sessions?year=2026",
+      {
+        next: { revalidate: 3600 },
+      }
     );
 
-    const sessions = await sessionRes.json();
-
-    if (sessions.length > 0) {
-      const sessionKey =
-        sessions[sessions.length - 1].session_key;
-
-      const resultRes = await fetch(
-        `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
-      );
-
-      results = await resultRes.json();
-    }
-  } catch {
-    results = [];
+    sessions = await sessionRes.json();
+  } catch (error) {
+    sessions = {
+      error: String(error),
+    };
   }
 
   return (
@@ -64,7 +51,7 @@ export default async function PracticePage({
         fontFamily: "Arial",
       }}
     >
-      <h1>🛠 Practice Results</h1>
+      <h1>🛠 Practice Debug</h1>
 
       <p
         style={{
@@ -75,46 +62,23 @@ export default async function PracticePage({
         {raceName}
       </p>
 
-      <div
+      <pre
         style={{
           background: "#131942",
           border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
+          overflowX: "auto",
+          whiteSpace: "pre-wrap",
+          fontSize: "12px",
         }}
       >
-        {results.length === 0 ? (
-          <p>FP1 데이터 없음</p>
-        ) : (
-          results.map((driver) => (
-            <div
-              key={driver.driver_number}
-              style={{
-                padding: "12px 0",
-                borderBottom:
-                  "1px solid #2b347a",
-              }}
-            >
-              <strong>
-                P{driver.position}
-              </strong>
-
-              <div>
-                #{driver.driver_number}{" "}
-                {driver.full_name}
-              </div>
-
-              <div
-                style={{
-                  color: "#a9adff",
-                }}
-              >
-                {driver.team_name}
-              </div>
-            </div>
-          ))
+        {JSON.stringify(
+          sessions,
+          null,
+          2
         )}
-      </div>
+      </pre>
 
       <BottomNav />
     </main>

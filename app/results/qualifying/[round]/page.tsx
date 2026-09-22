@@ -1,4 +1,5 @@
 import BottomNav from "../../../components/BottomNav";
+import ResultsTabs from "../../ResultsTabs";
 
 type SessionResult = {
   position: number;
@@ -143,6 +144,8 @@ export default async function QualifyingPage({
       >
         {raceName}
       </p>
+
+      <ResultsTabs />
 
       <div
         style={{

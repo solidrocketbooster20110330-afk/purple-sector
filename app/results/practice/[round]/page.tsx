@@ -1,6 +1,21 @@
-type PracticeSession = {
-  title: string;
-  description: string;
+import BottomNav from "../../../components/BottomNav";
+
+type PracticeResult = {
+  position: string;
+
+  Driver: {
+    permanentNumber?: string;
+    givenName: string;
+    familyName: string;
+  };
+
+  Constructor: {
+    name: string;
+  };
+
+  Time?: {
+    time: string;
+  };
 };
 
 export default async function PracticePage({
@@ -10,20 +25,20 @@ export default async function PracticePage({
 }) {
   const { round } = await params;
 
-  const sessions: PracticeSession[] = [
+  const res = await fetch(
+    `https://api.jolpi.ca/ergast/f1/2025/${round}/results.json`,
     {
-      title: "🛠 FP1",
-      description: "Free Practice 1",
-    },
-    {
-      title: "🛠 FP2",
-      description: "Free Practice 2",
-    },
-    {
-      title: "🛠 FP3",
-      description: "Free Practice 3",
-    },
-  ];
+      next: { revalidate: 3600 },
+    }
+  );
+
+  const data = await res.json();
+
+  const race =
+    data?.MRData?.RaceTable?.Races?.[0];
+
+  const results: PracticeResult[] =
+    race?.Results || [];
 
   return (
     <main
@@ -45,40 +60,50 @@ export default async function PracticePage({
           marginBottom: "20px",
         }}
       >
-        Round {round}
+        {race?.raceName ?? `Round ${round}`}
       </p>
 
-      {sessions.map((session) => (
-        <div
-          key={session.title}
-          style={{
-            background: "#131942",
-            border: "1px solid #2b347a",
-            borderRadius: "20px",
-            padding: "20px",
-            marginBottom: "16px",
-          }}
-        >
-          <h2>{session.title}</h2>
-
-          <p
-            style={{
-              color: "#a9adff",
-            }}
-          >
-            {session.description}
-          </p>
-
+      <div
+        style={{
+          background: "#131942",
+          border: "1px solid #2b347a",
+          borderRadius: "20px",
+          padding: "20px",
+        }}
+      >
+        {results.map((driver) => (
           <div
+            key={driver.position}
             style={{
-              marginTop: "12px",
-              color: "#c7cbff",
+              padding: "12px 0",
+              borderBottom:
+                "1px solid #2b347a",
             }}
           >
-            OpenF1 연동 예정
+            <strong>
+              P{driver.position}
+            </strong>
+
+            <div>
+              #
+              {driver.Driver
+                .permanentNumber ?? "-"}{" "}
+              {driver.Driver.givenName}{" "}
+              {driver.Driver.familyName}
+            </div>
+
+            <div
+              style={{
+                color: "#a9adff",
+              }}
+            >
+              {driver.Constructor.name}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      <BottomNav />
     </main>
   );
 }

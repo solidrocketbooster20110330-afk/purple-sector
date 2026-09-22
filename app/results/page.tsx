@@ -1,4 +1,3 @@
-import Link from "next/link";
 import BottomNav from "../components/BottomNav";
 import ResultsTabs from "./ResultsTabs";
 
@@ -69,59 +68,6 @@ export default async function ResultsPage() {
 
       <div
         style={{
-          display: "grid",
-          gap: "12px",
-          marginBottom: "20px",
-        }}
-      >
-        <Link
-          href="/results/practice/1"
-          style={{
-            background: "#131942",
-            border: "1px solid #2b347a",
-            borderRadius: "16px",
-            padding: "16px",
-            color: "white",
-            textDecoration: "none",
-          }}
-        >
-          <h3>🛠 FP1</h3>
-          <p>Free Practice 1</p>
-        </Link>
-
-        <Link
-          href="/results/practice2/1"
-          style={{
-            background: "#131942",
-            border: "1px solid #2b347a",
-            borderRadius: "16px",
-            padding: "16px",
-            color: "white",
-            textDecoration: "none",
-          }}
-        >
-          <h3>🛠 FP2</h3>
-          <p>Free Practice 2</p>
-        </Link>
-
-        <Link
-          href="/results/practice3/1"
-          style={{
-            background: "#131942",
-            border: "1px solid #2b347a",
-            borderRadius: "16px",
-            padding: "16px",
-            color: "white",
-            textDecoration: "none",
-          }}
-        >
-          <h3>🛠 FP3</h3>
-          <p>Free Practice 3</p>
-        </Link>
-      </div>
-
-      <div
-        style={{
           background: "#131942",
           border: "1px solid #2b347a",
           borderRadius: "20px",
@@ -153,9 +99,7 @@ export default async function ResultsPage() {
         {results.map((driver) => {
           let statusText = "";
 
-          if (
-            driver.status.includes("Lap")
-          ) {
+          if (driver.status.includes("Lap")) {
             const laps =
               driver.status.match(/\d+/)?.[0] ??
               "1";

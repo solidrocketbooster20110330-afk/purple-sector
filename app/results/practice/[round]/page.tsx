@@ -4,7 +4,6 @@ import ResultsTabs from "../../ResultsTabs";
 type Session = {
   session_key: number;
   session_name: string;
-  session_type: string;
   date_start: string;
 };
 
@@ -27,13 +26,13 @@ export default async function PracticePage() {
     team_name: string;
   }> = [];
 
-  let raceName = "Latest FP1";
+  let raceName = "Latest Practice 1";
 
   try {
     const sessionRes = await fetch(
       "https://api.openf1.org/v1/sessions?year=2026",
       {
-        next: { revalidate: 3600 },
+        cache: "no-store",
       }
     );
 
@@ -43,7 +42,8 @@ export default async function PracticePage() {
     const fp1Sessions = sessions
       .filter(
         (s) =>
-          s.session_name === "Practice 1"
+          s.session_name ===
+          "Practice 1"
       )
       .sort(
         (a, b) =>
@@ -62,16 +62,19 @@ export default async function PracticePage() {
       raceName =
         latestSession.session_name;
 
-      const sessionKey =
-        latestSession.session_key;
-
       const [resultsRes, driversRes] =
         await Promise.all([
           fetch(
-            `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
+            `https://api.openf1.org/v1/session_result?session_key=${latestSession.session_key}`,
+            {
+              cache: "no-store",
+            }
           ),
           fetch(
-            `https://api.openf1.org/v1/drivers?session_key=${sessionKey}`
+            `https://api.openf1.org/v1/drivers?session_key=${latestSession.session_key}`,
+            {
+              cache: "no-store",
+            }
           ),
         ]);
 
@@ -91,8 +94,7 @@ export default async function PracticePage() {
             );
 
           return {
-            position:
-              result.position,
+            position: result.position,
             driver_number:
               result.driver_number,
             full_name:
@@ -142,11 +144,8 @@ export default async function PracticePage() {
           padding: "20px",
         }}
       >
-        {mergedResults.length ===
-        0 ? (
-          <p>
-            FP1 데이터 없음
-          </p>
+        {mergedResults.length === 0 ? (
+          <p>데이터 없음</p>
         ) : (
           mergedResults.map(
             (driver) => (
@@ -155,38 +154,26 @@ export default async function PracticePage() {
                   driver.driver_number
                 }
                 style={{
-                  padding:
-                    "12px 0",
+                  padding: "12px 0",
                   borderBottom:
                     "1px solid #2b347a",
                 }}
               >
                 <strong>
-                  P
-                  {
-                    driver.position
-                  }
+                  P{driver.position}
                 </strong>
 
                 <div>
-                  #
-                  {
-                    driver.driver_number
-                  }{" "}
-                  {
-                    driver.full_name
-                  }
+                  #{driver.driver_number}{" "}
+                  {driver.full_name}
                 </div>
 
                 <div
                   style={{
-                    color:
-                      "#a9adff",
+                    color: "#a9adff",
                   }}
                 >
-                  {
-                    driver.team_name
-                  }
+                  {driver.team_name}
                 </div>
               </div>
             )

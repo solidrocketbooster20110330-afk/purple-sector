@@ -141,4 +141,46 @@ export default async function Practice2Page({
         }}
       >
         {mergedResults.length === 0 ? (
-          <p>FP2 데이터 없음
+          <p>FP2 데이터 없음</p>
+        ) : (
+          mergedResults.map(
+            (driver) => (
+              <div
+                key={
+                  driver.driver_number
+                }
+                style={{
+                  padding: "12px 0",
+                  borderBottom:
+                    "1px solid #2b347a",
+                }}
+              >
+                <strong>
+                  P{driver.position}
+                </strong>
+
+                <div>
+                  #
+                  {
+                    driver.driver_number
+                  }{" "}
+                  {driver.full_name}
+                </div>
+
+                <div
+                  style={{
+                    color: "#a9adff",
+                  }}
+                >
+                  {driver.team_name}
+                </div>
+              </div>
+            )
+          )
+        )}
+      </div>
+
+      <BottomNav />
+    </main>
+  );
+}

@@ -22,7 +22,7 @@ export default async function PracticePage({
   const raceName =
     race?.raceName ?? `Round ${round}`;
 
-  let sessions: unknown = null;
+  let debugData: unknown = null;
 
   try {
     const sessionRes = await fetch(
@@ -32,9 +32,22 @@ export default async function PracticePage({
       }
     );
 
-    sessions = await sessionRes.json();
+    const sessions = await sessionRes.json();
+
+    const sessionKey =
+      sessions?.[0]?.session_key;
+
+    const resultRes = await fetch(
+      `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`,
+      {
+        next: { revalidate: 3600 },
+      }
+    );
+
+    debugData =
+      await resultRes.json();
   } catch (error) {
-    sessions = {
+    debugData = {
       error: String(error),
     };
   }
@@ -74,7 +87,7 @@ export default async function PracticePage({
         }}
       >
         {JSON.stringify(
-          sessions,
+          debugData,
           null,
           2
         )}

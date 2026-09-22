@@ -1,3 +1,4 @@
+import Link from "next/link";
 import BottomNav from "../components/BottomNav";
 import ResultsTabs from "./ResultsTabs";
 
@@ -65,6 +66,59 @@ export default async function ResultsPage() {
       </p>
 
       <ResultsTabs />
+
+      <div
+        style={{
+          display: "grid",
+          gap: "12px",
+          marginBottom: "20px",
+        }}
+      >
+        <Link
+          href="/results/practice/1"
+          style={{
+            background: "#131942",
+            border: "1px solid #2b347a",
+            borderRadius: "16px",
+            padding: "16px",
+            color: "white",
+            textDecoration: "none",
+          }}
+        >
+          <h3>🛠 FP1</h3>
+          <p>Free Practice 1</p>
+        </Link>
+
+        <Link
+          href="/results/practice2/1"
+          style={{
+            background: "#131942",
+            border: "1px solid #2b347a",
+            borderRadius: "16px",
+            padding: "16px",
+            color: "white",
+            textDecoration: "none",
+          }}
+        >
+          <h3>🛠 FP2</h3>
+          <p>Free Practice 2</p>
+        </Link>
+
+        <Link
+          href="/results/practice3/1"
+          style={{
+            background: "#131942",
+            border: "1px solid #2b347a",
+            borderRadius: "16px",
+            padding: "16px",
+            color: "white",
+            textDecoration: "none",
+          }}
+        >
+          <h3>🛠 FP3</h3>
+          <p>Free Practice 3</p>
+        </Link>
+      </div>
 
       <div
         style={{
@@ -146,14 +200,8 @@ export default async function ResultsPage() {
               </div>
 
               <div>
-                {
-                  driver.Driver
-                    .givenName
-                }{" "}
-                {
-                  driver.Driver
-                    .familyName
-                }
+                {driver.Driver.givenName}{" "}
+                {driver.Driver.familyName}
               </div>
 
               <div
@@ -161,10 +209,7 @@ export default async function ResultsPage() {
                   color: "#a9adff",
                 }}
               >
-                {
-                  driver.Constructor
-                    .name
-                }
+                {driver.Constructor.name}
               </div>
 
               <div>
@@ -174,13 +219,11 @@ export default async function ResultsPage() {
               <div
                 style={{
                   color:
-                    statusText ===
-                    "DNF"
+                    statusText === "DNF"
                       ? "#ff4d4d"
                       : "white",
                   fontWeight:
-                    statusText ===
-                    "DNF"
+                    statusText === "DNF"
                       ? "bold"
                       : "normal",
                 }}

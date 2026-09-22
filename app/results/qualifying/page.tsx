@@ -1,4 +1,5 @@
 import BottomNav from "../../components/BottomNav";
+import ResultsTabs from "../ResultsTabs";
 
 type QualifyingResult = {
   position: string;

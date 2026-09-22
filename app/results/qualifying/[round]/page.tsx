@@ -1,38 +1,125 @@
 import BottomNav from "../../../components/BottomNav";
-import ResultsTabs from "../../ResultsTabs";
 
-type QualifyingResult = {
-  position: string;
-
-  Driver: {
-    givenName: string;
-    familyName: string;
-  };
-
-  Constructor: {
-    name: string;
-  };
-
-  Q1?: string;
-  Q2?: string;
-  Q3?: string;
+type SessionResult = {
+  position: number;
+  driver_number: number;
 };
 
-export default async function QualifyingPage() {
-  const res = await fetch(
-    "https://api.jolpi.ca/ergast/f1/current/last/qualifying.json",
+type Driver = {
+  driver_number: number;
+  full_name: string;
+  team_name: string;
+};
+
+export default async function QualifyingPage({
+  params,
+}: {
+  params: Promise<{ round: string }>;
+}) {
+  const { round } = await params;
+
+  const raceRes = await fetch(
+    `https://api.jolpi.ca/ergast/f1/current/${round}.json`,
     {
       next: { revalidate: 3600 },
     }
   );
 
-  const data = await res.json();
+  const raceData = await raceRes.json();
 
   const race =
-    data.MRData.RaceTable.Races[0];
+    raceData?.MRData?.RaceTable?.Races?.[0];
 
-  const results: QualifyingResult[] =
-    race.QualifyingResults;
+  const raceName =
+    race?.raceName ?? `Round ${round}`;
+
+  let mergedResults: Array<{
+    position: number;
+    driver_number: number;
+    full_name: string;
+    team_name: string;
+  }> = [];
+
+  try {
+    const sessionRes = await fetch(
+      "https://api.openf1.org/v1/sessions?year=2026",
+      {
+        next: { revalidate: 3600 },
+      }
+    );
+
+    const sessions = await sessionRes.json();
+
+    const qualifyingSession =
+      sessions.find(
+        (session: {
+          session_name?: string;
+          session_type?: string;
+        }) =>
+          session.session_name
+            ?.toLowerCase()
+            .includes("qualifying") ||
+          session.session_type
+            ?.toLowerCase()
+            .includes("qualifying")
+      );
+
+    const sessionKey =
+      qualifyingSession?.session_key;
+
+    if (sessionKey) {
+      const [resultsRes, driversRes] =
+        await Promise.all([
+          fetch(
+            `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
+          ),
+          fetch(
+            `https://api.openf1.org/v1/drivers?session_key=${sessionKey}`
+          ),
+        ]);
+
+      const resultsData =
+        await resultsRes.json();
+
+      const driversData =
+        await driversRes.json();
+
+      const results: SessionResult[] =
+        Array.isArray(resultsData)
+          ? resultsData
+          : [];
+
+      const drivers: Driver[] =
+        Array.isArray(driversData)
+          ? driversData
+          : [];
+
+      mergedResults = results.map(
+        (result) => {
+          const driver =
+            drivers.find(
+              (d) =>
+                d.driver_number ===
+                result.driver_number
+            );
+
+          return {
+            position: result.position,
+            driver_number:
+              result.driver_number,
+            full_name:
+              driver?.full_name ??
+              "Unknown Driver",
+            team_name:
+              driver?.team_name ??
+              "Unknown Team",
+          };
+        }
+      );
+    }
+  } catch (error) {
+    console.error(error);
+  }
 
   return (
     <main
@@ -46,7 +133,7 @@ export default async function QualifyingPage() {
         fontFamily: "Arial",
       }}
     >
-      <h1>⚡ Qualifying</h1>
+      <h1>⚡ Qualifying Results</h1>
 
       <p
         style={{
@@ -54,10 +141,8 @@ export default async function QualifyingPage() {
           marginBottom: "20px",
         }}
       >
-        {race.raceName}
+        {raceName}
       </p>
-
-      <ResultsTabs />
 
       <div
         style={{
@@ -67,45 +152,53 @@ export default async function QualifyingPage() {
           padding: "20px",
         }}
       >
-        {results.map((driver) => (
-          <div
-            key={driver.position}
-            style={{
-              padding: "14px 0",
-              borderBottom:
-                "1px solid #2b347a",
-            }}
-          >
-            <strong>
-              P{driver.position}
-            </strong>
+        {mergedResults.length === 0 ? (
+          <p>Qualifying 데이터 없음</p>
+        ) : (
+          mergedResults.map(
+            (driver) => (
+              <div
+                key={
+                  driver.driver_number
+                }
+                style={{
+                  padding: "12px 0",
+                  borderBottom:
+                    "1px solid #2b347a",
+                }}
+              >
+                <strong>
+                  {driver.position === 1
+                    ? "🥇 P1"
+                    : driver.position === 2
+                    ? "🥈 P2"
+                    : driver.position === 3
+                    ? "🥉 P3"
+                    : `P${driver.position}`}
+                </strong>
 
-            <div
-              style={{
-                marginTop: "4px",
-              }}
-            >
-              {driver.Driver.givenName}{" "}
-              {driver.Driver.familyName}
-            </div>
+                <div>
+                  #
+                  {
+                    driver.driver_number
+                  }{" "}
+                  {driver.full_name}
+                </div>
 
-            <div
-              style={{
-                color: "#a9adff",
-                marginBottom: "8px",
-              }}
-            >
-              {driver.Constructor.name}
-            </div>
-
-            <div>Q1: {driver.Q1 ?? "-"}</div>
-            <div>Q2: {driver.Q2 ?? "-"}</div>
-            <div>Q3: {driver.Q3 ?? "-"}</div>
-          </div>
-        ))}
+                <div
+                  style={{
+                    color: "#a9adff",
+                  }}
+                >
+                  {driver.team_name}
+                </div>
+              </div>
+            )
+          )
+        )}
       </div>
 
       <BottomNav />
     </main>
   );
-        }
+}

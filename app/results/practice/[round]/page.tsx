@@ -1,3 +1,4 @@
+import Link from "next/link";
 import BottomNav from "../../../components/BottomNav";
 
 type PracticeResult = {
@@ -20,13 +21,18 @@ type PracticeResult = {
 
 export default async function PracticePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ round: string }>;
+  searchParams: Promise<{ session?: string }>;
 }) {
   const { round } = await params;
+  const { session } = await searchParams;
+
+  const currentSession = session || "1";
 
   const res = await fetch(
-    `https://api.jolpi.ca/ergast/f1/2025/${round}/results.json`,
+    `https://api.jolpi.ca/ergast/f1/2025/${round}/practice/${currentSession}.json`,
     {
       next: { revalidate: 3600 },
     }
@@ -38,7 +44,7 @@ export default async function PracticePage({
     data?.MRData?.RaceTable?.Races?.[0];
 
   const results: PracticeResult[] =
-    race?.Results || [];
+    race?.PracticeResults || [];
 
   return (
     <main
@@ -65,6 +71,36 @@ export default async function PracticePage({
 
       <div
         style={{
+          display: "flex",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        {[1, 2, 3].map((num) => (
+          <Link
+            key={num}
+            href={`/results/practice/${round}?session=${num}`}
+            style={{
+              flex: 1,
+              textAlign: "center",
+              padding: "12px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              color: "white",
+              background:
+                currentSession === String(num)
+                  ? "#7c3aed"
+                  : "#131942",
+              border: "1px solid #2b347a",
+            }}
+          >
+            FP{num}
+          </Link>
+        ))}
+      </div>
+
+      <div
+        style={{
           background: "#131942",
           border: "1px solid #2b347a",
           borderRadius: "20px",
@@ -86,8 +122,7 @@ export default async function PracticePage({
 
             <div>
               #
-              {driver.Driver
-                .permanentNumber ?? "-"}{" "}
+              {driver.Driver.permanentNumber ?? "-"}{" "}
               {driver.Driver.givenName}{" "}
               {driver.Driver.familyName}
             </div>
@@ -98,6 +133,15 @@ export default async function PracticePage({
               }}
             >
               {driver.Constructor.name}
+            </div>
+
+            <div
+              style={{
+                marginTop: "6px",
+                fontSize: "14px",
+              }}
+            >
+              {driver.Time?.time ?? "-"}
             </div>
           </div>
         ))}

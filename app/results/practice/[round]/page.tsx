@@ -1,5 +1,16 @@
 import BottomNav from "../../../components/BottomNav";
 
+type SessionResult = {
+  position: number;
+  driver_number: number;
+};
+
+type Driver = {
+  driver_number: number;
+  full_name: string;
+  team_name: string;
+};
+
 export default async function PracticePage({
   params,
 }: {
@@ -22,7 +33,12 @@ export default async function PracticePage({
   const raceName =
     race?.raceName ?? `Round ${round}`;
 
-  let debugData: unknown = null;
+  let mergedResults: Array<{
+    position: number;
+    driver_number: number;
+    full_name: string;
+    team_name: string;
+  }> = [];
 
   try {
     const sessionRes = await fetch(
@@ -37,19 +53,46 @@ export default async function PracticePage({
     const sessionKey =
       sessions?.[0]?.session_key;
 
-    const resultRes = await fetch(
-      `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`,
-      {
-        next: { revalidate: 3600 },
+    const [resultsRes, driversRes] =
+      await Promise.all([
+        fetch(
+          `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
+        ),
+        fetch(
+          `https://api.openf1.org/v1/drivers?session_key=${sessionKey}`
+        ),
+      ]);
+
+    const results: SessionResult[] =
+      await resultsRes.json();
+
+    const drivers: Driver[] =
+      await driversRes.json();
+
+    mergedResults = results.map(
+      (result) => {
+        const driver =
+          drivers.find(
+            (d) =>
+              d.driver_number ===
+              result.driver_number
+          );
+
+        return {
+          position: result.position,
+          driver_number:
+            result.driver_number,
+          full_name:
+            driver?.full_name ??
+            "Unknown Driver",
+          team_name:
+            driver?.team_name ??
+            "Unknown Team",
+        };
       }
     );
-
-    debugData =
-      await resultRes.json();
   } catch (error) {
-    debugData = {
-      error: String(error),
-    };
+    console.error(error);
   }
 
   return (
@@ -64,7 +107,7 @@ export default async function PracticePage({
         fontFamily: "Arial",
       }}
     >
-      <h1>🛠 Practice Debug</h1>
+      <h1>🛠 Practice Results</h1>
 
       <p
         style={{
@@ -75,23 +118,49 @@ export default async function PracticePage({
         {raceName}
       </p>
 
-      <pre
+      <div
         style={{
           background: "#131942",
           border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
-          overflowX: "auto",
-          whiteSpace: "pre-wrap",
-          fontSize: "12px",
         }}
       >
-        {JSON.stringify(
-          debugData,
-          null,
-          2
+        {mergedResults.map(
+          (driver) => (
+            <div
+              key={
+                driver.driver_number
+              }
+              style={{
+                padding: "12px 0",
+                borderBottom:
+                  "1px solid #2b347a",
+              }}
+            >
+              <strong>
+                P{driver.position}
+              </strong>
+
+              <div>
+                #
+                {
+                  driver.driver_number
+                }{" "}
+                {driver.full_name}
+              </div>
+
+              <div
+                style={{
+                  color: "#a9adff",
+                }}
+              >
+                {driver.team_name}
+              </div>
+            </div>
+          )
         )}
-      </pre>
+      </div>
 
       <BottomNav />
     </main>

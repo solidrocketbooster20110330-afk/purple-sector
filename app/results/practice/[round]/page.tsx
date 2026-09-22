@@ -58,26 +58,17 @@ export default async function PracticePage({
     const sessions: Session[] =
       await sessionRes.json();
 
-    const fp1Sessions = sessions
-      .filter(
-        (s) =>
-          s.session_name?.includes(
-            "Practice 1"
-          )
-      )
-      .sort(
-        (a, b) =>
-          new Date(
-            b.date_start ?? ""
-          ).getTime() -
-          new Date(
-            a.date_start ?? ""
-          ).getTime()
-      );
+    const fp1Sessions = sessions.filter(
+  (s) =>
+    s.session_name ===
+    "Practice 1"
+);
 
-    const sessionKey =
-      fp1Sessions[0]?.session_key;
-
+const sessionKey =
+  fp1Sessions[
+    fp1Sessions.length - 1
+  ]?.session_key;
+    
     if (sessionKey) {
       const [resultsRes, driversRes] =
         await Promise.all([

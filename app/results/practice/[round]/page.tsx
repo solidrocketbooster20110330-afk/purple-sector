@@ -1,50 +1,56 @@
-import Link from "next/link";
 import BottomNav from "../../../components/BottomNav";
 
-type PracticeResult = {
-  position: string;
-
-  Driver: {
-    permanentNumber?: string;
-    givenName: string;
-    familyName: string;
-  };
-
-  Constructor: {
-    name: string;
-  };
-
-  Time?: {
-    time: string;
-  };
+type DriverResult = {
+  driver_number: number;
+  full_name: string;
+  team_name: string;
+  position: number;
 };
 
 export default async function PracticePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ round: string }>;
-  searchParams: Promise<{ session?: string }>;
 }) {
   const { round } = await params;
-  const { session } = await searchParams;
 
-  const currentSession = session || "1";
-
-  const res = await fetch(
-    `https://api.jolpi.ca/ergast/f1/2025/${round}/practice/${currentSession}.json`,
+  const raceRes = await fetch(
+    `https://api.jolpi.ca/ergast/f1/current/${round}.json`,
     {
       next: { revalidate: 3600 },
     }
   );
 
-  const data = await res.json();
+  const raceData = await raceRes.json();
 
   const race =
-    data?.MRData?.RaceTable?.Races?.[0];
+    raceData?.MRData?.RaceTable?.Races?.[0];
 
-  const results: PracticeResult[] =
-    race?.PracticeResults || [];
+  const raceName =
+    race?.raceName ?? `Round ${round}`;
+
+  let results: DriverResult[] = [];
+
+  try {
+    const sessionRes = await fetch(
+      "https://api.openf1.org/v1/sessions?session_name=Practice 1&year=2026"
+    );
+
+    const sessions = await sessionRes.json();
+
+    if (sessions.length > 0) {
+      const sessionKey =
+        sessions[sessions.length - 1].session_key;
+
+      const resultRes = await fetch(
+        `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
+      );
+
+      results = await resultRes.json();
+    }
+  } catch {
+    results = [];
+  }
 
   return (
     <main
@@ -66,38 +72,8 @@ export default async function PracticePage({
           marginBottom: "20px",
         }}
       >
-        {race?.raceName ?? `Round ${round}`}
+        {raceName}
       </p>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "20px",
-        }}
-      >
-        {[1, 2, 3].map((num) => (
-          <Link
-            key={num}
-            href={`/results/practice/${round}?session=${num}`}
-            style={{
-              flex: 1,
-              textAlign: "center",
-              padding: "12px",
-              borderRadius: "12px",
-              textDecoration: "none",
-              color: "white",
-              background:
-                currentSession === String(num)
-                  ? "#7c3aed"
-                  : "#131942",
-              border: "1px solid #2b347a",
-            }}
-          >
-            FP{num}
-          </Link>
-        ))}
-      </div>
 
       <div
         style={{
@@ -107,44 +83,37 @@ export default async function PracticePage({
           padding: "20px",
         }}
       >
-        {results.map((driver) => (
-          <div
-            key={driver.position}
-            style={{
-              padding: "12px 0",
-              borderBottom:
-                "1px solid #2b347a",
-            }}
-          >
-            <strong>
-              P{driver.position}
-            </strong>
-
-            <div>
-              #
-              {driver.Driver.permanentNumber ?? "-"}{" "}
-              {driver.Driver.givenName}{" "}
-              {driver.Driver.familyName}
-            </div>
-
+        {results.length === 0 ? (
+          <p>FP1 데이터 없음</p>
+        ) : (
+          results.map((driver) => (
             <div
+              key={driver.driver_number}
               style={{
-                color: "#a9adff",
+                padding: "12px 0",
+                borderBottom:
+                  "1px solid #2b347a",
               }}
             >
-              {driver.Constructor.name}
-            </div>
+              <strong>
+                P{driver.position}
+              </strong>
 
-            <div
-              style={{
-                marginTop: "6px",
-                fontSize: "14px",
-              }}
-            >
-              {driver.Time?.time ?? "-"}
+              <div>
+                #{driver.driver_number}{" "}
+                {driver.full_name}
+              </div>
+
+              <div
+                style={{
+                  color: "#a9adff",
+                }}
+              >
+                {driver.team_name}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <BottomNav />

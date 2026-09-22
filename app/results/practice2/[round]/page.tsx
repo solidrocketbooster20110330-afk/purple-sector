@@ -3,13 +3,11 @@ import BottomNav from "../../../components/BottomNav";
 type SessionResult = {
   position: number;
   driver_number: number;
-  meeting_key: number;
 };
 
 type Driver = {
   driver_number: number;
-  first_name: string;
-  last_name: string;
+  full_name: string;
   team_name: string;
 };
 
@@ -20,36 +18,93 @@ export default async function Practice2Page({
 }) {
   const { round } = await params;
 
-  // 임시 매핑
-  const meetingKeys: Record<string, number> = {
-    "1": 1304,
-  };
-
-  const meetingKey = meetingKeys[round];
-
-  const [resultsRes, driversRes, raceRes] = await Promise.all([
-    fetch(
-      `https://api.openf1.org/v1/session_result?session_key=${meetingKey}`
-    ),
-    fetch(
-      `https://api.openf1.org/v1/drivers?meeting_key=${meetingKey}`
-    ),
-    fetch(
-      `https://api.jolpi.ca/ergast/f1/2026/${round}.json`
-    ),
-  ]);
-
-  const results: SessionResult[] =
-    await resultsRes.json();
-
-  const drivers: Driver[] =
-    await driversRes.json();
+  const raceRes = await fetch(
+    `https://api.jolpi.ca/ergast/f1/current/${round}.json`,
+    {
+      next: { revalidate: 3600 },
+    }
+  );
 
   const raceData = await raceRes.json();
 
+  const race =
+    raceData?.MRData?.RaceTable?.Races?.[0];
+
   const raceName =
-    raceData?.MRData?.RaceTable?.Races?.[0]
-      ?.raceName ?? `Round ${round}`;
+    race?.raceName ?? `Round ${round}`;
+
+  let mergedResults: Array<{
+    position: number;
+    driver_number: number;
+    full_name: string;
+    team_name: string;
+  }> = [];
+
+  try {
+    const sessionRes = await fetch(
+      "https://api.openf1.org/v1/sessions?year=2026",
+      {
+        next: { revalidate: 3600 },
+      }
+    );
+
+    const sessions = await sessionRes.json();
+
+    const sessionKey =
+      sessions?.[1]?.session_key ??
+      sessions?.[0]?.session_key;
+
+    const [resultsRes, driversRes] =
+      await Promise.all([
+        fetch(
+          `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
+        ),
+        fetch(
+          `https://api.openf1.org/v1/drivers?session_key=${sessionKey}`
+        ),
+      ]);
+
+    const resultsData =
+      await resultsRes.json();
+
+    const driversData =
+      await driversRes.json();
+
+    const results: SessionResult[] =
+      Array.isArray(resultsData)
+        ? resultsData
+        : [];
+
+    const drivers: Driver[] =
+      Array.isArray(driversData)
+        ? driversData
+        : [];
+
+    mergedResults = results.map(
+      (result) => {
+        const driver =
+          drivers.find(
+            (d) =>
+              d.driver_number ===
+              result.driver_number
+          );
+
+        return {
+          position: result.position,
+          driver_number:
+            result.driver_number,
+          full_name:
+            driver?.full_name ??
+            "Unknown Driver",
+          team_name:
+            driver?.team_name ??
+            "Unknown Team",
+        };
+      }
+    );
+  } catch (error) {
+    console.error(error);
+  }
 
   return (
     <main
@@ -82,18 +137,15 @@ export default async function Practice2Page({
           padding: "20px",
         }}
       >
-        {results
-          .sort((a, b) => a.position - b.position)
-          .map((result) => {
-            const driver = drivers.find(
-              (d) =>
-                d.driver_number ===
-                result.driver_number
-            );
-
-            return (
+        {mergedResults.length === 0 ? (
+          <p>FP2 데이터 없음</p>
+        ) : (
+          mergedResults.map(
+            (driver) => (
               <div
-                key={result.driver_number}
+                key={
+                  driver.driver_number
+                }
                 style={{
                   padding: "12px 0",
                   borderBottom:
@@ -101,13 +153,15 @@ export default async function Practice2Page({
                 }}
               >
                 <strong>
-                  P{result.position}
+                  P{driver.position}
                 </strong>
 
                 <div>
-                  #{result.driver_number}{" "}
-                  {driver?.first_name}{" "}
-                  {driver?.last_name}
+                  #
+                  {
+                    driver.driver_number
+                  }{" "}
+                  {driver.full_name}
                 </div>
 
                 <div
@@ -115,11 +169,12 @@ export default async function Practice2Page({
                     color: "#a9adff",
                   }}
                 >
-                  {driver?.team_name}
+                  {driver.team_name}
                 </div>
               </div>
-            );
-          })}
+            )
+          )
+        )}
       </div>
 
       <BottomNav />

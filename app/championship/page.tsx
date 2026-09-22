@@ -3,7 +3,6 @@ import BottomNav from "../components/BottomNav";
 type DriverStanding = {
   position: string;
   points: string;
-  wins: string;
   Driver: {
     givenName: string;
     familyName: string;
@@ -17,7 +16,6 @@ type DriverStanding = {
 type ConstructorStanding = {
   position: string;
   points: string;
-  wins: string;
   Constructor: {
     name: string;
   };
@@ -85,6 +83,8 @@ export default async function ChampionshipPage() {
           border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
+          maxHeight: "500px",
+          overflowY: "auto",
         }}
       >
         {drivers.map((driver) => (
@@ -107,7 +107,9 @@ export default async function ChampionshipPage() {
             </strong>
 
             <div>
-              #{driver.Driver.permanentNumber ?? "-"}{" "}
+              #
+              {driver.Driver
+                .permanentNumber ?? "-"}{" "}
               {driver.Driver.givenName}{" "}
               {driver.Driver.familyName}
             </div>
@@ -142,6 +144,8 @@ export default async function ChampionshipPage() {
           border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
+          maxHeight: "500px",
+          overflowY: "auto",
         }}
       >
         {constructors.map((team) => (

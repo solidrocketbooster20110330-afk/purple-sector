@@ -38,6 +38,7 @@ export default async function PracticePage() {
 
     const sessions: Session[] =
       await sessionRes.json();
+    console.log("sessions", sessions);
 
     const fp1Sessions = sessions
       .filter(
@@ -45,6 +46,7 @@ export default async function PracticePage() {
           s.session_name ===
           "Practice 1"
       )
+      console.log("fp1Sessions", fp1Sessions);
       .sort(
         (a, b) =>
           new Date(

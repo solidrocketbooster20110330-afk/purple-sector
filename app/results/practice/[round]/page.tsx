@@ -30,12 +30,11 @@ export default async function PracticePage() {
 
   try {
     const sessionRes = await fetch(
-      "https://api.openf1.org/v1/sessions?year=2026",
-      {
-        cache: "no-store",
-      }
-    );
-
+  "https://api.openf1.org/v1/sessions",
+  {
+    cache: "no-store",
+  }
+);
     const sessions: Session[] =
       await sessionRes.json();
 

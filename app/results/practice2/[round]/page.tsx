@@ -1,6 +1,17 @@
 import BottomNav from "../../../components/BottomNav";
 import ResultsTabs from "../../ResultsTabs";
 
+type Session = {
+  session_key: number;
+  session_name: string;
+  date_start: string;
+  date_end?: string;
+  country_name?: string;
+  location?: string;
+  year?: number;
+  is_cancelled?: boolean;
+};
+
 type SessionResult = {
   position: number;
   driver_number: number;
@@ -12,28 +23,7 @@ type Driver = {
   team_name: string;
 };
 
-export default async function Practice2Page({
-  params,
-}: {
-  params: Promise<{ round: string }>;
-}) {
-  const { round } = await params;
-
-  const raceRes = await fetch(
-    `https://api.jolpi.ca/ergast/f1/current/${round}.json`,
-    {
-      next: { revalidate: 3600 },
-    }
-  );
-
-  const raceData = await raceRes.json();
-
-  const race =
-    raceData?.MRData?.RaceTable?.Races?.[0];
-
-  const raceName =
-    race?.raceName ?? `Round ${round}`;
-
+export default async function Practice2Page() {
   let mergedResults: Array<{
     position: number;
     driver_number: number;
@@ -41,68 +31,88 @@ export default async function Practice2Page({
     team_name: string;
   }> = [];
 
+  let raceName = "Latest Practice 2";
+
   try {
     const sessionRes = await fetch(
-      "https://api.openf1.org/v1/sessions?year=2026",
-      {
-        next: { revalidate: 3600 },
-      }
+      "https://api.openf1.org/v1/sessions",
+      { cache: "no-store" }
     );
 
-    const sessions = await sessionRes.json();
+    const sessionsData = await sessionRes.json();
+    const sessions: Session[] = Array.isArray(sessionsData)
+      ? sessionsData
+      : [];
 
-    const sessionKey =
-      sessions?.[1]?.session_key ??
-      sessions?.[0]?.session_key;
+    const candidates = sessions
+      .filter(
+        (s) =>
+          s.session_name === "Practice 2" &&
+          (s.year ?? 0) >= 2025 &&
+          !s.is_cancelled
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.date_start).getTime() -
+          new Date(a.date_start).getTime()
+      );
 
-    const [resultsRes, driversRes] =
-      await Promise.all([
-        fetch(
-          `https://api.openf1.org/v1/session_result?session_key=${sessionKey}`
-        ),
-        fetch(
-          `https://api.openf1.org/v1/drivers?session_key=${sessionKey}`
-        ),
-      ]);
+    for (const session of candidates) {
+      try {
+        const resultsRes = await fetch(
+          `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
+          { cache: "no-store" }
+        );
 
-    const resultsData =
-      await resultsRes.json();
+        if (!resultsRes.ok) continue;
 
-    const driversData =
-      await driversRes.json();
+        const resultsData = await resultsRes.json();
+        const results: SessionResult[] = Array.isArray(resultsData)
+          ? resultsData
+          : [];
 
-    const results: SessionResult[] =
-      Array.isArray(resultsData)
-        ? resultsData
-        : [];
+        if (results.length === 0) continue;
 
-    const drivers: Driver[] =
-      Array.isArray(driversData)
-        ? driversData
-        : [];
+        const driversRes = await fetch(
+          `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
+          { cache: "no-store" }
+        );
 
-    mergedResults = results.map(
-      (result) => {
-        const driver =
-          drivers.find(
-            (d) =>
-              d.driver_number ===
-              result.driver_number
-          );
+        const driversData = driversRes.ok
+          ? await driversRes.json()
+          : [];
 
-        return {
-          position: result.position,
-          driver_number:
-            result.driver_number,
-          full_name:
-            driver?.full_name ??
-            "Unknown Driver",
-          team_name:
-            driver?.team_name ??
-            "Unknown Team",
-        };
+        const drivers: Driver[] = Array.isArray(driversData)
+          ? driversData
+          : [];
+
+        mergedResults = results
+          .filter((result) => Number.isFinite(result.position))
+          .sort((a, b) => a.position - b.position)
+          .map((result) => {
+            const driver = drivers.find(
+              (d) => d.driver_number === result.driver_number
+            );
+
+            return {
+              position: result.position,
+              driver_number: result.driver_number,
+              full_name:
+                driver?.full_name ?? `Driver #${result.driver_number}`,
+              team_name:
+                driver?.team_name ?? "Unknown Team",
+            };
+          });
+
+        raceName = session.country_name
+          ? `${session.country_name} • Practice 2`
+          : `${session.location ?? "Latest"} • Practice 2`;
+
+        break;
+      } catch {
+        continue;
       }
-    );
+    }
   } catch (error) {
     console.error(error);
   }
@@ -141,42 +151,27 @@ export default async function Practice2Page({
         }}
       >
         {mergedResults.length === 0 ? (
-          <p>FP2 데이터 없음</p>
+          <p>Practice 2 데이터 없음</p>
         ) : (
-          mergedResults.map(
-            (driver) => (
-              <div
-                key={
-                  driver.driver_number
-                }
-                style={{
-                  padding: "12px 0",
-                  borderBottom:
-                    "1px solid #2b347a",
-                }}
-              >
-                <strong>
-                  P{driver.position}
-                </strong>
+          mergedResults.map((driver) => (
+            <div
+              key={driver.driver_number}
+              style={{
+                padding: "12px 0",
+                borderBottom: "1px solid #2b347a",
+              }}
+            >
+              <strong>P{driver.position}</strong>
 
-                <div>
-                  #
-                  {
-                    driver.driver_number
-                  }{" "}
-                  {driver.full_name}
-                </div>
-
-                <div
-                  style={{
-                    color: "#a9adff",
-                  }}
-                >
-                  {driver.team_name}
-                </div>
+              <div>
+                #{driver.driver_number} {driver.full_name}
               </div>
-            )
-          )
+
+              <div style={{ color: "#a9adff" }}>
+                {driver.team_name}
+              </div>
+            </div>
+          ))
         )}
       </div>
 

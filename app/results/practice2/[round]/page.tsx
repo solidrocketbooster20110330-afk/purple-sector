@@ -83,7 +83,6 @@ export default async function Practice2Page() {
       .filter(
         (session) =>
           session.session_name === "Practice 2" &&
-          session.session_type === "Practice" &&
           (session.year ?? 0) >= 2025 &&
           !session.is_cancelled
       )

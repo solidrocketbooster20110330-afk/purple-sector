@@ -44,34 +44,17 @@ function formatGap(gap?: number) {
   return `+${(gap as number).toFixed(3)}s`;
 }
 
-function cell(
-  align: "left" | "center",
-  bold = false,
-  muted = false
-) {
-  return {
-    padding: "14px 10px",
-    textAlign: align,
-    fontWeight: bold ? "bold" : "normal",
-    color: muted ? "#a9adff" : "white",
-    borderBottom: "1px solid #222a66",
-    whiteSpace: "nowrap" as const,
-  };
-}
-
-
 export default async function Practice2Page() {
   let results: SessionResult[] = [];
   let drivers: Driver[] = [];
   let sessionTitle = "Latest Practice 2";
 
   try {
-    const sessionsRes = await fetch(
-      "https://api.openf1.org/v1/sessions",
-      { cache: "no-store" }
-    );
+    const sessionsRes = await fetch("https://api.openf1.org/v1/sessions", {
+      cache: "no-store",
+    });
 
-    if (!sessionsRes.ok) throw new Error("Failed to load sessions");
+    if (!sessionsRes.ok) throw new Error("Failed to load OpenF1 sessions");
 
     const sessionsData = await sessionsRes.json();
     const sessions: Session[] = Array.isArray(sessionsData) ? sessionsData : [];
@@ -90,29 +73,37 @@ export default async function Practice2Page() {
       );
 
     for (const session of candidates) {
-      const res = await fetch(
-        `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
-        { cache: "no-store" }
-      );
-      if (!res.ok) continue;
+      try {
+        const resultsRes = await fetch(
+          `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
+          { cache: "no-store" }
+        );
 
-      const data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) continue;
+        if (!resultsRes.ok) continue;
 
-      const driverRes = await fetch(
-        `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
-        { cache: "no-store" }
-      );
-      const driverData = driverRes.ok ? await driverRes.json() : [];
+        const resultsData = await resultsRes.json();
+        if (!Array.isArray(resultsData) || resultsData.length === 0) continue;
 
-      results = data
-        .filter((r) => Number.isFinite(r.position))
-        .sort((a, b) => a.position - b.position);
+        const driversRes = await fetch(
+          `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
+          { cache: "no-store" }
+        );
 
-      drivers = Array.isArray(driverData) ? driverData : [];
+        const driversData = driversRes.ok ? await driversRes.json() : [];
 
-      sessionTitle = `${session.country_name ?? session.location ?? "Latest"} • Practice 2`;
-      break;
+        results = resultsData
+          .filter((item) => Number.isFinite(item.position))
+          .sort((a, b) => a.position - b.position);
+
+        drivers = Array.isArray(driversData) ? driversData : [];
+
+        sessionTitle =
+          `${session.country_name ?? session.location ?? "Latest"} • Practice 2`;
+
+        break;
+      } catch {
+        continue;
+      }
     }
   } catch (error) {
     console.error("Practice 2 error:", error);
@@ -122,6 +113,7 @@ export default async function Practice2Page() {
     const driver = drivers.find(
       (d) => d.driver_number === result.driver_number
     );
+
     return {
       ...result,
       full_name: driver?.full_name ?? `Driver #${result.driver_number}`,
@@ -157,61 +149,41 @@ export default async function Practice2Page() {
         {rows.length === 0 ? (
           <p>Practice 2 데이터 없음</p>
         ) : (
-        <table
+          <table style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse" }}>
+  <thead>
+    <tr>
+      {["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"].map((header) => (
+        <th
+          key={header}
           style={{
-            width: "100%",
-            minWidth: "720px",
-            borderCollapse: "collapse",
+            textAlign: header === "DRIVER" || header === "TEAM" ? "left" : "center",
+            padding: "12px 10px",
+            color: "#a9adff",
+            fontSize: "12px",
+            borderBottom: "1px solid #2b347a",
+            whiteSpace: "nowrap",
           }}
         >
-          <thead>
-            <tr>
-              {["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"].map((header) => (
-                <th
-                  key={header}
-                  style={{
-                    textAlign:
-                      header === "DRIVER" || header === "TEAM"
-                        ? "left"
-                        : "center",
-                    padding: "12px 10px",
-                    color: "#a9adff",
-                    fontSize: "12px",
-                    borderBottom: "1px solid #2b347a",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {results.map((driver) => (
-              <tr key={driver.driver_number}>
-                <td style={cell("center", true)}>P{driver.position}</td>
-                <td style={cell("center", true)}>#{driver.driver_number}</td>
-                <td style={cell("left", false)}>{driver.full_name}</td>
-                <td style={cell("left", false, true)}>{driver.team_name}</td>
-                <td style={cell("center", false)}>
-                  {driver.dsq
-                    ? "DSQ"
-                    : driver.dns
-                    ? "DNS"
-                    : driver.dnf
-                    ? "DNF"
-                    : formatTime(driver.duration)}
-                </td>
-                <td style={cell("center", false)}>
-                  {driver.dsq || driver.dns || driver.dnf
-                    ? "-"
-                    : formatGap(driver.gap_to_leader)}
-                </td>
-                <td style={cell("center", false)}>{driver.number_of_laps ?? "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>)
+          {header}
+        </th>
+      ))}
+    </tr>
+  </thead>
+  <tbody>
+    {rows.map((driver) => (
+      <tr key={driver.driver_number}>
+        <td style={{padding:"14px 10px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>P{driver.position}</td>
+        <td style={{padding:"14px 10px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>#{driver.driver_number}</td>
+        <td style={{padding:"14px 10px",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{driver.full_name}</td>
+        <td style={{padding:"14px 10px",color:"#a9adff",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{driver.team_name}</td>
+        <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{driver.dsq?"DSQ":driver.dns?"DNS":driver.dnf?"DNF":formatTime(driver.duration)}</td>
+        <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{driver.dsq||driver.dns||driver.dnf?"-":formatGap(driver.gap_to_leader)}</td>
+        <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{driver.number_of_laps ?? "-"}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+        )}
       </div>
 
       <BottomNav />

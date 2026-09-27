@@ -1,10 +1,9 @@
 import BottomNav from "../../../components/BottomNav";
 import ResultsTabs from "../../ResultsTabs";
 
-type Session = {
+type OpenF1Session = {
   session_key: number;
   session_name: string;
-  session_type?: string;
   date_start: string;
   date_end?: string;
   country_name?: string;
@@ -13,7 +12,7 @@ type Session = {
   is_cancelled?: boolean;
 };
 
-type SessionResult = {
+type OpenF1Result = {
   position: number;
   driver_number: number;
   duration?: number;
@@ -24,47 +23,38 @@ type SessionResult = {
   dsq?: boolean;
 };
 
-type Driver = {
+type OpenF1Driver = {
   driver_number: number;
   full_name: string;
   team_name: string;
 };
 
-function formatTime(duration?: number) {
-  if (!Number.isFinite(duration)) return "-";
-  const totalMs = Math.round((duration as number) * 1000);
-  const minutes = Math.floor(totalMs / 60000);
-  const seconds = Math.floor((totalMs % 60000) / 1000);
-  const milliseconds = totalMs % 1000;
-  return `${minutes > 0 ? minutes + ":" : ""}${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
-}
-
-function formatGap(gap?: number) {
-  if (!Number.isFinite(gap) || gap === 0) return "LEADER";
-  return `+${(gap as number).toFixed(3)}s`;
-}
-
 export default async function Practice1Page() {
-  let results: SessionResult[] = [];
-  let drivers: Driver[] = [];
+  let results: OpenF1Result[] = [];
+  let drivers: OpenF1Driver[] = [];
   let sessionTitle = "Latest Practice 1";
 
   try {
-    const sessionsRes = await fetch("https://api.openf1.org/v1/sessions", {
-      cache: "no-store",
-    });
+    const sessionsRes = await fetch(
+      "https://api.openf1.org/v1/sessions",
+      { cache: "no-store" }
+    );
 
-    if (!sessionsRes.ok) throw new Error("Failed to load OpenF1 sessions");
+    if (!sessionsRes.ok) {
+      throw new Error("Failed to load OpenF1 sessions");
+    }
 
     const sessionsData = await sessionsRes.json();
-    const sessions: Session[] = Array.isArray(sessionsData) ? sessionsData : [];
+    const sessions: OpenF1Session[] = Array.isArray(sessionsData)
+      ? sessionsData
+      : [];
 
     const candidates = sessions
       .filter(
-        (s) =>
-          s.session_name === "Practice 1" &&
-          (s.year ?? 0) >= 2025 &&
-          !s.is_cancelled
+        (session) =>
+          session.session_name === "Practice 1" &&
+          (session.year ?? 0) >= 2025 &&
+          !session.is_cancelled
       )
       .sort(
         (a, b) =>
@@ -74,32 +64,29 @@ export default async function Practice1Page() {
 
     for (const session of candidates) {
       try {
-        const resultsRes = await fetch(
+        const resultRes = await fetch(
           `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
           { cache: "no-store" }
         );
 
-        if (!resultsRes.ok) continue;
+        if (!resultRes.ok) continue;
 
-        const resultsData = await resultsRes.json();
-        if (!Array.isArray(resultsData) || resultsData.length === 0) continue;
+        const data = await resultRes.json();
+        if (!Array.isArray(data) || data.length === 0) continue;
 
-        const driversRes = await fetch(
+        results = data
+          .filter((item): item is OpenF1Result => Number.isFinite(item?.position))
+          .sort((a, b) => a.position - b.position);
+
+        const driverRes = await fetch(
           `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
           { cache: "no-store" }
         );
 
-        const driversData = driversRes.ok ? await driversRes.json() : [];
+        const driverData = driverRes.ok ? await driverRes.json() : [];
+        drivers = Array.isArray(driverData) ? driverData : [];
 
-        results = resultsData
-          .filter((item) => Number.isFinite(item.position))
-          .sort((a, b) => a.position - b.position);
-
-        drivers = Array.isArray(driversData) ? driversData : [];
-
-        sessionTitle =
-          `${session.country_name ?? session.location ?? "Latest"} • Practice 1`;
-
+        sessionTitle = `${session.country_name ?? session.location ?? "Latest"} • Practice 1`;
         break;
       } catch {
         continue;
@@ -108,18 +95,6 @@ export default async function Practice1Page() {
   } catch (error) {
     console.error("Practice 1 error:", error);
   }
-
-  const rows = results.map((result) => {
-    const driver = drivers.find(
-      (d) => d.driver_number === result.driver_number
-    );
-
-    return {
-      ...result,
-      full_name: driver?.full_name ?? `Driver #${result.driver_number}`,
-      team_name: driver?.team_name ?? "Unknown Team",
-    };
-  });
 
   return (
     <main
@@ -146,33 +121,55 @@ export default async function Practice1Page() {
           overflowX: "auto",
         }}
       >
-        {rows.length === 0 ? (
+        {results.length === 0 ? (
           <p>Practice 1 데이터 없음</p>
         ) : (
           <div>
-  {rows.map((driver) => (
-    <div
-      key={driver.driver_number}
-      style={{
-        display: "grid",
-        gridTemplateColumns: "56px 56px 1fr",
-        gap: "10px",
-        alignItems: "center",
-        padding: "14px 0",
-        borderBottom: "1px solid #2b347a",
-      }}
-    >
-      <strong>P{driver.position}</strong>
-      <strong>#{driver.driver_number}</strong>
-      <div>
-        <div>{driver.full_name}</div>
-        <div style={{ color: "#a9adff", fontSize: "14px", marginTop: "3px" }}>
-          {driver.team_name}
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
+            {results.map((result) => {
+              const driver = drivers.find(
+                (item) => item.driver_number === result.driver_number
+              );
+
+              return (
+                <div
+                  key={result.driver_number}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "56px 56px 1fr",
+                    gap: "10px",
+                    alignItems: "center",
+                    padding: "14px 0",
+                    borderBottom: "1px solid #2b347a",
+                  }}
+                >
+                  <strong>
+                    P{result.position}
+                  </strong>
+
+                  <strong>
+                    #{result.driver_number}
+                  </strong>
+
+                  <div>
+                    <div>
+                      {driver?.full_name ??
+                        `Driver #${result.driver_number}`}
+                    </div>
+
+                    <div
+                      style={{
+                        color: "#a9adff",
+                        fontSize: "14px",
+                        marginTop: "3px",
+                      }}
+                    >
+                      {driver?.team_name ?? "Unknown Team"}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 

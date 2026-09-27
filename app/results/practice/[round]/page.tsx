@@ -30,7 +30,19 @@ type Driver = {
   team_name: string;
 };
 
+function formatTime(duration?: number) {
+  if (!Number.isFinite(duration)) return "-";
+  const totalMs = Math.round((duration as number) * 1000);
+  const minutes = Math.floor(totalMs / 60000);
+  const seconds = Math.floor((totalMs % 60000) / 1000);
+  const milliseconds = totalMs % 1000;
+  return `${minutes > 0 ? minutes + ":" : ""}${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
+}
 
+function formatGap(gap?: number) {
+  if (!Number.isFinite(gap) || gap === 0) return "LEADER";
+  return `+${(gap as number).toFixed(3)}s`;
+}
 
 export default async function Practice1Page() {
   let results: SessionResult[] = [];
@@ -38,12 +50,11 @@ export default async function Practice1Page() {
   let sessionTitle = "Latest Practice 1";
 
   try {
-    const sessionsRes = await fetch(
-      "https://api.openf1.org/v1/sessions",
-      { cache: "no-store" }
-    );
+    const sessionsRes = await fetch("https://api.openf1.org/v1/sessions", {
+      cache: "no-store",
+    });
 
-    if (!sessionsRes.ok) throw new Error("Failed to load sessions");
+    if (!sessionsRes.ok) throw new Error("Failed to load OpenF1 sessions");
 
     const sessionsData = await sessionsRes.json();
     const sessions: Session[] = Array.isArray(sessionsData) ? sessionsData : [];
@@ -62,29 +73,37 @@ export default async function Practice1Page() {
       );
 
     for (const session of candidates) {
-      const res = await fetch(
-        `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
-        { cache: "no-store" }
-      );
-      if (!res.ok) continue;
+      try {
+        const resultsRes = await fetch(
+          `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
+          { cache: "no-store" }
+        );
 
-      const data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) continue;
+        if (!resultsRes.ok) continue;
 
-      const driverRes = await fetch(
-        `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
-        { cache: "no-store" }
-      );
-      const driverData = driverRes.ok ? await driverRes.json() : [];
+        const resultsData = await resultsRes.json();
+        if (!Array.isArray(resultsData) || resultsData.length === 0) continue;
 
-      results = data
-        .filter((r) => Number.isFinite(r.position))
-        .sort((a, b) => a.position - b.position);
+        const driversRes = await fetch(
+          `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
+          { cache: "no-store" }
+        );
 
-      drivers = Array.isArray(driverData) ? driverData : [];
+        const driversData = driversRes.ok ? await driversRes.json() : [];
 
-      sessionTitle = `${session.country_name ?? session.location ?? "Latest"} • Practice 1`;
-      break;
+        results = resultsData
+          .filter((item) => Number.isFinite(item.position))
+          .sort((a, b) => a.position - b.position);
+
+        drivers = Array.isArray(driversData) ? driversData : [];
+
+        sessionTitle =
+          `${session.country_name ?? session.location ?? "Latest"} • Practice 1`;
+
+        break;
+      } catch {
+        continue;
+      }
     }
   } catch (error) {
     console.error("Practice 1 error:", error);
@@ -94,6 +113,7 @@ export default async function Practice1Page() {
     const driver = drivers.find(
       (d) => d.driver_number === result.driver_number
     );
+
     return {
       ...result,
       full_name: driver?.full_name ?? `Driver #${result.driver_number}`,
@@ -129,28 +149,31 @@ export default async function Practice1Page() {
         {rows.length === 0 ? (
           <p>Practice 1 데이터 없음</p>
         ) : (
-        {results.map((driver) => (
-          <div
-            key={driver.driver_number}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "56px 56px 1fr",
-              gap: "10px",
-              alignItems: "center",
-              padding: "14px 0",
-              borderBottom: "1px solid #2b347a",
-            }}
-          >
-            <strong>P{driver.position}</strong>
-            <strong>#{driver.driver_number}</strong>
-            <div>
-              <div>{driver.full_name}</div>
-              <div style={{ color: "#a9adff", fontSize: "14px", marginTop: "3px" }}>
-                {driver.team_name}
-              </div>
-            </div>
-          </div>
-        ))})
+          <div>
+  {rows.map((driver) => (
+    <div
+      key={driver.driver_number}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "56px 56px 1fr",
+        gap: "10px",
+        alignItems: "center",
+        padding: "14px 0",
+        borderBottom: "1px solid #2b347a",
+      }}
+    >
+      <strong>P{driver.position}</strong>
+      <strong>#{driver.driver_number}</strong>
+      <div>
+        <div>{driver.full_name}</div>
+        <div style={{ color: "#a9adff", fontSize: "14px", marginTop: "3px" }}>
+          {driver.team_name}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+        )}
       </div>
 
       <BottomNav />

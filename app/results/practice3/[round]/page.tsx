@@ -1,21 +1,11 @@
 import BottomNav from "../../../components/BottomNav";
 import ResultsTabs from "../../ResultsTabs";
 
-type Session = {
-  session_key: number;
-  session_name: string;
-  session_type?: string;
-  date_start: string;
-  date_end?: string;
-  country_name?: string;
-  location?: string;
-  year?: number;
-  is_cancelled?: boolean;
-};
-
-type SessionResult = {
+type Row = {
   position: number;
   driver_number: number;
+  full_name: string;
+  team_name: string;
   duration?: number;
   gap_to_leader?: number;
   number_of_laps?: number;
@@ -24,18 +14,12 @@ type SessionResult = {
   dsq?: boolean;
 };
 
-type Driver = {
-  driver_number: number;
-  full_name: string;
-  team_name: string;
-};
-
 function formatTime(duration?: number) {
   if (!Number.isFinite(duration)) return "-";
-  const totalMs = Math.round((duration as number) * 1000);
-  const minutes = Math.floor(totalMs / 60000);
-  const seconds = Math.floor((totalMs % 60000) / 1000);
-  const milliseconds = totalMs % 1000;
+  const ms = Math.round((duration as number) * 1000);
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  const milliseconds = ms % 1000;
   return `${minutes > 0 ? minutes + ":" : ""}${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
 }
 
@@ -44,150 +28,65 @@ function formatGap(gap?: number) {
   return `+${(gap as number).toFixed(3)}s`;
 }
 
+async function getPractice() {
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://purple-sector.vercel.app";
+
+  const response = await fetch(
+    `${base}/api/practice?type=3`,
+    { cache: "no-store" }
+  );
+
+  if (!response.ok) return null;
+  return response.json();
+}
+
 export default async function Practice3Page() {
-  let results: SessionResult[] = [];
-  let drivers: Driver[] = [];
-  let sessionTitle = "Latest Practice 3";
+  let data: { session?: any; results?: Row[] } | null = null;
 
   try {
-    const sessionsRes = await fetch(
-      "https://api.openf1.org/v1/sessions",
-      { cache: "no-store" }
-    );
-
-    if (!sessionsRes.ok) {
-      throw new Error("Failed to load OpenF1 sessions");
-    }
-
-    const sessionsData = await sessionsRes.json();
-    const sessions: Session[] = Array.isArray(sessionsData)
-      ? sessionsData
-      : [];
-
-    const candidates = sessions
-      .filter(
-        (session) =>
-          session.session_name === "Practice 3" &&
-          (session.year ?? 0) >= 2025 &&
-          !session.is_cancelled
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.date_start).getTime() -
-          new Date(a.date_start).getTime()
-      );
-
-    for (const session of candidates) {
-      try {
-        const resultsRes = await fetch(
-          `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
-          { cache: "no-store" }
-        );
-
-        if (!resultsRes.ok) continue;
-
-        const resultsData = await resultsRes.json();
-        if (!Array.isArray(resultsData) || resultsData.length === 0) continue;
-
-        const driversRes = await fetch(
-          `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
-          { cache: "no-store" }
-        );
-
-        const driversData = driversRes.ok ? await driversRes.json() : [];
-
-        results = resultsData
-          .filter((item) => Number.isFinite(item.position))
-          .sort((a, b) => a.position - b.position);
-
-        drivers = Array.isArray(driversData) ? driversData : [];
-
-        sessionTitle = `${session.country_name ?? session.location ?? "Latest"} • Practice 3`;
-        break;
-      } catch {
-        continue;
-      }
-    }
+    data = await getPractice();
   } catch (error) {
-    console.error("Practice 3 error:", error);
+    console.error("Practice 3 page error:", error);
   }
 
-  const rows = results.map((result) => {
-    const driver = drivers.find(
-      (d) => d.driver_number === result.driver_number
-    );
-
-    return {
-      ...result,
-      full_name: driver?.full_name ?? `Driver #${result.driver_number}`,
-      team_name: driver?.team_name ?? "Unknown Team",
-    };
-  });
+  const rows = Array.isArray(data?.results) ? data.results : [];
+  const session = data?.session;
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
-        color: "white",
-        padding: "24px",
-        paddingBottom: "100px",
-        fontFamily: "Arial",
-      }}
-    >
+    <main style={{ minHeight:"100vh", background:"linear-gradient(180deg,#05071f 0%,#0c1037 100%)", color:"white", padding:"24px", paddingBottom:"100px", fontFamily:"Arial" }}>
       <h1>🛠 Practice 3 Results</h1>
-      <p style={{ color: "#a9adff", marginBottom: "20px" }}>{sessionTitle}</p>
+      <p style={{ color:"#a9adff", marginBottom:"20px" }}>
+        {session ? `${session.country_name ?? session.location ?? "Latest"} • Practice 3` : "Latest Practice 3"}
+      </p>
 
       <ResultsTabs />
 
-      <div
-        style={{
-          background: "#131942",
-          border: "1px solid #2b347a",
-          borderRadius: "20px",
-          padding: "20px",
-          overflowX: "auto",
-        }}
-      >
+      <div style={{ background:"#131942", border:"1px solid #2b347a", borderRadius:"20px", padding:"20px", overflowX:"auto" }}>
         {rows.length === 0 ? (
           <p>Practice 3 데이터 없음</p>
         ) : (
-          <table style={{ width: "100%", minWidth: "720px", borderCollapse: "collapse" }}>
+          <table style={{ width:"100%", minWidth:"720px", borderCollapse:"collapse" }}>
             <thead>
               <tr>
-                {["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"].map((header) => (
-                  <th
-                    key={header}
-                    style={{
-                      textAlign: header === "DRIVER" || header === "TEAM" ? "left" : "center",
-                      padding: "12px 10px",
-                      color: "#a9adff",
-                      fontSize: "12px",
-                      borderBottom: "1px solid #2b347a",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {header}
+                {["POS","NO","DRIVER","TEAM","TIME","GAP","LAPS"].map((h) => (
+                  <th key={h} style={{ textAlign:h==="DRIVER"||h==="TEAM"?"left":"center", padding:"12px 10px", color:"#a9adff", fontSize:"12px", borderBottom:"1px solid #2b347a", whiteSpace:"nowrap" }}>
+                    {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {rows.map((driver) => (
-                <tr key={driver.driver_number}>
-                  <td style={{ padding: "14px 10px", textAlign: "center", fontWeight: "bold", borderBottom: "1px solid #222a66" }}>P{driver.position}</td>
-                  <td style={{ padding: "14px 10px", textAlign: "center", fontWeight: "bold", borderBottom: "1px solid #222a66" }}>#{driver.driver_number}</td>
-                  <td style={{ padding: "14px 10px", borderBottom: "1px solid #222a66", whiteSpace: "nowrap" }}>{driver.full_name}</td>
-                  <td style={{ padding: "14px 10px", color: "#a9adff", borderBottom: "1px solid #222a66", whiteSpace: "nowrap" }}>{driver.team_name}</td>
-                  <td style={{ padding: "14px 10px", textAlign: "center", borderBottom: "1px solid #222a66", whiteSpace: "nowrap" }}>
-                    {driver.dsq ? "DSQ" : driver.dns ? "DNS" : driver.dnf ? "DNF" : formatTime(driver.duration)}
-                  </td>
-                  <td style={{ padding: "14px 10px", textAlign: "center", borderBottom: "1px solid #222a66", whiteSpace: "nowrap" }}>
-                    {driver.dsq || driver.dns || driver.dnf ? "-" : formatGap(driver.gap_to_leader)}
-                  </td>
-                  <td style={{ padding: "14px 10px", textAlign: "center", borderBottom: "1px solid #222a66" }}>
-                    {driver.number_of_laps ?? "-"}
-                  </td>
+              {rows.map((row) => (
+                <tr key={row.driver_number}>
+                  <td style={{padding:"14px 10px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>P{row.position}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>#{row.driver_number}</td>
+                  <td style={{padding:"14px 10px",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{row.full_name}</td>
+                  <td style={{padding:"14px 10px",color:"#a9adff",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{row.team_name}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{row.dsq?"DSQ":row.dns?"DNS":row.dnf?"DNF":formatTime(row.duration)}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{row.dsq||row.dns||row.dnf?"-":formatGap(row.gap_to_leader)}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{row.number_of_laps ?? "-"}</td>
                 </tr>
               ))}
             </tbody>

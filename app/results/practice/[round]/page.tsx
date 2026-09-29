@@ -141,15 +141,15 @@ export default async function Practice1Page() {
   const session = data?.session;
 
   return (
-    <main style={{ minHeight:"100vh", background:"linear-gradient(180deg,#05071f 0%,#0c1037 100%)", color:"white", padding:"24px", paddingBottom:"100px", fontFamily:"Arial" }}>
+    <main style={{ minHeight:"100vh", background:"linear-gradient(180deg,#2b2f33 0%,#353a40 100%)", color:"white", padding:"24px", paddingBottom:"100px", fontFamily:"Arial" }}>
       <h1>🛠 Practice 1 Results</h1>
-      <p style={{ color:"#a9adff", marginBottom:"20px" }}>
+      <p style={{ color:"#d7dadd", marginBottom:"20px" }}>
         {session ? `${session.country_name ?? session.location ?? "Latest"} • Practice 1` : "Latest Practice 1"}
       </p>
 
       <ResultsTabs />
 
-      <div style={{ background:"#131942", border:"1px solid #2b347a", borderRadius:"20px", padding:"20px", overflowX:"auto" }}>
+      <div style={{ background:"#3a3f45", border:"1px solid #5a6169", borderRadius:"20px", padding:"20px", overflowX:"auto" }}>
         {rows.length === 0 ? (
           <p>Practice 1 데이터 없음</p>
         ) : (
@@ -157,7 +157,7 @@ export default async function Practice1Page() {
             <thead>
               <tr>
                 {["POS","NO","DRIVER","TEAM","TIME","GAP","LAPS"].map((h) => (
-                  <th key={h} style={{ textAlign:h==="DRIVER"||h==="TEAM"?"left":"center", padding:"12px 10px", color:"#a9adff", fontSize:"12px", borderBottom:"1px solid #2b347a", whiteSpace:"nowrap" }}>
+                  <th key={h} style={{ textAlign:h==="DRIVER"||h==="TEAM"?"left":"center", padding:"12px 10px", color:"#d7dadd", fontSize:"12px", borderBottom:"1px solid #5a6169", whiteSpace:"nowrap" }}>
                     {h}
                   </th>
                 ))}
@@ -166,13 +166,13 @@ export default async function Practice1Page() {
             <tbody>
               {rows.map((row) => (
                 <tr key={row.driver_number}>
-                  <td style={{padding:"14px 10px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>P{row.position}</td>
-                  <td style={{padding:"14px 10px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>#{row.driver_number}</td>
-                  <td style={{padding:"14px 10px",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{row.full_name}</td>
-                  <td style={{padding:"14px 10px",color:"#a9adff",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{row.team_name}</td>
-                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{row.dsq?"DSQ":row.dns?"DNS":row.dnf?"DNF":formatTime(row.duration)}</td>
-                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{row.dsq||row.dns||row.dnf?"-":formatGap(row.gap_to_leader)}</td>
-                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{row.number_of_laps ?? "-"}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #555b62"}}>P{row.position}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #555b62"}}>#{row.driver_number}</td>
+                  <td style={{padding:"14px 10px",borderBottom:"1px solid #555b62",whiteSpace:"nowrap"}}>{row.full_name}</td>
+                  <td style={{padding:"14px 10px",color:"#d7dadd",borderBottom:"1px solid #555b62",whiteSpace:"nowrap"}}>{row.team_name}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #555b62",whiteSpace:"nowrap"}}>{row.dsq?"DSQ":row.dns?"DNS":row.dnf?"DNF":formatTime(row.duration)}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #555b62",whiteSpace:"nowrap"}}>{row.dsq||row.dns||row.dnf?"-":formatGap(row.gap_to_leader)}</td>
+                  <td style={{padding:"14px 10px",textAlign:"center",borderBottom:"1px solid #555b62"}}>{row.number_of_laps ?? "-"}</td>
                 </tr>
               ))}
             </tbody>

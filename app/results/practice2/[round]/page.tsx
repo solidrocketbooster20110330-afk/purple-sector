@@ -29,17 +29,103 @@ function formatGap(gap?: number) {
 }
 
 async function getPractice() {
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    "https://purple-sector.vercel.app";
-
-  const response = await fetch(
-    `${base}/api/practice?type=2`,
+  const sessionsResponse = await fetch(
+    "https://api.openf1.org/v1/sessions",
     { cache: "no-store" }
   );
 
-  if (!response.ok) return null;
-  return response.json();
+  if (!sessionsResponse.ok) {
+    throw new Error("OpenF1 sessions request failed");
+  }
+
+  const sessionsData = await sessionsResponse.json();
+  const sessions = Array.isArray(sessionsData) ? sessionsData : [];
+
+  const candidates = sessions
+    .filter((session: any) => {
+      const start = new Date(session.date_start).getTime();
+
+      return (
+        session.session_name === "Practice 2" &&
+        Number.isFinite(start) &&
+        start <= Date.now() &&
+        !session.is_cancelled
+      );
+    })
+    .sort(
+      (a: any, b: any) =>
+        new Date(b.date_start).getTime() -
+        new Date(a.date_start).getTime()
+    );
+
+  for (const session of candidates.slice(0, 5)) {
+    try {
+      const resultResponse = await fetch(
+        `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
+        { cache: "no-store" }
+      );
+
+      if (!resultResponse.ok) continue;
+
+      const resultData = await resultResponse.json();
+      if (!Array.isArray(resultData) || resultData.length === 0) continue;
+
+      const results = resultData
+        .filter(
+          (result: any) =>
+            Number.isFinite(result?.position) &&
+            Number.isFinite(result?.driver_number)
+        )
+        .sort((a: any, b: any) => a.position - b.position);
+
+      if (results.length === 0) continue;
+
+      const driverResponse = await fetch(
+        `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
+        { cache: "no-store" }
+      );
+
+      const driverData = driverResponse.ok
+        ? await driverResponse.json()
+        : [];
+
+      const drivers = Array.isArray(driverData) ? driverData : [];
+
+      return {
+        session: {
+          country_name: session.country_name,
+          location: session.location,
+          session_name: session.session_name,
+        },
+        results: results.map((result: any) => {
+          const driver = drivers.find(
+            (item: any) => item.driver_number === result.driver_number
+          );
+
+          return {
+            position: result.position,
+            driver_number: result.driver_number,
+            full_name:
+              driver?.full_name ?? `Driver #${result.driver_number}`,
+            team_name: driver?.team_name ?? "Unknown Team",
+            duration: result.duration,
+            gap_to_leader: result.gap_to_leader,
+            number_of_laps: result.number_of_laps,
+            dnf: result.dnf,
+            dns: result.dns,
+            dsq: result.dsq,
+          };
+        }),
+      };
+    } catch {
+      continue;
+    }
+  }
+
+  return {
+    session: null,
+    results: [],
+  };
 }
 
 export default async function Practice2Page() {

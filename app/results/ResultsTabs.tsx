@@ -60,10 +60,10 @@ export default function ResultsTabs() {
 
               background: active
                 ? "#7c3aed"
-                : "#131942",
+                : "#3a3f45",
 
               border:
-                "1px solid #2b347a",
+                "1px solid #5a6169",
 
               color: "white",
             }}

@@ -3,9 +3,16 @@ import Link from "next/link";
 type ConstructorStanding = {
   position: string;
   points: string;
-  Constructor: {
-    name: string;
-  };
+  Constructor: { name: string };
+};
+
+const pageStyle = {
+  minHeight: "100vh",
+  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  color: "white",
+  padding: "24px",
+  paddingBottom: "100px",
+  fontFamily: "Arial, sans-serif",
 };
 
 export default async function ConstructorsPage() {
@@ -13,22 +20,13 @@ export default async function ConstructorsPage() {
     "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
     { next: { revalidate: 3600 } }
   );
-
   const data = await res.json();
+
   const constructors: ConstructorStanding[] =
-    data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
+    data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#2b2f33",
-        color: "#f2f2f2",
-        padding: "24px",
-        paddingBottom: "100px",
-        fontFamily: "Arial",
-      }}
-    >
+    <main style={pageStyle}>
       <h1 style={{ marginTop: 0 }}>🏆 Constructors Championship</h1>
 
       <div
@@ -47,13 +45,14 @@ export default async function ConstructorsPage() {
             textAlign: "center",
             textDecoration: "none",
             fontWeight: "bold",
-            background: "#3a3f45",
-            border: "1px solid #5a6169",
+            background: "#131942",
+            border: "1px solid #2b347a",
             color: "white",
           }}
         >
           👤 Drivers
         </Link>
+
         <Link
           href="/championship/constructors"
           style={{
@@ -64,7 +63,7 @@ export default async function ConstructorsPage() {
             textDecoration: "none",
             fontWeight: "bold",
             background: "#7c3aed",
-            border: "1px solid #5a6169",
+            border: "1px solid #2b347a",
             color: "white",
           }}
         >
@@ -74,8 +73,8 @@ export default async function ConstructorsPage() {
 
       <div
         style={{
-          background: "#3a3f45",
-          border: "1px solid #5a6169",
+          background: "#131942",
+          border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
         }}
@@ -91,7 +90,7 @@ export default async function ConstructorsPage() {
               borderBottom:
                 index === constructors.length - 1
                   ? "none"
-                  : "1px solid #555b62",
+                  : "1px solid #2b347a",
             }}
           >
             <span>
@@ -101,12 +100,16 @@ export default async function ConstructorsPage() {
                 ? "🥈"
                 : team.position === "3"
                 ? "🥉"
-                : "P" + team.position}{" "}
+                : `P${team.position}`}{" "}
               {team.Constructor.name}
             </span>
             <strong>{team.points} pts</strong>
           </div>
         ))}
+
+        {constructors.length === 0 && (
+          <p style={{ color: "#a9adff" }}>Constructor 데이터가 없습니다.</p>
+        )}
       </div>
     </main>
   );

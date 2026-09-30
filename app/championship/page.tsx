@@ -1,21 +1,25 @@
-"use client";
+type DriverStanding = {
+  position: string;
+  points: string;
+  Driver: {
+    givenName: string;
+    familyName: string;
+    permanentNumber?: string;
+  };
+  Constructors: {
+    name: string;
+  }[];
+};
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+export default async function ChampionshipDriversPage() {
+  const res = await fetch(
+    "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
+    { next: { revalidate: 3600 } }
+  );
 
-export default function ChampionshipPage() {
-  const pathname = usePathname();
-
-  const tabs = [
-    {
-      href: "/championship",
-      label: "👤 Drivers",
-    },
-    {
-      href: "/championship/constructors",
-      label: "🏭 Constructors",
-    },
-  ];
+  const data = await res.json();
+  const drivers: DriverStanding[] =
+    data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
 
   return (
     <main
@@ -28,49 +32,22 @@ export default function ChampionshipPage() {
         fontFamily: "Arial",
       }}
     >
-      <h1 style={{ marginTop: 0 }}>🏆 Championship</h1>
+      <h1 style={{ marginTop: 0 }}>🏆 Drivers Championship</h1>
 
-      <div
+      <a
+        href="/championship"
         style={{
-          display: "flex",
-          gap: "12px",
-          overflowX: "auto",
-          marginTop: "24px",
-          marginBottom: "20px",
-          paddingBottom: "4px",
-          scrollbarWidth: "none",
-          WebkitOverflowScrolling: "touch",
+          display: "inline-block",
+          color: "white",
+          textDecoration: "none",
+          background: "#7c3aed",
+          padding: "10px 16px",
+          borderRadius: "12px",
+          margin: "12px 0 20px",
         }}
       >
-        {tabs.map((tab) => {
-          const active = pathname === tab.href;
-
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              style={{
-                minWidth: "150px",
-                flexShrink: 0,
-                padding: "14px 18px",
-                borderRadius: "16px",
-                textAlign: "center",
-                textDecoration: "none",
-                fontWeight: "bold",
-                background: active ? "#7c3aed" : "#3a3f45",
-                border: "1px solid #5a6169",
-                color: "white",
-              }}
-            >
-              {tab.label}
-            </Link>
-          );
-        })}
-      </div>
-
-      <p style={{ color: "#d7dadd", marginBottom: "20px" }}>
-        Select a championship category above.
-      </p>
+        ← Championship
+      </a>
 
       <div
         style={{
@@ -80,10 +57,34 @@ export default function ChampionshipPage() {
           padding: "20px",
         }}
       >
-        <strong>Drivers</strong>
-        <div style={{ marginTop: "8px", color: "#d7dadd" }}>
-          View the current driver standings.
-        </div>
+        {drivers.map((driver, index) => (
+          <div
+            key={driver.position}
+            style={{
+              padding: "14px 0",
+              borderBottom:
+                index === drivers.length - 1
+                  ? "none"
+                  : "1px solid #555b62",
+            }}
+          >
+            <strong style={{ marginRight: "10px" }}>
+              {driver.position === "1"
+                ? "🥇"
+                : driver.position === "2"
+                ? "🥈"
+                : driver.position === "3"
+                ? "🥉"
+                : "P" + driver.position}
+            </strong>
+            {"#" + (driver.Driver.permanentNumber ?? "-") + " "}
+            {driver.Driver.givenName} {driver.Driver.familyName}
+            <div style={{ color: "#d7dadd", marginTop: "4px" }}>
+              {driver.Constructors[0]?.name ?? "-"}
+            </div>
+            <div style={{ marginTop: "4px" }}>{driver.points} pts</div>
+          </div>
+        ))}
       </div>
     </main>
   );

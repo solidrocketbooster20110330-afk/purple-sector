@@ -12,24 +12,24 @@ type QualifyingResult = {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "#2b2f33",
-  color: "#f2f2f2",
+  background: "#05071f",
+  color: "white",
   padding: "24px",
   paddingBottom: "100px",
   fontFamily: "Arial",
 };
 
 const cardStyle = {
-  background: "#3a3f45",
-  border: "1px solid #5a6169",
+  background: "#131942",
+  border: "1px solid #2b347a",
   borderRadius: "20px",
   padding: "20px",
   overflowX: "auto" as const,
 };
 
 const headerStyle = {
-  color: "#d7dadd",
-  borderBottom: "2px solid #60666d",
+  color: "#a9adff",
+  borderBottom: "2px solid #2b347a",
   fontSize: "12px",
   whiteSpace: "nowrap" as const,
   padding: "12px 10px",
@@ -37,7 +37,7 @@ const headerStyle = {
 
 const cellStyle = {
   padding: "14px 10px",
-  borderBottom: "1px solid #555b62",
+  borderBottom: "1px solid #222a66",
   whiteSpace: "nowrap" as const,
 };
 
@@ -55,7 +55,7 @@ export default async function QualifyingPage() {
     <main style={pageStyle}>
       <h1 style={{ marginBottom: "6px" }}>⚡ Qualifying Results</h1>
 
-      <p style={{ color: "#c4c8cc", marginBottom: "20px" }}>
+      <p style={{ color: "#a9adff", marginBottom: "20px" }}>
         {race?.raceName ?? "Latest Grand Prix"}
       </p>
 

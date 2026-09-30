@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type DriverStanding = {
   position: string;
   points: string;
@@ -7,30 +9,28 @@ type DriverStanding = {
   };
 };
 
+const pageStyle = {
+  minHeight: "100vh",
+  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  color: "white",
+  padding: "24px",
+  paddingBottom: "100px",
+  fontFamily: "Arial, sans-serif",
+};
+
 export default async function StandingsPage() {
   const res = await fetch(
     "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
-    {
-      next: { revalidate: 3600 },
-    }
+    { next: { revalidate: 3600 } }
   );
-
   const data = await res.json();
 
   const drivers: DriverStanding[] =
-    data.MRData.StandingsTable.StandingsLists[0].DriverStandings;
+    data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
-        color: "white",
-        padding: "40px",
-        fontFamily: "Arial",
-      }}
-    >
-      <a
+    <main style={pageStyle}>
+      <Link
         href="/"
         style={{
           display: "inline-block",
@@ -43,7 +43,7 @@ export default async function StandingsPage() {
         }}
       >
         ← Home
-      </a>
+      </Link>
 
       <h1>🏆 Driver Championship</h1>
 
@@ -56,24 +56,29 @@ export default async function StandingsPage() {
           marginTop: "20px",
         }}
       >
-        {drivers.slice(0, 20).map((driver) => (
+        {drivers.slice(0, 20).map((driver, index) => (
           <div
             key={driver.position}
             style={{
               display: "flex",
               justifyContent: "space-between",
               padding: "14px 0",
-              borderBottom: "1px solid #2b347a",
+              borderBottom:
+                index === Math.min(drivers.length, 20) - 1
+                  ? "none"
+                  : "1px solid #2b347a",
             }}
           >
             <span>
-              {driver.position}. {driver.Driver.givenName}{" "}
-              {driver.Driver.familyName}
+              {driver.position}. {driver.Driver.givenName} {driver.Driver.familyName}
             </span>
-
             <strong>{driver.points} pts</strong>
           </div>
         ))}
+
+        {drivers.length === 0 && (
+          <p style={{ color: "#a9adff" }}>Driver 데이터가 없습니다.</p>
+        )}
       </div>
     </main>
   );

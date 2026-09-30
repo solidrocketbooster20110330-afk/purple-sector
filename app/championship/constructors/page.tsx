@@ -11,13 +11,14 @@ type ConstructorStanding = {
 
 export default async function ChampionshipConstructorsPage() {
   const res = await fetch(
-    "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
+    "https://api.jolpi.ca/ergast/f1/2026/constructorstandings.json",
     { next: { revalidate: 3600 } }
   );
 
   const data = await res.json();
+
   const constructors: ConstructorStanding[] =
-    data.MRData.StandingsTable.StandingsLists[0].ConstructorStandings;
+    data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
 
   return (
     <main
@@ -85,28 +86,32 @@ export default async function ChampionshipConstructorsPage() {
           overflowY: "auto",
         }}
       >
-        {constructors.map((constructor) => (
-          <div
-            key={constructor.position}
-            style={{
-              padding: "14px 0",
-              borderBottom: "1px solid #2b347a",
-            }}
-          >
-            <strong style={{ marginRight: "10px" }}>
-              {constructor.position === "1"
-                ? "🥇"
-                : constructor.position === "2"
-                ? "🥈"
-                : constructor.position === "3"
-                ? "🥉"
-                : `P${constructor.position}`}
-            </strong>
+        {constructors.length === 0 ? (
+          <p style={{ color: "#a9adff" }}>Constructor 데이터가 없습니다.</p>
+        ) : (
+          constructors.map((constructor) => (
+            <div
+              key={constructor.position}
+              style={{
+                padding: "14px 0",
+                borderBottom: "1px solid #2b347a",
+              }}
+            >
+              <strong style={{ marginRight: "10px" }}>
+                {constructor.position === "1"
+                  ? "🥇"
+                  : constructor.position === "2"
+                  ? "🥈"
+                  : constructor.position === "3"
+                  ? "🥉"
+                  : `P${constructor.position}`}
+              </strong>
 
-            <div>{constructor.Constructor.name}</div>
-            <div style={{ marginTop: "4px" }}>{constructor.points} pts</div>
-          </div>
-        ))}
+              <div>{constructor.Constructor.name}</div>
+              <div style={{ marginTop: "4px" }}>{constructor.points} pts</div>
+            </div>
+          ))
+        )}
       </div>
 
       <BottomNav />

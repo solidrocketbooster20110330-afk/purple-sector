@@ -1,8 +1,21 @@
 import Link from "next/link";
 
+const navItems = [
+  { href: "/", icon: "🏠", label: "Home" },
+  { href: "/schedule", icon: "📅", label: "Schedule" },
+  { href: "/results", icon: "🏁", label: "Results" },
+  { href: "/championship", icon: "🏆", label: "Championship" },
+];
+
+const navStyle = {
+  color: "white",
+  textDecoration: "none",
+  textAlign: "center" as const,
+};
+
 export default function BottomNav() {
   return (
-    <div
+    <nav
       style={{
         position: "fixed",
         bottom: 0,
@@ -17,53 +30,12 @@ export default function BottomNav() {
         zIndex: 999,
       }}
     >
-      <Link
-        href="/"
-        style={{
-          color: "white",
-          textDecoration: "none",
-          textAlign: "center",
-        }}
-      >
-        <div>🏠</div>
-        <div style={{ fontSize: "12px" }}>Home</div>
-      </Link>
-
-      <Link
-        href="/schedule"
-        style={{
-          color: "white",
-          textDecoration: "none",
-          textAlign: "center",
-        }}
-      >
-        <div>📅</div>
-        <div style={{ fontSize: "12px" }}>Schedule</div>
-      </Link>
-
-      <Link
-        href="/results"
-        style={{
-          color: "white",
-          textDecoration: "none",
-          textAlign: "center",
-        }}
-      >
-        <div>🏁</div>
-        <div style={{ fontSize: "12px" }}>Results</div>
-      </Link>
-
-      <Link
-        href="/championship"
-        style={{
-          color: "white",
-          textDecoration: "none",
-          textAlign: "center",
-        }}
-      >
-        <div>🏆</div>
-        <div style={{ fontSize: "12px" }}>Championship</div>
-      </Link>
-    </div>
+      {navItems.map((item) => (
+        <Link key={item.href} href={item.href} style={navStyle}>
+          <div>{item.icon}</div>
+          <div style={{ fontSize: "12px" }}>{item.label}</div>
+        </Link>
+      ))}
+    </nav>
   );
 }

@@ -40,7 +40,7 @@ export default async function ResultsPage() {
       style={{
         minHeight: "100vh",
         background:
-          "linear-gradient(180deg,#2b2f33 0%,#353a40 100%)",
+          "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
         color: "white",
         padding: "24px",
         paddingBottom: "100px",
@@ -57,7 +57,7 @@ export default async function ResultsPage() {
 
       <p
         style={{
-          color: "#d7dadd",
+          color: "#a9adff",
           marginBottom: "20px",
         }}
       >
@@ -68,8 +68,8 @@ export default async function ResultsPage() {
 
       <div
         style={{
-          background: "#3a3f45",
-          border: "1px solid #5a6169",
+          background: "#131942",
+          border: "1px solid #2b347a",
           borderRadius: "20px",
           padding: "20px",
           overflowX: "auto",
@@ -82,8 +82,8 @@ export default async function ResultsPage() {
               "70px 60px 1.5fr 1fr 70px 140px 60px",
             gap: "10px",
             paddingBottom: "12px",
-            borderBottom: "2px solid #5a6169",
-            color: "#d7dadd",
+            borderBottom: "2px solid #2b347a",
+            color: "#a9adff",
             fontWeight: "bold",
           }}
         >
@@ -125,7 +125,7 @@ export default async function ResultsPage() {
                 gap: "10px",
                 padding: "14px 0",
                 borderBottom:
-                  "1px solid #5a6169",
+                  "1px solid #2b347a",
                 alignItems: "center",
               }}
             >
@@ -150,7 +150,7 @@ export default async function ResultsPage() {
 
               <div
                 style={{
-                  color: "#d7dadd",
+                  color: "#a9adff",
                 }}
               >
                 {driver.Constructor.name}

@@ -29,7 +29,24 @@ const cardStyle = {
   overflowX: "auto" as const,
 };
 
-const columns = "70px 60px 1.5fr 1fr 70px 140px 60px";
+const columns = "60px 60px minmax(150px, 1.4fr) minmax(110px, 1fr) 70px 140px 60px";
+const headers = ["POS", "NO", "DRIVER", "TEAM", "GRID", "STATUS", "PTS"];
+
+function cellStyle(textAlign: "left" | "center" = "left") {
+  return {
+    padding: "14px 8px",
+    borderBottom: "1px solid #2b347a",
+    whiteSpace: "nowrap" as const,
+    textAlign,
+  };
+}
+
+function positionLabel(position: string) {
+  if (position === "1") return "🥇";
+  if (position === "2") return "🥈";
+  if (position === "3") return "🥉";
+  return `P${position}`;
+}
 
 function getStatusText(result: RaceResult) {
   if (result.status.includes("Lap")) {
@@ -42,13 +59,6 @@ function getStatusText(result: RaceResult) {
   }
 
   return "DNF";
-}
-
-function positionLabel(position: string) {
-  if (position === "1") return "🥇";
-  if (position === "2") return "🥈";
-  if (position === "3") return "🥉";
-  return `P${position}`;
 }
 
 export default async function ResultsPage() {
@@ -64,6 +74,7 @@ export default async function ResultsPage() {
   return (
     <main style={pageStyle}>
       <h1 style={{ marginBottom: "6px" }}>🏁 Results</h1>
+
       <p style={{ color: "#a9adff", marginBottom: "20px" }}>
         {race?.raceName ?? "Latest Grand Prix"}
       </p>
@@ -74,56 +85,88 @@ export default async function ResultsPage() {
         {results.length === 0 ? (
           <p>Race 데이터 없음</p>
         ) : (
-          <div style={{ minWidth: "700px" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: columns,
-                gap: "10px",
-                paddingBottom: "12px",
-                borderBottom: "2px solid #2b347a",
-                color: "#a9adff",
-                fontWeight: "bold",
-              }}
-            >
-              {["POS", "NO", "DRIVER", "TEAM", "GRID", "STATUS", "PTS"].map((label) => (
-                <div key={label}>{label}</div>
-              ))}
-            </div>
+          <table
+            style={{
+              width: "100%",
+              minWidth: "760px",
+              tableLayout: "fixed",
+              borderCollapse: "collapse",
+            }}
+          >
+            <colgroup>
+              <col style={{ width: "60px" }} />
+              <col style={{ width: "60px" }} />
+              <col style={{ width: "170px" }} />
+              <col style={{ width: "120px" }} />
+              <col style={{ width: "70px" }} />
+              <col style={{ width: "140px" }} />
+              <col style={{ width: "60px" }} />
+            </colgroup>
 
-            {results.map((driver) => {
-              const statusText = getStatusText(driver);
-
-              return (
-                <div
-                  key={driver.position}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: columns,
-                    gap: "10px",
-                    padding: "14px 0",
-                    borderBottom: "1px solid #2b347a",
-                    alignItems: "center",
-                  }}
-                >
-                  <strong>{positionLabel(driver.position)}</strong>
-                  <div>#{driver.number}</div>
-                  <div>{driver.Driver.givenName} {driver.Driver.familyName}</div>
-                  <div style={{ color: "#a9adff" }}>{driver.Constructor.name}</div>
-                  <div>P{driver.grid}</div>
-                  <div
+            <thead>
+              <tr>
+                {headers.map((header) => (
+                  <th
+                    key={header}
                     style={{
-                      color: statusText === "DNF" ? "#ff7a7a" : "white",
-                      fontWeight: statusText === "DNF" ? "bold" : "normal",
+                      padding: "12px 8px",
+                      color: "#a9adff",
+                      borderBottom: "2px solid #2b347a",
+                      whiteSpace: "nowrap",
+                      textAlign:
+                        header === "DRIVER" || header === "TEAM"
+                          ? "left"
+                          : "center",
                     }}
                   >
-                    {statusText}
-                  </div>
-                  <strong>{driver.points}</strong>
-                </div>
-              );
-            })}
-          </div>
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {results.map((driver) => {
+                const statusText = getStatusText(driver);
+
+                return (
+                  <tr key={driver.position}>
+                    <td style={{ ...cellStyle("center"), fontWeight: "bold" }}>
+                      {positionLabel(driver.position)}
+                    </td>
+                    <td style={{ ...cellStyle("center"), fontWeight: "bold" }}>
+                      #{driver.number}
+                    </td>
+                    <td style={cellStyle("left")}>
+                      {driver.Driver.givenName} {driver.Driver.familyName}
+                    </td>
+                    <td
+                      style={{
+                        ...cellStyle("left"),
+                        color: "#a9adff",
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      {driver.Constructor.name}
+                    </td>
+                    <td style={cellStyle("center")}>P{driver.grid}</td>
+                    <td
+                      style={{
+                        ...cellStyle("center"),
+                        color: statusText === "DNF" ? "#ff7a7a" : "white",
+                        fontWeight: statusText === "DNF" ? "bold" : "normal",
+                      }}
+                    >
+                      {statusText}
+                    </td>
+                    <td style={{ ...cellStyle("center"), fontWeight: "bold" }}>
+                      {driver.points}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </div>
 

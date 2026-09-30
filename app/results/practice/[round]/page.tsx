@@ -52,6 +52,7 @@ const cardStyle = {
 };
 
 const headers = ["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"];
+const gridColumns = "56px 56px minmax(150px, 1.4fr) minmax(120px, 1fr) 110px 100px 70px";
 
 function formatTime(duration?: number) {
   if (!Number.isFinite(duration)) return "-";
@@ -204,6 +205,7 @@ export default async function PracticePage() {
                   <th
                     key={header}
                     style={{
+                      width: header === "DRIVER" ? "auto" : undefined,
                       textAlign:
                         header === "DRIVER" || header === "TEAM"
                           ? "left"

@@ -1,3 +1,6 @@
+import Link from "next/link";
+import BottomNav from "../components/BottomNav";
+
 type DriverStanding = {
   position: string;
   points: string;
@@ -25,67 +28,101 @@ export default async function ChampionshipDriversPage() {
     <main
       style={{
         minHeight: "100vh",
-        background: "#2b2f33",
-        color: "#f2f2f2",
+        background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+        color: "white",
         padding: "24px",
         paddingBottom: "100px",
         fontFamily: "Arial",
       }}
     >
-      <h1 style={{ marginTop: 0 }}>🏆 Drivers Championship</h1>
-
-      <a
-        href="/championship"
-        style={{
-          display: "inline-block",
-          color: "white",
-          textDecoration: "none",
-          background: "#7c3aed",
-          padding: "10px 16px",
-          borderRadius: "12px",
-          margin: "12px 0 20px",
-        }}
-      >
-        ← Championship
-      </a>
+      <h1 style={{ marginTop: 0 }}>🏆 Championship</h1>
 
       <div
         style={{
-          background: "#3a3f45",
-          border: "1px solid #5a6169",
-          borderRadius: "20px",
-          padding: "20px",
+          display: "flex",
+          gap: "12px",
+          marginTop: "24px",
+          marginBottom: "20px",
         }}
       >
-        {drivers.map((driver, index) => (
+        <Link
+          href="/championship"
+          style={{
+            flex: 1,
+            padding: "14px 18px",
+            borderRadius: "16px",
+            textAlign: "center",
+            textDecoration: "none",
+            fontWeight: "bold",
+            background: "#7c3aed",
+            border: "1px solid #2b347a",
+            color: "white",
+          }}
+        >
+          👤 Drivers
+        </Link>
+
+        <Link
+          href="/championship/constructors"
+          style={{
+            flex: 1,
+            padding: "14px 18px",
+            borderRadius: "16px",
+            textAlign: "center",
+            textDecoration: "none",
+            fontWeight: "bold",
+            background: "#131942",
+            border: "1px solid #2b347a",
+            color: "white",
+          }}
+        >
+          🏭 Constructors
+        </Link>
+      </div>
+
+      <div
+        style={{
+          background: "#131942",
+          border: "1px solid #2b347a",
+          borderRadius: "20px",
+          padding: "20px",
+          maxHeight: "600px",
+          overflowY: "auto",
+        }}
+      >
+        {drivers.map((driver) => (
           <div
             key={driver.position}
             style={{
-              padding: "14px 0",
-              borderBottom:
-                index === drivers.length - 1
-                  ? "none"
-                  : "1px solid #555b62",
+              padding: "12px 0",
+              borderBottom: "1px solid #2b347a",
             }}
           >
-            <strong style={{ marginRight: "10px" }}>
+            <strong>
               {driver.position === "1"
                 ? "🥇"
                 : driver.position === "2"
                 ? "🥈"
                 : driver.position === "3"
                 ? "🥉"
-                : "P" + driver.position}
+                : `P${driver.position}`}
             </strong>
-            {"#" + (driver.Driver.permanentNumber ?? "-") + " "}
-            {driver.Driver.givenName} {driver.Driver.familyName}
-            <div style={{ color: "#d7dadd", marginTop: "4px" }}>
-              {driver.Constructors[0]?.name ?? "-"}
+
+            <div>
+              #{driver.Driver.permanentNumber ?? "-"}{" "}
+              {driver.Driver.givenName} {driver.Driver.familyName}
             </div>
-            <div style={{ marginTop: "4px" }}>{driver.points} pts</div>
+
+            <div style={{ color: "#a9adff" }}>
+              {driver.Constructors[0]?.name ?? "Unknown Team"}
+            </div>
+
+            <div>{driver.points} pts</div>
           </div>
         ))}
       </div>
+
+      <BottomNav />
     </main>
   );
 }

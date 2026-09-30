@@ -12,11 +12,11 @@ type QualifyingResult = {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "#05071f",
+  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
   color: "white",
   padding: "24px",
   paddingBottom: "100px",
-  fontFamily: "Arial",
+  fontFamily: "Arial, sans-serif",
 };
 
 const cardStyle = {
@@ -27,34 +27,28 @@ const cardStyle = {
   overflowX: "auto" as const,
 };
 
-const headerStyle = {
-  color: "#a9adff",
-  borderBottom: "2px solid #2b347a",
-  fontSize: "12px",
-  whiteSpace: "nowrap" as const,
-  padding: "12px 10px",
-};
+const headers = ["POS", "NO", "DRIVER", "TEAM", "Q1", "Q2", "Q3"];
 
-const cellStyle = {
-  padding: "14px 10px",
-  borderBottom: "1px solid #222a66",
-  whiteSpace: "nowrap" as const,
-};
+function positionLabel(position: string) {
+  if (position === "1") return "🥇";
+  if (position === "2") return "🥈";
+  if (position === "3") return "🥉";
+  return `P${position}`;
+}
 
 export default async function QualifyingPage() {
   const res = await fetch(
     "https://api.jolpi.ca/ergast/f1/current/last/qualifying.json",
     { next: { revalidate: 3600 } }
   );
-
   const data = await res.json();
+
   const race = data?.MRData?.RaceTable?.Races?.[0];
   const results: QualifyingResult[] = race?.QualifyingResults ?? [];
 
   return (
     <main style={pageStyle}>
       <h1 style={{ marginBottom: "6px" }}>⚡ Qualifying Results</h1>
-
       <p style={{ color: "#a9adff", marginBottom: "20px" }}>
         {race?.raceName ?? "Latest Grand Prix"}
       </p>
@@ -74,13 +68,19 @@ export default async function QualifyingPage() {
           >
             <thead>
               <tr>
-                {["POS", "NO", "DRIVER", "TEAM", "Q1", "Q2", "Q3"].map((header) => (
+                {headers.map((header) => (
                   <th
                     key={header}
                     style={{
-                      ...headerStyle,
+                      color: "#a9adff",
+                      borderBottom: "2px solid #2b347a",
+                      fontSize: "12px",
+                      whiteSpace: "nowrap",
+                      padding: "12px 10px",
                       textAlign:
-                        header === "DRIVER" || header === "TEAM" ? "left" : "center",
+                        header === "DRIVER" || header === "TEAM"
+                          ? "left"
+                          : "center",
                     }}
                   >
                     {header}
@@ -88,45 +88,34 @@ export default async function QualifyingPage() {
                 ))}
               </tr>
             </thead>
-
             <tbody>
-              {results.map((driver) => (
-                <tr key={driver.position}>
-                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
-                    {driver.position === "1"
-                      ? "🥇"
-                      : driver.position === "2"
-                        ? "🥈"
-                        : driver.position === "3"
-                          ? "🥉"
-                          : `P${driver.position}`}
-                  </td>
+              {results.map((driver) => {
+                const cell = {
+                  padding: "14px 10px",
+                  borderBottom: "1px solid #222a66",
+                  whiteSpace: "nowrap" as const,
+                };
 
-                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
-                    -
-                  </td>
-
-                  <td style={cellStyle}>
-                    {driver.Driver.givenName} {driver.Driver.familyName}
-                  </td>
-
-                  <td style={{ ...cellStyle, color: "#c8cdd2" }}>
-                    {driver.Constructor.name}
-                  </td>
-
-                  <td style={{ ...cellStyle, textAlign: "center" }}>
-                    {driver.Q1 ?? "-"}
-                  </td>
-
-                  <td style={{ ...cellStyle, textAlign: "center" }}>
-                    {driver.Q2 ?? "-"}
-                  </td>
-
-                  <td style={{ ...cellStyle, textAlign: "center" }}>
-                    {driver.Q3 ?? "-"}
-                  </td>
-                </tr>
-              ))}
+                return (
+                  <tr key={driver.position}>
+                    <td style={{ ...cell, textAlign: "center", fontWeight: "bold" }}>
+                      {positionLabel(driver.position)}
+                    </td>
+                    <td style={{ ...cell, textAlign: "center", fontWeight: "bold" }}>
+                      -
+                    </td>
+                    <td style={cell}>
+                      {driver.Driver.givenName} {driver.Driver.familyName}
+                    </td>
+                    <td style={{ ...cell, color: "#a9adff" }}>
+                      {driver.Constructor.name}
+                    </td>
+                    <td style={{ ...cell, textAlign: "center" }}>{driver.Q1 ?? "-"}</td>
+                    <td style={{ ...cell, textAlign: "center" }}>{driver.Q2 ?? "-"}</td>
+                    <td style={{ ...cell, textAlign: "center" }}>{driver.Q3 ?? "-"}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

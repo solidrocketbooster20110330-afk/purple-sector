@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
 import { useParams } from "next/navigation";
 import type { GrandPrix } from "../../../../lib/grandPrix";
+import { hasSprintWeekend } from "../../../../lib/grandPrix";
 import {
   fetchGrandPrix,
   getGrandPrixByRound,
@@ -44,7 +45,7 @@ type Row = Result & {
   team_name: string;
 };
 
-const SESSION_NAME = "Sprint";
+const DEFAULT_SESSION_NAME = "Practice 3";
 
 const pageStyle = {
   minHeight: "100vh",
@@ -107,6 +108,7 @@ export default function PracticePage() {
   const [loading, setLoading] = useState(true);
   const [races, setRaces] = useState<GrandPrix[]>([]);
   const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
+  const sessionName = hasSprintWeekend(selectedRace) ? "Sprint" : DEFAULT_SESSION_NAME;
 
   useEffect(() => {
     let cancelled = false;
@@ -129,7 +131,7 @@ export default function PracticePage() {
 
         const allSessions = (Array.isArray(sessionData) ? sessionData : [])
           .filter((session: OpenF1Session) =>
-            session.session_name === SESSION_NAME &&
+            session.session_name === sessionName &&
             Number.isFinite(new Date(session.date_start).getTime()) &&
             new Date(session.date_start).getTime() <= Date.now() &&
             !session.is_cancelled
@@ -207,7 +209,7 @@ export default function PracticePage() {
 
   return (
     <main style={pageStyle}>
-      <h1>🛠 Practice 3</h1>
+      <h1>{hasSprintWeekend(selectedRace) ? "🏁 Sprint" : "🛠 Practice 3"}</h1>
 
       <div style={{ position: "relative", marginBottom: "20px" }}>
         <button
@@ -281,7 +283,7 @@ export default function PracticePage() {
 
       <div style={cardStyle}>
         {rows.length === 0 ? (
-          <p>{loading ? "결과를 불러오는 중..." : SESSION_NAME + " 데이터 없음"}</p>
+          <p>{loading ? "결과를 불러오는 중..." : sessionName + " 데이터 없음"}</p>
         ) : (
           <table style={{ width: "100%", minWidth: "760px", borderCollapse: "collapse" }}>
             <thead>

@@ -39,3 +39,14 @@ export function storeGrandPrix(round: string) {
 export function getGrandPrixByRound(races: GrandPrix[], round: string | null) {
   return races.find((race) => race.round === round) ?? null;
 }
+
+export function hasSprintWeekend(race: GrandPrix | null) {
+  if (!race) return false;
+  return Boolean((race as GrandPrix & {
+    Sprint?: unknown;
+    SprintQualifying?: unknown;
+  }).Sprint || (race as GrandPrix & {
+    Sprint?: unknown;
+    SprintQualifying?: unknown;
+  }).SprintQualifying);
+}

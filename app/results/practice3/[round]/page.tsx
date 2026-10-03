@@ -13,6 +13,7 @@ import {
 
 type OpenF1Session = {
   session_key: number;
+  meeting_key?: number;
   session_name: string;
   date_start: string;
   country_name?: string;
@@ -103,8 +104,8 @@ export default function PracticePage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [races, setRaces] = useState<Array<{ season: string; round: string; raceName: string }>>([]);
-  const [selectedRace, setSelectedRace] = useState<{ season: string; round: string; raceName: string } | null>(null);
+  const [races, setRaces] = useState<Array<{ season: string; round: string; raceName: string; date: string }>>([]);
+  const [selectedRace, setSelectedRace] = useState<{ season: string; round: string; raceName: string; date: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -148,8 +149,8 @@ export default function PracticePage() {
         // race date instead of relying on array indexes. This keeps the
         // session tied to the requested round even when a weekend is missing
         // from one of the APIs.
-        const raceDate = new Date(selectedGp.date ?? "");
-        const raceTime = raceDate.getTime();
+        const raceDate = gpList.find((race: { round: string }) => race.round === selectedGp.round);
+        const raceTime = raceDate ? new Date(raceDate.date).getTime() : Number.NaN;
         const candidates = allSessions.filter((session) => {
           const sessionTime = new Date(session.date_start).getTime();
           return Number.isFinite(sessionTime) && sessionTime <= raceTime;

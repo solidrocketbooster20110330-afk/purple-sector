@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
-import { storeGrandPrix } from "../../lib/grandPrix";
+
+
 
 type Race = {
   round: string;
@@ -81,7 +82,6 @@ export default async function SchedulePage() {
         <Link
           key={race.round}
           href={`/schedule/${race.round}`}
-          onClick={() => storeGrandPrix(race.round)}
           style={{
             display: "flex",
             justifyContent: "space-between",

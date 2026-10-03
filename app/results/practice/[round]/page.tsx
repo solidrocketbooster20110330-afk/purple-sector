@@ -30,8 +30,6 @@ type Driver = {
   team_name: string;
 };
 
-type RaceSession = OpenF1Session;
-
 type Row = Result & {
   full_name: string;
   team_name: string;
@@ -85,84 +83,6 @@ async function readJson<T>(response: Response): Promise<T | null> {
 
 
 
-async function getPractice() {
-  const sessionsResponse = await fetch("https://api.openf1.org/v1/sessions", {
-    cache: "no-store",
-  });
-
-  if (!sessionsResponse.ok) {
-    throw new Error("OpenF1 sessions request failed");
-  }
-
-  const sessions = (await readJson<OpenF1Session[]>(sessionsResponse)) ?? [];
-
-  const candidates = sessions
-    .filter((session) => {
-      const start = new Date(session.date_start).getTime();
-
-      return (
-        session.session_name === SESSION_NAME &&
-        Number.isFinite(start) &&
-        start <= Date.now() &&
-        !session.is_cancelled
-      );
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.date_start).getTime() -
-        new Date(a.date_start).getTime()
-    );
-
-  for (const session of candidates.slice(0, 5)) {
-    try {
-      const resultResponse = await fetch(
-        `https://api.openf1.org/v1/session_result?session_key=${session.session_key}`,
-        { cache: "no-store" }
-      );
-
-      const resultData = await readJson<Result[]>(resultResponse);
-      if (!Array.isArray(resultData)) continue;
-
-      const results = resultData
-        .filter(
-          (result) =>
-            Number.isFinite(result.position) &&
-            Number.isFinite(result.driver_number)
-        )
-        .sort((a, b) => a.position - b.position);
-
-      if (results.length === 0) continue;
-
-      const driverResponse = await fetch(
-        `https://api.openf1.org/v1/drivers?session_key=${session.session_key}`,
-        { cache: "no-store" }
-      );
-      const drivers = (await readJson<Driver[]>(driverResponse)) ?? [];
-
-      const rows: Row[] = results.map((result) => {
-        const driver = drivers.find(
-          (item) => item.driver_number === result.driver_number
-        );
-
-        return {
-          ...result,
-          full_name: driver?.full_name ?? `Driver #${result.driver_number}`,
-          team_name: driver?.team_name ?? "Unknown Team",
-        };
-      });
-
-      return {
-        session,
-        rows,
-      };
-    } catch {
-      continue;
-    }
-  }
-
-  return { session: null, rows: [] as Row[] };
-}
-
 function statusText(row: Row) {
   if (row.dsq) return "DSQ";
   if (row.dns) return "DNS";
@@ -173,9 +93,7 @@ function statusText(row: Row) {
 
 
 function sessionLabel(session: OpenF1Session | null) {
-  return session
-    ? (session.country_name ?? session.location ?? "Latest") + " • " + SESSION_NAME
-    : "Latest " + SESSION_NAME;
+  return session?.country_name ?? session?.location ?? "Latest";
 }
 
 export default function PracticePage() {

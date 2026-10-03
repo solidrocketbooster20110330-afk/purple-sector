@@ -3,14 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const tabs = [
-  { href: "/results", label: "🏁 Race" },
-  { href: "/results/qualifying", label: "⚡ Qualifying" },
-  { href: "/results/practice/1", label: "🛠 FP1" },
-  { href: "/results/practice2/1", label: "🛠 FP2" },
-  { href: "/results/practice3/1", label: "🛠 FP3" },
-];
-
 const baseStyle = {
   minWidth: "150px",
   flexShrink: 0,
@@ -26,31 +18,38 @@ const baseStyle = {
 export default function ResultsTabs() {
   const pathname = usePathname();
 
-  const getCurrentRound = () => {
-    const practiceMatch = pathname.match(/^\/results\/practice(?:2|3)?\/(\d+)$/);
-    if (practiceMatch) return practiceMatch[1];
-    return null;
-  };
-
-  const currentRound = getCurrentRound();
+  const practiceMatch = pathname.match(/^\/results\/practice(?:2|3)?\/(\d+)$/);
+  const currentRound = practiceMatch?.[1] ?? null;
 
   const tabs = [
-    { href: "/results", label: "🏁 Race" },
-    { href: "/results/qualifying", label: "⚡ Qualifying" },
-    { href: "/results/practice/1", label: "🛠 FP1" },
-    { href: "/results/practice2/1", label: "🛠 FP2" },
-    { href: "/results/practice3/1", label: "🛠 FP3" },
+    {
+      href: currentRound ? `/results?round=${currentRound}` : "/results",
+      label: "🏁 Race",
+      active: pathname === "/results",
+    },
+    {
+      href: currentRound
+        ? `/results/qualifying?round=${currentRound}`
+        : "/results/qualifying",
+      label: "⚡ Qualifying",
+      active: pathname === "/results/qualifying",
+    },
+    {
+      href: currentRound ? `/results/practice/${currentRound}` : "/results/practice/1",
+      label: "🛠 FP1",
+      active: pathname.startsWith("/results/practice/"),
+    },
+    {
+      href: currentRound ? `/results/practice2/${currentRound}` : "/results/practice2/1",
+      label: "🛠 FP2",
+      active: pathname.startsWith("/results/practice2/"),
+    },
+    {
+      href: currentRound ? `/results/practice3/${currentRound}` : "/results/practice3/1",
+      label: "🛠 FP3",
+      active: pathname.startsWith("/results/practice3/"),
+    },
   ];
-
-  const getHref = (href: string) => {
-    if (!currentRound) return href;
-    if (href === "/results") return `/results?round=${currentRound}`;
-    if (href === "/results/qualifying") return `/results/qualifying?round=${currentRound}`;
-    if (href === "/results/practice/1") return `/results/practice/${currentRound}`;
-    if (href === "/results/practice2/1") return `/results/practice2/${currentRound}`;
-    if (href === "/results/practice3/1") return `/results/practice3/${currentRound}`;
-    return href;
-  };
 
   return (
     <div
@@ -64,28 +63,18 @@ export default function ResultsTabs() {
         WebkitOverflowScrolling: "touch",
       }}
     >
-      {tabs.map((tab) => {
-        const href = getHref(tab.href);
-        const active =
-          pathname === "/results" && tab.href === "/results" ||
-          pathname === "/results/qualifying" && tab.href === "/results/qualifying" ||
-          pathname.startsWith("/results/practice/") && tab.href === "/results/practice/1" ||
-          pathname.startsWith("/results/practice2/") && tab.href === "/results/practice2/1" ||
-          pathname.startsWith("/results/practice3/") && tab.href === "/results/practice3/1";
-
-        return (
-          <Link
-            key={tab.href}
-            href={href}
-            style={{
-              ...baseStyle,
-              background: active ? "#7c3aed" : "#131942",
-            }}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
+      {tabs.map((tab) => (
+        <Link
+          key={tab.label}
+          href={tab.href}
+          style={{
+            ...baseStyle,
+            background: tab.active ? "#7c3aed" : "#131942",
+          }}
+        >
+          {tab.label}
+        </Link>
+      ))}
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import BottomNav from "../../../components/BottomNav";
 import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
+import { useParams } from "next/navigation";
 
 type OpenF1Session = {
   session_key: number;
@@ -89,6 +90,8 @@ function sessionLabel(session: OpenF1Session | null, raceName?: string) {
 }
 
 export default function PracticePage() {
+  const params = useParams<{ round: string }>();
+  const routeRound = params?.round ?? "";
   const [sessions, setSessions] = useState<OpenF1Session[]>([]);
   const [selected, setSelected] = useState<OpenF1Session | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
@@ -127,7 +130,9 @@ export default function PracticePage() {
           );
 
         setSessions(items);
-        setSelected(items[0] ?? null);
+        const raceIndex = races.findIndex((race) => race.round === routeRound);
+        const sessionIndex = raceIndex >= 0 ? items.length - 1 - raceIndex : -1;
+        setSelected(sessionIndex >= 0 ? items[sessionIndex] : items[0] ?? null);
       })
       .finally(() => setLoading(false));
   }, []);

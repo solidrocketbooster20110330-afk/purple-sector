@@ -85,7 +85,7 @@ export default function ResultsPage() {
     fetchRaces()
       .then((items) => {
         setRaces(items);
-        setSelectedRace(items.at(-1) ?? null);
+        setSelectedRace(items[items.length - 1] ?? null);
       })
       .finally(() => setLoading(false));
   }, []);

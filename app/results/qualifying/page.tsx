@@ -3,8 +3,15 @@
 import BottomNav from "../../components/BottomNav";
 import ResultsTabs from "../ResultsTabs";
 import { useEffect, useState } from "react";
+import {
+  fetchGrandPrix,
+  getGrandPrixByRound,
+  getLatestGrandPrix,
+  getStoredGrandPrixRound,
+  storeGrandPrix,
+  type GrandPrix,
+} from "../../../lib/grandPrix";
 
-type Race = { season: string; round: string; raceName: string };
 type QualifyingResult = {
   position: string;
   number: string;
@@ -33,24 +40,18 @@ const cardStyle = {
 const headers = ["POS","NO","DRIVER","TEAM","Q1","Q2","Q3"];
 
 export default function QualifyingPage() {
-  const [races,setRaces] = useState<Race[]>([]);
-  const [selectedRace,setSelectedRace] = useState<Race | null>(null);
+  const [races,setRaces] = useState<GrandPrix[]>([]);
+  const [selectedRace,setSelectedRace] = useState<GrandPrix | null>(null);
   const [results,setResults] = useState<QualifyingResult[]>([]);
   const [open,setOpen] = useState(false);
   const [loading,setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://api.jolpi.ca/ergast/f1/current.json", { cache:"no-store" })
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        const items = d?.MRData?.RaceTable?.Races ?? [];
+    fetchGrandPrix()
+      .then((items) => {
         setRaces(items);
-        const completed = items.filter((race: Race) => Boolean(race.raceName));
-        setSelectedRace(
-          completed.length > 0
-            ? completed[completed.length - 1]
-            : items[items.length - 1] ?? null
-        );
+        const stored = getStoredGrandPrixRound();
+        setSelectedRace(getGrandPrixByRound(items, stored) ?? getLatestGrandPrix(items));
       })
       .catch(() => setRaces([]))
       .finally(() => setLoading(false));
@@ -78,7 +79,11 @@ export default function QualifyingPage() {
         {open && (
           <div style={{position:"absolute",top:"32px",left:0,right:0,zIndex:20,background:"#131942",border:"1px solid #2b347a",borderRadius:"14px",padding:"8px",maxHeight:"320px",overflowY:"auto",boxShadow:"0 12px 30px rgba(0,0,0,.35)"}}>
             {races.slice().reverse().map(race => (
-              <button key={`${race.season}-${race.round}`} type="button" onClick={() => { setSelectedRace(race); setOpen(false); }} style={{width:"100%",display:"block",textAlign:"left",padding:"10px 12px",marginBottom:"4px",border:0,borderRadius:"10px",background:selectedRace?.round===race.round ? "#7c3aed" : "transparent",color:"white",cursor:"pointer",fontSize:"14px"}}>
+              <button key={`${race.season}-${race.round}`} type="button" onClick={() => {
+                  setSelectedRace(race);
+                  storeGrandPrix(race.round);
+                  setOpen(false);
+                }} style={{width:"100%",display:"block",textAlign:"left",padding:"10px 12px",marginBottom:"4px",border:0,borderRadius:"10px",background:selectedRace?.round===race.round ? "#7c3aed" : "transparent",color:"white",cursor:"pointer",fontSize:"14px"}}>
                 {race.raceName}
               </button>
             ))}

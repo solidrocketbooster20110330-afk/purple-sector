@@ -136,35 +136,31 @@ export default function PracticePage() {
           )
           .sort(
             (a: OpenF1Session, b: OpenF1Session) =>
-              new Date(b.date_start).getTime() - new Date(a.date_start).getTime()
+              new Date(a.date_start).getTime() - new Date(b.date_start).getTime()
           );
 
         setSessions(allSessions);
 
         if (!selectedGp) {
-          setSelected(allSessions[0] ?? null);
+          setSelected(null);
           return;
         }
 
-        // Match the OpenF1 session to the selected 2026 Grand Prix by the
-        // race date instead of relying on array indexes. This keeps the
-        // session tied to the requested round even when a weekend is missing
-        // from one of the APIs.
-        const raceTime = selectedGp.date ? new Date(selectedGp.date).getTime() : Number.NaN;
-        const candidates = allSessions.filter((session) => {
-          const sessionTime = new Date(session.date_start).getTime();
-          return Number.isFinite(sessionTime) && sessionTime <= raceTime;
-        });
+        const raceTime = selectedGp.date
+          ? new Date(selectedGp.date).getTime()
+          : Number.NaN;
 
-        const matchingSession = candidates
-          .slice()
-          .sort(
-            (a: OpenF1Session, b: OpenF1Session) =>
-              Math.abs(new Date(a.date_start).getTime() - raceTime) -
-              Math.abs(new Date(b.date_start).getTime() - raceTime)
-          )[0];
+        const matchingSession = Number.isFinite(raceTime)
+          ? allSessions
+              .filter((session) => new Date(session.date_start).getTime() <= raceTime)
+              .sort(
+                (a: OpenF1Session, b: OpenF1Session) =>
+                  Math.abs(new Date(a.date_start).getTime() - raceTime) -
+                  Math.abs(new Date(b.date_start).getTime() - raceTime)
+              )[0] ?? null
+          : null;
 
-        setSelected(matchingSession ?? null);
+        setSelected(matchingSession);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -174,6 +170,7 @@ export default function PracticePage() {
       cancelled = true;
     };
   }, [routeRound]);
+
   useEffect(() => {
     if (!selected) return;
     setRows([]);
@@ -256,7 +253,7 @@ export default function PracticePage() {
                 type="button"
                 onClick={() => {
                   localStorage.setItem("selectedGrandPrix", race.round);
-                  setSelectedRace(race);
+                  window.location.href = `/results/practice/${race.round}`;
                   setOpen(false);
                 }}
                 style={{

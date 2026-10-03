@@ -4,6 +4,12 @@ import BottomNav from "../../../components/BottomNav";
 import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
 import { useParams } from "next/navigation";
+import {
+  fetchGrandPrix,
+  getGrandPrixByRound,
+  getLatestGrandPrix,
+  getStoredGrandPrixRound,
+} from "../../../../lib/grandPrix";
 import { fetchGrandPrix, getGrandPrixByRound, getLatestGrandPrix, getStoredGrandPrixRound } from "../../../../lib/grandPrix";
 
 type OpenF1Session = {
@@ -102,23 +108,25 @@ export default function PracticePage() {
   const [selectedRace, setSelectedRace] = useState<{ season: string; round: string; raceName: string } | null>(null);
 
   useEffect(() => {
-    const roundFromUrl = routeRound;
-    fetchGrandPrix()
-      .then((items) => {
-        setRaces(items);
-        const stored = getStoredGrandPrixRound();
-        const selectedByUrl = getGrandPrixByRound(items, roundFromUrl);
-        setSelectedRace(
-          selectedByUrl ??
-          getGrandPrixByRound(items, stored) ??
-          getLatestGrandPrix(items)
-        );
-      });
+    let cancelled = false;
 
-    fetch("https://api.openf1.org/v1/sessions")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        const items = (Array.isArray(data) ? data : [])
+    Promise.all([
+      fetchGrandPrix(),
+      fetch("https://api.openf1.org/v1/sessions").then((res) => (res.ok ? res.json() : [])),
+    ])
+      .then(([gpList, sessionData]) => {
+        if (cancelled) return;
+
+        const storedRound = getStoredGrandPrixRound();
+        const selectedGp =
+          getGrandPrixByRound(gpList, routeRound) ??
+          getGrandPrixByRound(gpList, storedRound) ??
+          getLatestGrandPrix(gpList);
+
+        setRaces(gpList);
+        setSelectedRace(selectedGp);
+
+        const allSessions = (Array.isArray(sessionData) ? sessionData : [])
           .filter((session: OpenF1Session) =>
             session.session_name === SESSION_NAME &&
             Number.isFinite(new Date(session.date_start).getTime()) &&
@@ -130,17 +138,28 @@ export default function PracticePage() {
               new Date(b.date_start).getTime() - new Date(a.date_start).getTime()
           );
 
-        setSessions(items);
-        const targetIndex = items.findIndex((session: OpenF1Session) => {
-          const race = races.find((item) => item.round === routeRound);
-          if (!race) return false;
-          const raceDates = races.map((item) => item.round);
-          return raceDates.length > 0 && raceDates.indexOf(race.round) === items.length - 1 - items.indexOf(session);
-        });
-        setSelected(targetIndex >= 0 ? items[targetIndex] : items[0] ?? null);
+        setSessions(allSessions);
+
+        if (!selectedGp) {
+          setSelected(allSessions[0] ?? null);
+          return;
+        }
+
+        const gpIndex = gpList.findIndex((race: { round: string }) => race.round === selectedGp.round);
+        const matchingSession = gpIndex >= 0
+          ? allSessions[allSessions.length - 1 - gpIndex]
+          : undefined;
+
+        setSelected(matchingSession ?? null);
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [routeRound]);
 
   useEffect(() => {
     if (!selected) return;

@@ -103,7 +103,12 @@ export default function PracticePage() {
       .then((data) => {
         const items = data?.MRData?.RaceTable?.Races ?? [];
         setRaces(items);
-        setSelectedRace(items[items.length - 1] ?? null);
+        const stored = localStorage.getItem("selectedGrandPrix");
+        setSelectedRace(
+          items.find((race: { round: string }) => race.round === stored) ??
+          items[items.length - 1] ??
+          null
+        );
       });
 
     fetch("https://api.openf1.org/v1/sessions")
@@ -182,7 +187,7 @@ export default function PracticePage() {
             cursor: "pointer",
           }}
         >
-          <span>{selected ? sessionLabel(selected, selectedRace?.raceName) : loading ? "Loading..." : "Latest Grand Prix"}</span>
+          <span>{selectedRace?.raceName ?? (selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest Grand Prix")}</span>
           <span style={{ fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
         </button>
 
@@ -203,12 +208,13 @@ export default function PracticePage() {
               boxShadow: "0 12px 30px rgba(0,0,0,.35)",
             }}
           >
-            {sessions.map((session) => (
+            {races.slice().reverse().map((race) => (
               <button
-                key={session.session_key}
+                key={`${race.season}-${race.round}`}
                 type="button"
                 onClick={() => {
-                  setSelected(session);
+                  localStorage.setItem("selectedGrandPrix", race.round);
+                  setSelectedRace(race);
                   setOpen(false);
                 }}
                 style={{
@@ -219,13 +225,13 @@ export default function PracticePage() {
                   marginBottom: "4px",
                   border: 0,
                   borderRadius: "10px",
-                  background: selected?.session_key === session.session_key ? "#7c3aed" : "transparent",
+                  background: selectedRace?.round === race.round ? "#7c3aed" : "transparent",
                   color: "white",
                   cursor: "pointer",
                   fontSize: "14px",
                 }}
               >
-                {sessionLabel(session, selectedRace?.raceName)}
+                {race.raceName}
               </button>
             ))}
           </div>

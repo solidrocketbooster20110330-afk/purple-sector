@@ -3,6 +3,7 @@
 import BottomNav from "../../../components/BottomNav";
 import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
+import { useParams } from "next/navigation";
 import { fetchGrandPrix, getGrandPrixByRound, getLatestGrandPrix, getStoredGrandPrixRound } from "../../../../lib/grandPrix";
 
 type OpenF1Session = {
@@ -96,10 +97,12 @@ export default function PracticePage() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [races, setRaces] = useState<Array<{ season: string; round: string; raceName: string }>>([]);
+  const params = useParams<{ round: string }>();
+  const routeRound = params?.round ?? "";
   const [selectedRace, setSelectedRace] = useState<{ season: string; round: string; raceName: string } | null>(null);
 
   useEffect(() => {
-    const roundFromUrl = window.location.pathname.split("/").pop() ?? "";
+    const roundFromUrl = routeRound;
     fetchGrandPrix()
       .then((items) => {
         setRaces(items);
@@ -128,7 +131,13 @@ export default function PracticePage() {
           );
 
         setSessions(items);
-        setSelected(items[0] ?? null);
+        const targetIndex = items.findIndex((session: OpenF1Session) => {
+          const race = races.find((item) => item.round === routeRound);
+          if (!race) return false;
+          const raceDates = races.map((item) => item.round);
+          return raceDates.length > 0 && raceDates.indexOf(race.round) === items.length - 1 - items.indexOf(session);
+        });
+        setSelected(targetIndex >= 0 ? items[targetIndex] : items[0] ?? null);
       })
       .finally(() => setLoading(false));
   }, []);

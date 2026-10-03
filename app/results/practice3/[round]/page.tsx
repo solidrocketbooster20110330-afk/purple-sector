@@ -1,4 +1,7 @@
+"use client";
+
 import BottomNav from "../../../components/BottomNav";
+import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
 
 type OpenF1Session = {
@@ -26,6 +29,8 @@ type Driver = {
   full_name: string;
   team_name: string;
 };
+
+type RaceSession = OpenF1Session;
 
 type Row = Result & {
   full_name: string;
@@ -77,6 +82,8 @@ async function readJson<T>(response: Response): Promise<T | null> {
     return null;
   }
 }
+
+
 
 async function getPractice() {
   const sessionsResponse = await fetch("https://api.openf1.org/v1/sessions", {
@@ -163,53 +170,163 @@ function statusText(row: Row) {
   return formatTime(row.duration);
 }
 
-export default async function PracticePage() {
-  let data: Awaited<ReturnType<typeof getPractice>> = {
-    session: null,
-    rows: [],
-  };
 
-  try {
-    data = await getPractice();
-  } catch (error) {
-    console.error(`${SESSION_NAME} page error:`, error);
-  }
 
-  const { session, rows } = data;
+function sessionLabel(session: OpenF1Session | null) {
+  return session
+    ? (session.country_name ?? session.location ?? "Latest") + " • " + SESSION_NAME
+    : "Latest " + SESSION_NAME;
+}
+
+export default function PracticePage() {
+  const [sessions, setSessions] = useState<OpenF1Session[]>([]);
+  const [selected, setSelected] = useState<OpenF1Session | null>(null);
+  const [rows, setRows] = useState<Row[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("https://api.openf1.org/v1/sessions")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const items = (Array.isArray(data) ? data : [])
+          .filter((session: OpenF1Session) =>
+            session.session_name === SESSION_NAME &&
+            Number.isFinite(new Date(session.date_start).getTime()) &&
+            new Date(session.date_start).getTime() <= Date.now() &&
+            !session.is_cancelled
+          )
+          .sort(
+            (a: OpenF1Session, b: OpenF1Session) =>
+              new Date(b.date_start).getTime() - new Date(a.date_start).getTime()
+          );
+
+        setSessions(items);
+        setSelected(items[0] ?? null);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!selected) return;
+    setRows([]);
+    fetch(`https://api.openf1.org/v1/session_result?session_key=${selected.session_key}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        const results = (Array.isArray(data) ? data : [])
+          .filter((result: Result) =>
+            Number.isFinite(result.position) &&
+            Number.isFinite(result.driver_number)
+          )
+          .sort((a: Result, b: Result) => a.position - b.position);
+
+        return Promise.all([
+          results,
+          fetch(`https://api.openf1.org/v1/drivers?session_key=${selected.session_key}`)
+            .then((res) => (res.ok ? res.json() : [])),
+        ]);
+      })
+      .then(([results, drivers]) => {
+        const driverList = Array.isArray(drivers) ? drivers : [];
+        setRows(results.map((result: Result) => {
+          const driver = driverList.find(
+            (item: Driver) => item.driver_number === result.driver_number
+          );
+          return {
+            ...result,
+            full_name: driver?.full_name ?? `Driver #${result.driver_number}`,
+            team_name: driver?.team_name ?? "Unknown Team",
+          };
+        }));
+      });
+  }, [selected]);
 
   return (
     <main style={pageStyle}>
-      <h1>🛠 {SESSION_NAME} Results</h1>
-      <p style={{ color: "#a9adff", marginBottom: "20px" }}>
-        {session
-          ? `${session.country_name ?? session.location ?? "Latest"} • ${SESSION_NAME}`
-          : `Latest ${SESSION_NAME}`}
-      </p>
+      <h1>🛠 Practice 3</h1>
+
+      <div style={{ position: "relative", marginBottom: "20px" }}>
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: 0,
+            border: 0,
+            background: "transparent",
+            color: "#a9adff",
+            fontSize: "18px",
+            fontWeight: "bold",
+            cursor: "pointer",
+          }}
+        >
+          <span>{selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest " + SESSION_NAME}</span>
+          <span style={{ fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
+        </button>
+
+        {open && (
+          <div
+            style={{
+              position: "absolute",
+              top: "32px",
+              left: 0,
+              right: 0,
+              zIndex: 20,
+              background: "#131942",
+              border: "1px solid #2b347a",
+              borderRadius: "14px",
+              padding: "8px",
+              maxHeight: "320px",
+              overflowY: "auto",
+              boxShadow: "0 12px 30px rgba(0,0,0,.35)",
+            }}
+          >
+            {sessions.map((session) => (
+              <button
+                key={session.session_key}
+                type="button"
+                onClick={() => {
+                  setSelected(session);
+                  setOpen(false);
+                }}
+                style={{
+                  width: "100%",
+                  display: "block",
+                  textAlign: "left",
+                  padding: "10px 12px",
+                  marginBottom: "4px",
+                  border: 0,
+                  borderRadius: "10px",
+                  background: selected?.session_key === session.session_key ? "#7c3aed" : "transparent",
+                  color: "white",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                {sessionLabel(session)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <ResultsTabs />
 
       <div style={cardStyle}>
         {rows.length === 0 ? (
-          <p>{SESSION_NAME} 데이터 없음</p>
+          <p>{loading ? "결과를 불러오는 중..." : SESSION_NAME + " 데이터 없음"}</p>
         ) : (
-          <table
-            style={{
-              width: "100%",
-              minWidth: "760px",
-              borderCollapse: "collapse",
-            }}
-          >
+          <table style={{ width: "100%", minWidth: "760px", borderCollapse: "collapse" }}>
             <thead>
               <tr>
                 {headers.map((header) => (
                   <th
                     key={header}
                     style={{
-                      textAlign:
-                        header === "DRIVER" || header === "TEAM"
-                          ? "left"
-                          : "center",
-                      padding: "12px 10px",
+                      textAlign: header === "DRIVER" || header === "TEAM" ? "left" : "center",
+                      padding: "11px 7px",
                       color: "#a9adff",
                       fontSize: "12px",
                       borderBottom: "1px solid #2b347a",
@@ -224,27 +341,15 @@ export default async function PracticePage() {
             <tbody>
               {rows.map((row) => (
                 <tr key={row.driver_number}>
-                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
-                    P{row.position}
-                  </td>
-                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
-                    #{row.driver_number}
-                  </td>
+                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>P{row.position}</td>
+                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>#{row.driver_number}</td>
                   <td style={cellStyle}>{row.full_name}</td>
-                  <td style={{ ...cellStyle, color: "#a9adff" }}>
-                    {row.team_name}
-                  </td>
+                  <td style={{ ...cellStyle, color: "#a9adff" }}>{row.team_name}</td>
+                  <td style={{ ...cellStyle, textAlign: "center" }}>{statusText(row)}</td>
                   <td style={{ ...cellStyle, textAlign: "center" }}>
-                    {statusText(row)}
+                    {row.dnf || row.dns || row.dsq ? "-" : formatGap(row.gap_to_leader)}
                   </td>
-                  <td style={{ ...cellStyle, textAlign: "center" }}>
-                    {row.dnf || row.dns || row.dsq
-                      ? "-"
-                      : formatGap(row.gap_to_leader)}
-                  </td>
-                  <td style={{ ...cellStyle, textAlign: "center" }}>
-                    {row.number_of_laps ?? "-"}
-                  </td>
+                  <td style={{ ...cellStyle, textAlign: "center" }}>{row.number_of_laps ?? "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -258,7 +363,7 @@ export default async function PracticePage() {
 }
 
 const cellStyle = {
-  padding: "14px 10px",
+  padding: "11px 7px",
   borderBottom: "1px solid #222a66",
   whiteSpace: "nowrap" as const,
 };

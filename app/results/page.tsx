@@ -25,8 +25,8 @@ const pageStyle = {
   minHeight: "100vh",
   background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
   color: "white",
-  padding: "24px",
-  paddingBottom: "100px",
+  padding: "20px",
+  paddingBottom: "90px",
   fontFamily: "Arial, sans-serif",
 };
 
@@ -120,7 +120,7 @@ export default function ResultsPage() {
             border: 0,
             background: "transparent",
             color: "#a9adff",
-            fontSize: "20px",
+            fontSize: "18px",
             fontWeight: "bold",
             cursor: "pointer",
           }}
@@ -128,7 +128,7 @@ export default function ResultsPage() {
           <span>{selectedRace?.raceName ?? (loading ? "Loading..." : "Grand Prix")}</span>
           <span
             style={{
-              fontSize: "14px",
+              fontSize: "12px",
               transform: open ? "rotate(180deg)" : "none",
               transition: "transform 0.15s ease",
             }}
@@ -168,14 +168,14 @@ export default function ResultsPage() {
                     width: "100%",
                     display: "block",
                     textAlign: "left",
-                    padding: "12px 14px",
+                    padding: "10px 12px",
                     marginBottom: "4px",
                     border: 0,
                     borderRadius: "10px",
                     background: active ? "#7c3aed" : "transparent",
                     color: "white",
                     cursor: "pointer",
-                    fontSize: "16px",
+                    fontSize: "14px",
                   }}
                 >
                   {race.raceName}
@@ -195,7 +195,7 @@ export default function ResultsPage() {
           <table
             style={{
               width: "100%",
-              minWidth: "820px",
+              minWidth: "760px",
               tableLayout: "fixed",
               borderCollapse: "collapse",
             }}
@@ -238,7 +238,7 @@ export default function ResultsPage() {
 
                 return (
                   <tr key={driver.position}>
-                    <td style={{ padding: "14px 8px", textAlign: "center", fontWeight: "bold", borderBottom: "1px solid #2b347a" }}>
+                    <td style={{ padding: "11px 7px", textAlign: "center", fontWeight: "bold", borderBottom: "1px solid #2b347a" }}>
                       {positionLabel(driver.position)}
                     </td>
                     <td style={{ padding: "14px 8px", textAlign: "center", fontWeight: "bold", borderBottom: "1px solid #2b347a" }}>

@@ -44,7 +44,7 @@ type Row = Result & {
   team_name: string;
 };
 
-const SESSION_NAME = "Practice 2";
+const SESSION_NAME = "Sprint Qualifying";
 
 const pageStyle = {
   minHeight: "100vh",

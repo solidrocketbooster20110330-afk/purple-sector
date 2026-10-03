@@ -200,14 +200,14 @@ export default async function RoundPage({
           <Link
             href={
               session.title === "FP1"
-                ? "/results/practice/1"
+                ? `/results/practice/${round}`
                 : session.title === "FP2"
-                ? "/results/practice2/1"
+                ? `/results/practice2/${round}`
                 : session.title === "FP3"
-                ? "/results/practice3/1"
+                ? `/results/practice3/${round}`
                 : session.title === "Qualifying"
-                ? "/results/qualifying"
-                : "/results"
+                ? `/results/qualifying?round=${round}`
+                : `/results?round=${round}`
             }
             onClick={() => {
               if (typeof window !== "undefined") {

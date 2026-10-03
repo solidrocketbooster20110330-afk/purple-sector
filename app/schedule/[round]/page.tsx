@@ -209,11 +209,6 @@ export default async function RoundPage({
                 ? `/results/qualifying?round=${round}`
                 : `/results?round=${round}`
             }
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.localStorage.setItem("selectedGrandPrix", round);
-              }
-            }}
             style={resultBtn}
           >
             View Results →

@@ -68,6 +68,7 @@ export default function ResultsPage() {
   const [results, setResults] = useState<RaceResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     fetchGrandPrix()
@@ -79,7 +80,10 @@ export default function ResultsPage() {
         if (selected) storeGrandPrix(selected.round);
       })
       .catch(() => setRaces([]))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setHydrated(true);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {

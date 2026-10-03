@@ -3,6 +3,7 @@
 import BottomNav from "../../../components/BottomNav";
 import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
+import { fetchGrandPrix, getGrandPrixByRound, getLatestGrandPrix, getStoredGrandPrixRound } from "../../../../lib/grandPrix";
 
 type OpenF1Session = {
   session_key: number;
@@ -98,16 +99,16 @@ export default function PracticePage() {
   const [selectedRace, setSelectedRace] = useState<{ season: string; round: string; raceName: string } | null>(null);
 
   useEffect(() => {
-    fetch("https://api.jolpi.ca/ergast/f1/current.json", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        const items = data?.MRData?.RaceTable?.Races ?? [];
+    const roundFromUrl = window.location.pathname.split("/").pop() ?? "";
+    fetchGrandPrix()
+      .then((items) => {
         setRaces(items);
-        const stored = localStorage.getItem("selectedGrandPrix");
+        const stored = getStoredGrandPrixRound();
+        const selectedByUrl = getGrandPrixByRound(items, roundFromUrl);
         setSelectedRace(
-          items.find((race: { round: string }) => race.round === stored) ??
-          items[items.length - 1] ??
-          null
+          selectedByUrl ??
+          getGrandPrixByRound(items, stored) ??
+          getLatestGrandPrix(items)
         );
       });
 

@@ -198,7 +198,22 @@ export default async function RoundPage({
           </div>
 
           <Link
-            href="/results"
+            href={
+              session.title === "FP1"
+                ? "/results/practice/1"
+                : session.title === "FP2"
+                ? "/results/practice2/1"
+                : session.title === "FP3"
+                ? "/results/practice3/1"
+                : session.title === "Qualifying"
+                ? "/results/qualifying"
+                : "/results"
+            }
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.localStorage.setItem("selectedGrandPrix", round);
+              }
+            }}
             style={resultBtn}
           >
             View Results →

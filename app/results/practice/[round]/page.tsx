@@ -71,18 +71,6 @@ function formatGap(gap?: number) {
   return `+${(gap as number).toFixed(3)}s`;
 }
 
-async function readJson<T>(response: Response): Promise<T | null> {
-  if (!response.ok) return null;
-
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
-
-
-
 function statusText(row: Row) {
   if (row.dsq) return "DSQ";
   if (row.dns) return "DNS";
@@ -92,10 +80,12 @@ function statusText(row: Row) {
 
 
 
-function sessionLabel(session: OpenF1Session | null) {
-  return session
-    ? `${session.country_name ?? session.location ?? "Latest"} Grand Prix`
-    : "Latest Grand Prix";
+function sessionLabel(session: OpenF1Session | null, raceName?: string) {
+  return raceName ?? (
+    session
+      ? `${session.country_name ?? session.location ?? "Latest"} Grand Prix`
+      : "Latest Grand Prix"
+  );
 }
 
 export default function PracticePage() {
@@ -104,8 +94,18 @@ export default function PracticePage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [races, setRaces] = useState<Array<{ season: string; round: string; raceName: string }>>([]);
+  const [selectedRace, setSelectedRace] = useState<{ season: string; round: string; raceName: string } | null>(null);
 
   useEffect(() => {
+    fetch("https://api.jolpi.ca/ergast/f1/current.json", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const items = data?.MRData?.RaceTable?.Races ?? [];
+        setRaces(items);
+        setSelectedRace(items[items.length - 1] ?? null);
+      });
+
     fetch("https://api.openf1.org/v1/sessions")
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
@@ -182,7 +182,7 @@ export default function PracticePage() {
             cursor: "pointer",
           }}
         >
-          <span>{selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest Grand Prix"}</span>
+          <span>{selected ? sessionLabel(selected, selectedRace?.raceName) : loading ? "Loading..." : "Latest Grand Prix"}</span>
           <span style={{ fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
         </button>
 
@@ -225,7 +225,7 @@ export default function PracticePage() {
                   fontSize: "14px",
                 }}
               >
-                {sessionLabel(session)}
+                {sessionLabel(session, selectedRace?.raceName)}
               </button>
             ))}
           </div>

@@ -84,9 +84,11 @@ export default function ResultsPage() {
     fetchRaces()
       .then((items) => {
         setRaces(items);
-        const completed = items.filter((race) => Boolean(race.raceName));
+        const completed = items.filter((race: Race) => Boolean(race.raceName));
         setSelectedRace(
-          completed.length > 0 ? completed[completed.length - 1] : items[items.length - 1] ?? null
+          completed.length > 0
+            ? completed[completed.length - 1]
+            : items[items.length - 1] ?? null
         );
       })
       .catch(() => setRaces([]))

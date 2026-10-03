@@ -48,7 +48,7 @@ export default function QualifyingPage(){
      <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>{positionLabel(d.position)}</td>
      <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>#{d.number}</td>
      <td style={{padding:"11px 7px",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{d.Driver.givenName} {d.Driver.familyName}</td>
-     <td style={{padding:"11px 7px",borderBottom:"1px solid #222a66,color:"#a9adff",whiteSpace:"normal"}}>{d.Constructor.name}</td>
+     <td style={{padding:"11px 7px",borderBottom:"1px solid #222a66",color:"#a9adff",whiteSpace:"normal"}}>{d.Constructor.name}</td>
      <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{d.Q1??"-"}</td>
      <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{d.Q2??"-"}</td>
      <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{d.Q3??"-"}</td>

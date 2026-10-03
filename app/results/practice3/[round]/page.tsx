@@ -144,10 +144,24 @@ export default function PracticePage() {
           return;
         }
 
-        const gpIndex = gpList.findIndex((race: { round: string }) => race.round === selectedGp.round);
-        const matchingSession = gpIndex >= 0
-          ? allSessions[allSessions.length - 1 - gpIndex]
-          : undefined;
+        // Match the OpenF1 session to the selected 2026 Grand Prix by the
+        // race date instead of relying on array indexes. This keeps the
+        // session tied to the requested round even when a weekend is missing
+        // from one of the APIs.
+        const raceDate = new Date(selectedGp.date ?? "");
+        const raceTime = raceDate.getTime();
+        const candidates = allSessions.filter((session) => {
+          const sessionTime = new Date(session.date_start).getTime();
+          return Number.isFinite(sessionTime) && sessionTime <= raceTime;
+        });
+
+        const matchingSession = candidates
+          .slice()
+          .sort(
+            (a: OpenF1Session, b: OpenF1Session) =>
+              Math.abs(new Date(a.date_start).getTime() - raceTime) -
+              Math.abs(new Date(b.date_start).getTime() - raceTime)
+          )[0];
 
         setSelected(matchingSession ?? null);
       })
@@ -159,7 +173,6 @@ export default function PracticePage() {
       cancelled = true;
     };
   }, [routeRound]);
-
   useEffect(() => {
     if (!selected) return;
     setRows([]);

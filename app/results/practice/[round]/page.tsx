@@ -93,7 +93,9 @@ function statusText(row: Row) {
 
 
 function sessionLabel(session: OpenF1Session | null) {
-  return session?.country_name ?? session?.location ?? "Latest";
+  return session
+    ? `${session.country_name ?? session.location ?? "Latest"} Grand Prix`
+    : "Latest Grand Prix";
 }
 
 export default function PracticePage() {
@@ -180,7 +182,7 @@ export default function PracticePage() {
             cursor: "pointer",
           }}
         >
-          <span>{selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest " + SESSION_NAME}</span>
+          <span>{selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest Grand Prix"}</span>
           <span style={{ fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
         </button>
 

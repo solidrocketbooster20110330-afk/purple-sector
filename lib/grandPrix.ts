@@ -2,6 +2,7 @@ export type GrandPrix = {
   season: string;
   round: string;
   raceName: string;
+  date?: string;
 };
 
 export const SELECTED_GP_KEY = "selectedGrandPrix";

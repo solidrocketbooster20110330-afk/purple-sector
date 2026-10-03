@@ -38,7 +38,6 @@ const cardStyle = {
   overflowX: "auto" as const,
 };
 
-const columns = "60px 60px minmax(170px, 1.45fr) minmax(150px, 1.2fr) 70px 140px 60px";
 const headers = ["POS", "NO", "DRIVER", "TEAM", "GRID", "STATUS", "PTS"];
 
 function positionLabel(position: string) {
@@ -68,7 +67,7 @@ function parseRaces(data: any): Race[] {
 async function fetchRaces(): Promise<Race[]> {
   const res = await fetch(
     "https://api.jolpi.ca/ergast/f1/current.json",
-    { next: { revalidate: 3600 } }
+    { cache: "no-store" }
   );
   if (!res.ok) throw new Error("Failed to load races");
   return parseRaces(await res.json());
@@ -85,8 +84,12 @@ export default function ResultsPage() {
     fetchRaces()
       .then((items) => {
         setRaces(items);
-        setSelectedRace(items[items.length - 1] ?? null);
+        const completed = items.filter((race) => Boolean(race.raceName));
+        setSelectedRace(
+          completed.length > 0 ? completed[completed.length - 1] : items[items.length - 1] ?? null
+        );
       })
+      .catch(() => setRaces([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -96,7 +99,8 @@ export default function ResultsPage() {
     setResults([]);
 
     fetch(
-      `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/results.json`
+      `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/results.json`,
+      { cache: "no-store" }
     )
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {

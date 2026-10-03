@@ -4,6 +4,7 @@ import BottomNav from "../../../components/BottomNav";
 import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
 import { useParams } from "next/navigation";
+import type { GrandPrix } from "../../../../lib/grandPrix";
 import {
   fetchGrandPrix,
   getGrandPrixByRound,

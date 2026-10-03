@@ -10,7 +10,6 @@ import {
   getLatestGrandPrix,
   getStoredGrandPrixRound,
 } from "../../../../lib/grandPrix";
-import { fetchGrandPrix, getGrandPrixByRound, getLatestGrandPrix, getStoredGrandPrixRound } from "../../../../lib/grandPrix";
 
 type OpenF1Session = {
   session_key: number;

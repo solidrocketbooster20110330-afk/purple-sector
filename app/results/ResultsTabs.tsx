@@ -17,7 +17,6 @@ const baseStyle = {
 
 export default function ResultsTabs() {
   const pathname = usePathname();
-
   const practiceMatch = pathname.match(/^\/results\/practice(?:2|3)?\/(\d+)$/);
   const currentRound = practiceMatch?.[1] ?? null;
 

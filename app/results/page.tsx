@@ -63,22 +63,20 @@ function getStatusText(result: RaceResult) {
 }
 
 export default function ResultsPage() {
-  const [races, setRaces] = useState<Race[]>([]);
-  const [selectedRace, setSelectedRace] = useState<Race | null>(null);
+  const [races, setRaces] = useState<GrandPrix[]>([]);
+  const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
   const [results, setResults] = useState<RaceResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchRaces()
+    fetchGrandPrix()
       .then((items) => {
         setRaces(items);
-        const completed = items.filter((race: Race) => Boolean(race.raceName));
-        setSelectedRace(
-          completed.length > 0
-            ? completed[completed.length - 1]
-            : items[items.length - 1] ?? null
-        );
+        const stored = getStoredGrandPrixRound();
+        const selected = getGrandPrixByRound(items, stored) ?? getLatestGrandPrix(items);
+        setSelectedRace(selected);
+        if (selected) storeGrandPrix(selected.round);
       })
       .catch(() => setRaces([]))
       .finally(() => setLoading(false));

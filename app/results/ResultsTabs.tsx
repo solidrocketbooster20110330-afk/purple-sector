@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const tabs = [
   { href: "/results", label: "🏁 Race" },
@@ -25,14 +25,14 @@ const baseStyle = {
 
 export default function ResultsTabs() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  const currentRound =
-    pathname.startsWith("/results/practice/") ||
-    pathname.startsWith("/results/practice2/") ||
-    pathname.startsWith("/results/practice3/")
-      ? pathname.split("/").pop()
-      : searchParams.get("round");
+  const getCurrentRound = () => {
+    const practiceMatch = pathname.match(/^\/results\/practice(?:2|3)?\/(\d+)$/);
+    if (practiceMatch) return practiceMatch[1];
+    return null;
+  };
+
+  const currentRound = getCurrentRound();
 
   const tabs = [
     { href: "/results", label: "🏁 Race" },
@@ -44,21 +44,11 @@ export default function ResultsTabs() {
 
   const getHref = (href: string) => {
     if (!currentRound) return href;
-
     if (href === "/results") return `/results?round=${currentRound}`;
-    if (href === "/results/qualifying") {
-      return `/results/qualifying?round=${currentRound}`;
-    }
-    if (href === "/results/practice/1") {
-      return `/results/practice/${currentRound}`;
-    }
-    if (href === "/results/practice2/1") {
-      return `/results/practice2/${currentRound}`;
-    }
-    if (href === "/results/practice3/1") {
-      return `/results/practice3/${currentRound}`;
-    }
-
+    if (href === "/results/qualifying") return `/results/qualifying?round=${currentRound}`;
+    if (href === "/results/practice/1") return `/results/practice/${currentRound}`;
+    if (href === "/results/practice2/1") return `/results/practice2/${currentRound}`;
+    if (href === "/results/practice3/1") return `/results/practice3/${currentRound}`;
     return href;
   };
 

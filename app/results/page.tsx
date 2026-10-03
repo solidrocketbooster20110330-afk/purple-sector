@@ -29,7 +29,7 @@ const cardStyle = {
   overflowX: "auto" as const,
 };
 
-const columns = "60px 60px minmax(150px, 1.4fr) minmax(110px, 1fr) 70px 140px 60px";
+const columns = "60px 60px minmax(170px, 1.45fr) minmax(150px, 1.2fr) 70px 140px 60px";
 const headers = ["POS", "NO", "DRIVER", "TEAM", "GRID", "STATUS", "PTS"];
 
 function cellStyle(textAlign: "left" | "center" = "left") {
@@ -88,7 +88,7 @@ export default async function ResultsPage() {
           <table
             style={{
               width: "100%",
-              minWidth: "760px",
+              minWidth: "820px",
               tableLayout: "fixed",
               borderCollapse: "collapse",
             }}
@@ -96,8 +96,8 @@ export default async function ResultsPage() {
             <colgroup>
               <col style={{ width: "60px" }} />
               <col style={{ width: "60px" }} />
-              <col style={{ width: "170px" }} />
-              <col style={{ width: "120px" }} />
+              <col style={{ width: "190px" }} />
+              <col style={{ width: "150px" }} />
               <col style={{ width: "70px" }} />
               <col style={{ width: "140px" }} />
               <col style={{ width: "60px" }} />

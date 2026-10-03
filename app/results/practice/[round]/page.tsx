@@ -102,10 +102,10 @@ export default function PracticePage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [races, setRaces] = useState<Array<{ season: string; round: string; raceName: string; date: string }>>([]);
+  const [races, setRaces] = useState<GrandPrix[]>([]);
   const params = useParams<{ round: string }>();
   const routeRound = params?.round ?? "";
-  const [selectedRace, setSelectedRace] = useState<{ season: string; round: string; raceName: string; date: string } | null>(null);
+  const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -149,8 +149,7 @@ export default function PracticePage() {
         // race date instead of relying on array indexes. This keeps the
         // session tied to the requested round even when a weekend is missing
         // from one of the APIs.
-        const raceDate = gpList.find((race: { round: string }) => race.round === selectedGp.round);
-        const raceTime = raceDate ? new Date(raceDate.date).getTime() : Number.NaN;
+        const raceTime = selectedGp.date ? new Date(selectedGp.date).getTime() : Number.NaN;
         const candidates = allSessions.filter((session) => {
           const sessionTime = new Date(session.date_start).getTime();
           return Number.isFinite(sessionTime) && sessionTime <= raceTime;

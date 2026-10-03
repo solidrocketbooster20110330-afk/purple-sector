@@ -3,12 +3,14 @@
 import BottomNav from "../components/BottomNav";
 import ResultsTabs from "./ResultsTabs";
 import { useEffect, useState } from "react";
-
-type Race = {
-  season: string;
-  round: string;
-  raceName: string;
-};
+import {
+  fetchGrandPrix,
+  getGrandPrixByRound,
+  getLatestGrandPrix,
+  getStoredGrandPrixRound,
+  storeGrandPrix,
+  type GrandPrix,
+} from "../../lib/grandPrix";
 
 type RaceResult = {
   number: string;
@@ -58,19 +60,6 @@ function getStatusText(result: RaceResult) {
   }
 
   return "DNF";
-}
-
-function parseRaces(data: any): Race[] {
-  return data?.MRData?.RaceTable?.Races ?? [];
-}
-
-async function fetchRaces(): Promise<Race[]> {
-  const res = await fetch(
-    "https://api.jolpi.ca/ergast/f1/current.json",
-    { cache: "no-store" }
-  );
-  if (!res.ok) throw new Error("Failed to load races");
-  return parseRaces(await res.json());
 }
 
 export default function ResultsPage() {
@@ -168,6 +157,7 @@ export default function ResultsPage() {
                   type="button"
                   onClick={() => {
                     setSelectedRace(race);
+                    storeGrandPrix(race.round);
                     setOpen(false);
                   }}
                   style={{

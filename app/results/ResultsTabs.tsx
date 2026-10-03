@@ -28,9 +28,7 @@ export default function ResultsTabs() {
       active: pathname === "/results",
     },
     {
-      href: currentRound
-        ? `/results/qualifying?round=${currentRound}`
-        : "/results/qualifying",
+      href: currentRound ? `/results/qualifying?round=${currentRound}` : "/results/qualifying",
       label: "⚡ Qualifying",
       active: pathname === "/results/qualifying",
     },

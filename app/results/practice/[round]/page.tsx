@@ -187,7 +187,7 @@ export default function PracticePage() {
             cursor: "pointer",
           }}
         >
-          <span>{selectedRace?.raceName ?? (selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest Grand Prix")}</span>
+          <span>{selectedRace?.raceName ?? (loading ? "Loading..." : "Latest Grand Prix")}</span>
           <span style={{ fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
         </button>
 

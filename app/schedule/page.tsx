@@ -32,7 +32,7 @@ export default async function SchedulePage() {
 
   const nextRace =
     races.find((race) => new Date(race.date) >= new Date()) ??
-    races.at(-1);
+    races[races.length - 1];
 
   if (!nextRace) {
     return (

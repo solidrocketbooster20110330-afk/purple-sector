@@ -52,13 +52,12 @@ export default function QualifyingPage() {
       .then((items) => {
         setRaces(items);
         const queryRound = new URLSearchParams(window.location.search).get("round");
-        const stored = getStoredGrandPrixRound();
-        setSelectedRace(
+        const selected =
           getGrandPrixByRound(items, queryRound) ??
-          getGrandPrixByRound(items, stored) ??
           getRelevantGrandPrix(items) ??
-          getLatestGrandPrix(items)
-        );
+          getLatestGrandPrix(items);
+        setSelectedRace(selected);
+        if (selected) storeGrandPrix(selected.round);
       })
       .catch(() => setRaces([]))
       .finally(() => setLoading(false));

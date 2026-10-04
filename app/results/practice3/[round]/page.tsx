@@ -151,17 +151,22 @@ export default function PracticePage() {
           return;
         }
 
-        const raceTime = selectedGp.date
-          ? new Date(selectedGp.date).getTime()
+        const sprintTime = selectedGp.Sprint?.date
+          ? new Date(
+              `${selectedGp.Sprint.date}T${selectedGp.Sprint.time ?? "00:00:00Z"}`
+            ).getTime()
           : Number.NaN;
 
-        const matchingSession = Number.isFinite(raceTime)
+        const matchingSession = Number.isFinite(sprintTime)
           ? allSessions
-              .filter((session) => new Date(session.date_start).getTime() <= raceTime)
+              .filter((session) => {
+                const time = new Date(session.date_start).getTime();
+                return Math.abs(time - sprintTime) <= 24 * 60 * 60 * 1000;
+              })
               .sort(
                 (a: OpenF1Session, b: OpenF1Session) =>
-                  Math.abs(new Date(a.date_start).getTime() - raceTime) -
-                  Math.abs(new Date(b.date_start).getTime() - raceTime)
+                  Math.abs(new Date(a.date_start).getTime() - sprintTime) -
+                  Math.abs(new Date(b.date_start).getTime() - sprintTime)
               )[0] ?? null
           : null;
 

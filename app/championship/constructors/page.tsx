@@ -81,80 +81,64 @@ export default async function ChampionshipConstructorsPage() {
         </Link>
       </div>
 
-      <section
-        style={{
-          ...cardStyle,
-          maxHeight: "none",
-          marginBottom: "20px",
-        }}
-      >
+      <div style={{ marginBottom: "20px" }}>
         <div style={{ color: "#a9adff", fontSize: "13px", marginBottom: "12px" }}>
-          Team points by round
+          Championship Progress
         </div>
-        <div style={{ overflowX: "auto", paddingBottom: "4px" }}>
+        <div
+          style={{
+            ...cardStyle,
+            maxHeight: "none",
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ color: "#a9adff", fontSize: "12px", marginBottom: "8px" }}>
+            Cumulative constructor points by round
+          </div>
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(125px,1.5fr) repeat(24,40px)",
-              gap: "6px",
-              minWidth: "1100px",
-              alignItems: "center",
+              height: "260px",
+              overflowX: "auto",
             }}
           >
-            <div style={{ color: "#a9adff", fontSize: "11px", fontWeight: "bold" }}>
-              TEAM
-            </div>
-            {Array.from({ length: 24 }, (_, index) => (
-              <div
-                key={index}
-                style={{ color: "#a9adff", fontSize: "10px", textAlign: "center" }}
-              >
-                R{index + 1}
-              </div>
-            ))}
-          </div>
-          {constructors.map((constructor) => (
-            <div
-              key={constructor.Constructor.constructorId}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(125px,1.5fr) repeat(24,40px)",
-                gap: "6px",
-                minWidth: "1100px",
-                alignItems: "center",
-                marginTop: "8px",
-              }}
+            <svg
+              viewBox="0 0 720 260"
+              width="100%"
+              height="260"
+              role="img"
+              aria-label="Constructor championship points progress graph"
+              style={{ display: "block", minWidth: "520px" }}
             >
-              <Link
-                href={`/championship/constructors/${constructor.Constructor.constructorId}`}
-                style={{
-                  color: "white",
-                  textDecoration: "none",
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {constructor.Constructor.name}
-              </Link>
-              {Array.from({ length: 24 }, (_, index) => (
-                <div
-                  key={index}
-                  style={{
-                    textAlign: "center",
-                    color: "#dfe1ff",
-                    fontSize: "11px",
-                  }}
-                >
-                  —
-                </div>
-              ))}
-            </div>
-          ))}
+              {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+                const y = 220 - 200 * fraction;
+                return (
+                  <g key={fraction}>
+                    <line
+                      x1="42"
+                      x2="702"
+                      y1={y}
+                      y2={y}
+                      stroke="#2b347a"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x="34"
+                      y={y + 4}
+                      textAnchor="end"
+                      fill="#a9adff"
+                      fontSize="10"
+                    >
+                      0
+                    </text>
+                  </g>
+                );
+              })}
+              <text x="42" y="250" fill="#a9adff" fontSize="10">R1</text>
+              <text x="702" y="250" textAnchor="end" fill="#a9adff" fontSize="10">R24</text>
+            </svg>
+          </div>
         </div>
-      </section>
+      </div>
 
       <div style={cardStyle}>
         {constructors.length === 0 ? (

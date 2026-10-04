@@ -3,6 +3,13 @@ export type GrandPrix = {
   round: string;
   raceName: string;
   date?: string;
+  time?: string;
+  Sprint?: { date: string; time?: string };
+  SprintQualifying?: { date: string; time?: string };
+  FirstPractice?: { date: string; time?: string };
+  SecondPractice?: { date: string; time?: string };
+  ThirdPractice?: { date: string; time?: string };
+  Qualifying?: { date: string; time?: string };
 };
 
 export const SELECTED_GP_KEY = "selectedGrandPrix";
@@ -41,12 +48,18 @@ export function getGrandPrixByRound(races: GrandPrix[], round: string | null) {
 }
 
 export function hasSprintWeekend(race: GrandPrix | null) {
-  if (!race) return false;
-  return Boolean((race as GrandPrix & {
-    Sprint?: unknown;
-    SprintQualifying?: unknown;
-  }).Sprint || (race as GrandPrix & {
-    Sprint?: unknown;
-    SprintQualifying?: unknown;
-  }).SprintQualifying);
+  return Boolean(race?.Sprint || race?.SprintQualifying);
+}
+
+export function getWeekendSessionName(
+  race: GrandPrix | null,
+  regularSession: "Practice 2" | "Practice 3"
+) {
+  if (!race) return regularSession;
+  if (hasSprintWeekend(race)) {
+    return regularSession === "Practice 2"
+      ? "Sprint Qualifying"
+      : "Sprint";
+  }
+  return regularSession;
 }

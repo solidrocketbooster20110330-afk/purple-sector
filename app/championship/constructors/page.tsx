@@ -81,6 +81,81 @@ export default async function ChampionshipConstructorsPage() {
         </Link>
       </div>
 
+      <section
+        style={{
+          ...cardStyle,
+          maxHeight: "none",
+          marginBottom: "20px",
+        }}
+      >
+        <div style={{ color: "#a9adff", fontSize: "13px", marginBottom: "12px" }}>
+          Team points by round
+        </div>
+        <div style={{ overflowX: "auto", paddingBottom: "4px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(125px,1.5fr) repeat(24,40px)",
+              gap: "6px",
+              minWidth: "1100px",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ color: "#a9adff", fontSize: "11px", fontWeight: "bold" }}>
+              TEAM
+            </div>
+            {Array.from({ length: 24 }, (_, index) => (
+              <div
+                key={index}
+                style={{ color: "#a9adff", fontSize: "10px", textAlign: "center" }}
+              >
+                R{index + 1}
+              </div>
+            ))}
+          </div>
+          {constructors.map((constructor) => (
+            <div
+              key={constructor.Constructor.constructorId}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(125px,1.5fr) repeat(24,40px)",
+                gap: "6px",
+                minWidth: "1100px",
+                alignItems: "center",
+                marginTop: "8px",
+              }}
+            >
+              <Link
+                href={`/championship/constructors/${constructor.Constructor.constructorId}`}
+                style={{
+                  color: "white",
+                  textDecoration: "none",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {constructor.Constructor.name}
+              </Link>
+              {Array.from({ length: 24 }, (_, index) => (
+                <div
+                  key={index}
+                  style={{
+                    textAlign: "center",
+                    color: "#dfe1ff",
+                    fontSize: "11px",
+                  }}
+                >
+                  —
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div style={cardStyle}>
         {constructors.length === 0 ? (
           <p style={{ color: "#a9adff" }}>Constructor 데이터가 없습니다.</p>

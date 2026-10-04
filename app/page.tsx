@@ -63,8 +63,14 @@ const cardStyle = {
 const accent = "#9fa7ff";
 
 async function getHomeData() {
-  const [driversRes, constructorsRes, raceRes, newsRes, resultRes] =
-    await Promise.all(
+  const [
+    driversRes,
+    constructorsRes,
+    raceRes,
+    calendarRes,
+    newsRes,
+    resultRes,
+  ] = await Promise.all(
       Object.values(API).map((url) =>
         fetch(url, { next: { revalidate: 3600 } })
       )
@@ -78,7 +84,14 @@ async function getHomeData() {
     newsData,
     resultData,
   ] = await Promise.all(
-    [driversRes, constructorsRes, raceRes, calendarRes, newsRes, resultRes].map(
+    [
+      driversRes,
+      constructorsRes,
+      raceRes,
+      calendarRes,
+      newsRes,
+      resultRes,
+    ].map(
       (response) => response.json()
     )
   );

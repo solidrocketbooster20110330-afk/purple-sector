@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   fetchGrandPrix,
   getGrandPrixByRound,
+  getRelevantGrandPrix,
   getStoredGrandPrixRound,
   hasSprintWeekend,
   type GrandPrix,
@@ -40,7 +41,7 @@ export default function ResultsTabs() {
 
     fetchGrandPrix()
       .then((races) => {
-        const selected = getGrandPrixByRound(races, round) ?? races[races.length - 1] ?? null;
+        const selected = getGrandPrixByRound(races, round) ?? getRelevantGrandPrix(races) ?? null;
         setRace(selected);
       })
       .catch(() => setRace(null));

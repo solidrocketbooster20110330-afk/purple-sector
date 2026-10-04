@@ -130,8 +130,8 @@ export default async function ChampionshipConstructorsPage() {
           <div style={{ color: "#a9adff", fontSize: "13px" }}>
             Championship Progress
           </div>
-          <Link
-            href="/championship/constructors"
+          <a
+            href="/championship/constructors?view=rank"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -165,7 +165,7 @@ export default async function ChampionshipConstructorsPage() {
                 }}
               />
             </span>
-          </Link>
+          </a>
         </div>
         <div
           style={{

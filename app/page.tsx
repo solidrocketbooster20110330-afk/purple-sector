@@ -185,7 +185,7 @@ export default async function HomePage() {
           }}
         >
           <h2 style={{ margin: 0 }}>Drivers</h2>
-          <a href="/standings" style={detailLinkStyle}>
+          <a href="/championship" style={detailLinkStyle}>
             View Detail →
           </a>
         </div>
@@ -218,7 +218,7 @@ export default async function HomePage() {
           }}
         >
           <h2 style={{ margin: 0 }}>Constructors</h2>
-          <a href="/constructors" style={detailLinkStyle}>
+          <a href="/championship/constructors" style={detailLinkStyle}>
             View Detail →
           </a>
         </div>

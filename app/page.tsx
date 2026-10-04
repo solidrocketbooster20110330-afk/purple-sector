@@ -63,6 +63,12 @@ const cardStyle = {
 const accent = "#9fa7ff";
 
 async function getHomeData() {
+  const responses = await Promise.all(
+    Object.values(API).map((url) =>
+      fetch(url, { next: { revalidate: 900 } })
+    )
+  );
+
   const [
     driversRes,
     constructorsRes,
@@ -70,11 +76,7 @@ async function getHomeData() {
     calendarRes,
     newsRes,
     resultRes,
-  ] = await Promise.all(
-      Object.values(API).map((url) =>
-        fetch(url, { next: { revalidate: 3600 } })
-      )
-    );
+  ] = responses;
 
   const [
     driversData,
@@ -84,16 +86,14 @@ async function getHomeData() {
     newsData,
     resultData,
   ] = await Promise.all(
-    [
-      driversRes,
-      constructorsRes,
-      raceRes,
-      calendarRes,
-      newsRes,
-      resultRes,
-    ].map(
-      (response) => response.json()
-    )
+    responses.map(async (response) => {
+      if (!response.ok) return null;
+      try {
+        return await response.json();
+      } catch {
+        return null;
+      }
+    })
   );
 
   return {
@@ -106,10 +106,11 @@ async function getHomeData() {
     race: raceData?.MRData?.RaceTable?.Races?.[0] ?? null,
     calendar: calendarData?.MRData?.RaceTable?.Races ?? [],
     lastRace: resultData?.MRData?.RaceTable?.Races?.[0] ?? null,
-    news: newsData?.items?.slice(0, 3) ?? [],
+    news: Array.isArray(newsData?.items)
+      ? newsData.items.slice(0, 3)
+      : [],
   };
 }
-
 function formatRaceDate(date: string) {
   return new Date(date).toLocaleDateString("en-US", {
     month: "short",
@@ -181,11 +182,11 @@ export default async function HomePage() {
 
   return (
     <main style={pageStyle}>
-      <h1 style={{ fontSize: "38px", margin: "0 0 5px" }}>
+      <h1 style={{ fontSize: "34px", margin: "0 0 5px" }}>
         🟣 PurpleSector
       </h1>
 
-      <p style={{ color: accent, margin: "0 0 20px" }}>
+      <p style={{ color: accent, margin: "0 0 16px" }}>
         Formula 1 Dashboard
       </p>
 

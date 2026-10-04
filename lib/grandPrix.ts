@@ -4,6 +4,13 @@ export type GrandPrix = {
   raceName: string;
   date?: string;
   time?: string;
+  Circuit?: {
+    circuitName?: string;
+    Location?: {
+      locality?: string;
+      country?: string;
+    };
+  };
   Sprint?: { date: string; time?: string };
   SprintQualifying?: { date: string; time?: string };
   FirstPractice?: { date: string; time?: string };
@@ -28,8 +35,68 @@ export async function fetchGrandPrix(): Promise<GrandPrix[]> {
   return data?.MRData?.RaceTable?.Races ?? [];
 }
 
+function scheduleTime(
+  session?: { date: string; time?: string } | null
+) {
+  if (!session?.date) return Number.NaN;
+  return new Date(
+    `${session.date}T${session.time ?? "00:00:00Z"}`
+  ).getTime();
+}
+
+function raceStartTime(race: GrandPrix) {
+  return race.time
+    ? scheduleTime({ date: race.date ?? "", time: race.time })
+    : scheduleTime(race.date ? { date: race.date } : null);
+}
+
+function weekendStartTime(race: GrandPrix) {
+  const times = [
+    scheduleTime(race.FirstPractice),
+    scheduleTime(race.SprintQualifying),
+    scheduleTime(race.SecondPractice),
+    scheduleTime(race.ThirdPractice),
+    scheduleTime(race.Qualifying),
+    scheduleTime(race.Sprint),
+    raceStartTime(race),
+  ].filter(Number.isFinite);
+
+  return times.length ? Math.min(...times) : Number.NaN;
+}
+
+export function getRelevantGrandPrix(
+  races: GrandPrix[],
+  nowMs = Date.now()
+) {
+  if (!races.length) return null;
+
+  const ongoing = races
+    .filter((race) => {
+      const start = weekendStartTime(race);
+      const raceStart = raceStartTime(race);
+      return (
+        Number.isFinite(start) &&
+        Number.isFinite(raceStart) &&
+        nowMs >= start &&
+        nowMs <= raceStart + 24 * 60 * 60 * 1000
+      );
+    })
+    .sort((a, b) => raceStartTime(b) - raceStartTime(a))[0];
+
+  if (ongoing) return ongoing;
+
+  const completed = races
+    .filter((race) => {
+      const raceStart = raceStartTime(race);
+      return Number.isFinite(raceStart) && raceStart <= nowMs;
+    })
+    .sort((a, b) => raceStartTime(b) - raceStartTime(a));
+
+  return completed[0] ?? races[0] ?? null;
+}
+
 export function getLatestGrandPrix(races: GrandPrix[]) {
-  return races[races.length - 1] ?? null;
+  return getRelevantGrandPrix(races);
 }
 
 export function getStoredGrandPrixRound() {
@@ -62,4 +129,39 @@ export function getWeekendSessionName(
       : "Sprint";
   }
   return regularSession;
+}
+
+export function getSessionSchedule(
+  race: GrandPrix | null,
+  sessionName: string
+) {
+  if (!race) return null;
+
+  switch (sessionName) {
+    case "Practice 1":
+      return race.FirstPractice ?? null;
+    case "Practice 2":
+      return race.SecondPractice ?? null;
+    case "Practice 3":
+      return race.ThirdPractice ?? null;
+    case "Sprint Qualifying":
+      return race.SprintQualifying ?? null;
+    case "Sprint":
+      return race.Sprint ?? null;
+    case "Qualifying":
+      return race.Qualifying ?? null;
+    case "Race":
+      return race.date
+        ? { date: race.date, time: race.time }
+        : null;
+    default:
+      return null;
+  }
+}
+
+export function getSessionTargetTime(
+  race: GrandPrix | null,
+  sessionName: string
+) {
+  return scheduleTime(getSessionSchedule(race, sessionName));
 }

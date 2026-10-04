@@ -10,7 +10,10 @@ import {
   fetchGrandPrix,
   getGrandPrixByRound,
   getLatestGrandPrix,
+  getRelevantGrandPrix,
+  getSessionTargetTime,
   getStoredGrandPrixRound,
+  getWeekendSessionName,
 } from "../../../../lib/grandPrix";
 
 type OpenF1Session = {
@@ -27,11 +30,22 @@ type Result = {
   position: number;
   driver_number: number;
   duration?: number;
-  gap_to_leader?: number;
+  gap_to_leader?: number | string;
   number_of_laps?: number;
   dnf?: boolean;
   dns?: boolean;
   dsq?: boolean;
+};
+
+type SprintResult = {
+  number: string;
+  position: string;
+  grid: string;
+  points: string;
+  status: string;
+  Time?: { time: string };
+  Driver: { givenName: string; familyName: string };
+  Constructor: { name: string };
 };
 
 type Driver = {
@@ -77,9 +91,22 @@ function formatTime(duration?: number) {
   return `${minutes > 0 ? `${minutes}:` : ""}${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
 }
 
-function formatGap(gap?: number) {
-  if (!Number.isFinite(gap) || gap === 0) return "LEADER";
-  return `+${(gap as number).toFixed(3)}s`;
+function formatGap(gap?: number | string) {
+  if (gap === 0) return "LEADER";
+  if (typeof gap === "string") return gap;
+  if (!Number.isFinite(gap) || gap === undefined) return "-";
+  return `+${gap.toFixed(3)}s`;
+}
+
+function getSprintStatusText(result: SprintResult) {
+  if (result.status?.includes("Lap")) {
+    const laps = result.status.match(/\d+/)?.[0] ?? "1";
+    return `+${laps} Lap`;
+  }
+  if (result.status === "Finished") {
+    return result.Time?.time ?? "Finished";
+  }
+  return "DNF";
 }
 
 function statusText(row: Row) {
@@ -109,9 +136,9 @@ export default function PracticePage() {
   const [loading, setLoading] = useState(true);
   const [races, setRaces] = useState<GrandPrix[]>([]);
   const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
-  const [gridByDriver, setGridByDriver] = useState<Record<number, string>>({});
-  const [pointsByDriver, setPointsByDriver] = useState<Record<number, string>>({});
+  const [sprintResults, setSprintResults] = useState<SprintResult[]>([]);
   const sessionName = getWeekendSessionName(selectedRace, "Practice 3");
+
 
   useEffect(() => {
     let cancelled = false;
@@ -127,46 +154,58 @@ export default function PracticePage() {
         const selectedGp =
           getGrandPrixByRound(gpList, routeRound) ??
           getGrandPrixByRound(gpList, storedRound) ??
+          getRelevantGrandPrix(gpList) ??
           getLatestGrandPrix(gpList);
 
         setRaces(gpList);
         setSelectedRace(selectedGp);
-
-        const allSessions = (Array.isArray(sessionData) ? sessionData : [])
-          .filter((session: OpenF1Session) =>
-            session.session_name === sessionName &&
-            Number.isFinite(new Date(session.date_start).getTime()) &&
-            new Date(session.date_start).getTime() <= Date.now() &&
-            !session.is_cancelled
-          )
-          .sort(
-            (a: OpenF1Session, b: OpenF1Session) =>
-              new Date(a.date_start).getTime() - new Date(b.date_start).getTime()
-          );
-
-        setSessions(allSessions);
 
         if (!selectedGp) {
           setSelected(null);
           return;
         }
 
-        const sprintTime = selectedGp.Sprint?.date
-          ? new Date(
-              `${selectedGp.Sprint.date}T${selectedGp.Sprint.time ?? "00:00:00Z"}`
-            ).getTime()
-          : Number.NaN;
+        const selectedSessionName = getWeekendSessionName(
+          selectedGp,
+          "Practice 3"
+        );
 
-        const matchingSession = Number.isFinite(sprintTime)
+        if (selectedSessionName === "Sprint") {
+          setSelected(null);
+          return;
+        }
+
+        const targetTime = getSessionTargetTime(
+          selectedGp,
+          selectedSessionName
+        );
+
+        const allSessions = (Array.isArray(sessionData) ? sessionData : [])
+          .filter(
+            (session: OpenF1Session) =>
+              session.session_name === selectedSessionName &&
+              Number.isFinite(new Date(session.date_start).getTime()) &&
+              new Date(session.date_start).getTime() <= Date.now() &&
+              !session.is_cancelled
+          )
+          .sort(
+            (a: OpenF1Session, b: OpenF1Session) =>
+              new Date(a.date_start).getTime() -
+              new Date(b.date_start).getTime()
+          );
+
+        setSessions(allSessions);
+
+        const matchingSession = Number.isFinite(targetTime)
           ? allSessions
               .filter((session) => {
                 const time = new Date(session.date_start).getTime();
-                return Math.abs(time - sprintTime) <= 24 * 60 * 60 * 1000;
+                return Math.abs(time - targetTime) <= 6 * 60 * 60 * 1000;
               })
               .sort(
                 (a: OpenF1Session, b: OpenF1Session) =>
-                  Math.abs(new Date(a.date_start).getTime() - sprintTime) -
-                  Math.abs(new Date(b.date_start).getTime() - sprintTime)
+                  Math.abs(new Date(a.date_start).getTime() - targetTime) -
+                  Math.abs(new Date(b.date_start).getTime() - targetTime)
               )[0] ?? null
           : null;
 
@@ -182,7 +221,8 @@ export default function PracticePage() {
   }, [routeRound]);
 
   useEffect(() => {
-    if (!selected || !selectedRace) return;
+    if (!selected || !selectedRace || sessionName === "Sprint") return;
+
     setRows([]);
 
     Promise.all([
@@ -190,52 +230,63 @@ export default function PracticePage() {
         `https://api.openf1.org/v1/session_result?session_key=${selected.session_key}`
       ).then((res) => (res.ok ? res.json() : [])),
       fetch(
-        `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/results.json`
-      ).then((res) => (res.ok ? res.json() : null)),
+        `https://api.openf1.org/v1/drivers?session_key=${selected.session_key}`
+      ).then((res) => (res.ok ? res.json() : [])),
     ])
-      .then(([data, raceData]) => {
-        const raceResults =
-          raceData?.MRData?.RaceTable?.Races?.[0]?.Results ?? [];
-        const grids: Record<number, string> = {};
-        const points: Record<number, string> = {};
-
-        raceResults.forEach((result: any) => {
-          const driverNumber = Number(result.number);
-          if (Number.isFinite(driverNumber)) {
-            grids[driverNumber] = result.grid ?? "-";
-            points[driverNumber] = result.points ?? "-";
-          }
-        });
-
-        setGridByDriver(grids);
-        setPointsByDriver(points);
+      .then(([data, drivers]) => {
         const results = (Array.isArray(data) ? data : [])
-          .filter((result: Result) =>
-            Number.isFinite(result.position) &&
-            Number.isFinite(result.driver_number)
+          .filter(
+            (result: Result) =>
+              Number.isFinite(result.position) &&
+              Number.isFinite(result.driver_number)
           )
           .sort((a: Result, b: Result) => a.position - b.position);
 
-        return Promise.all([
-          results,
-          fetch(`https://api.openf1.org/v1/drivers?session_key=${selected.session_key}`)
-            .then((res) => (res.ok ? res.json() : [])),
-        ]);
-      })
-      .then(([results, drivers]) => {
-        const driverList = Array.isArray(drivers) ? drivers : [];
-        setRows(results.map((result: Result) => {
-          const driver = driverList.find(
-            (item: Driver) => item.driver_number === result.driver_number
-          );
-          return {
-            ...result,
-            full_name: driver?.full_name ?? `Driver #${result.driver_number}`,
-            team_name: driver?.team_name ?? "Unknown Team",
-          };
-        }));
+        const driverList = Array.isArray(drivers)
+          ? (drivers as Driver[])
+          : [];
+
+        setRows(
+          results.map((result: Result) => {
+            const driver = driverList.find(
+              (item) => item.driver_number === result.driver_number
+            );
+
+            return {
+              ...result,
+              full_name:
+                driver?.full_name ?? `Driver #${result.driver_number}`,
+              team_name: driver?.team_name ?? "Unknown Team",
+            };
+          })
+        );
       });
-  }, [selected]);
+  }, [selected, selectedRace, sessionName]);
+
+  useEffect(() => {
+    if (!selectedRace || sessionName !== "Sprint") return;
+
+    let cancelled = false;
+    setSprintResults([]);
+
+    fetch(
+      `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/sprint.json`
+    )
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        setSprintResults(
+          data?.MRData?.RaceTable?.Races?.[0]?.SprintResults ?? []
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setSprintResults([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedRace, sessionName]);
 
   return (
     <main style={pageStyle}>
@@ -312,13 +363,14 @@ export default function PracticePage() {
       <ResultsTabs />
 
       <div style={cardStyle}>
-        {rows.length === 0 ? (
-          <p>{loading ? "결과를 불러오는 중..." : sessionName + " 데이터 없음"}</p>
-        ) : (
-          <table style={{ width: "100%", minWidth: "760px", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                {(sessionName === "Sprint" ? raceHeaders : qualifyingHeaders).map((header) => (
+        {sessionName === "Sprint" ? (
+          sprintResults.length === 0 ? (
+            <p>{loading ? "결과를 불러오는 중..." : "Sprint 데이터 없음"}</p>
+          ) : (
+            <table style={{ width: "100%", minWidth: "760px", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  {raceHeaders.map((header) => (
                   <th
                     key={header}
                     style={{
@@ -336,7 +388,47 @@ export default function PracticePage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {sprintResults.map((driver) => {
+                const sprintStatus = getSprintStatusText(driver);
+
+                return (
+                  <tr key={driver.position}>
+                    <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
+                      {positionLabel(driver.position)}
+                    </td>
+                    <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
+                      #{driver.number}
+                    </td>
+                    <td style={cellStyle}>
+                      {driver.Driver.givenName} {driver.Driver.familyName}
+                    </td>
+                    <td style={{ ...cellStyle, color: "#a9adff" }}>
+                      {driver.Constructor.name}
+                    </td>
+                    <td style={{ ...cellStyle, textAlign: "center" }}>
+                      P{driver.grid}
+                    </td>
+                    <td
+                      style={{
+                        ...cellStyle,
+                        textAlign: "center",
+                        color: sprintStatus === "DNF" ? "#ff7a7a" : "white",
+                        fontWeight: sprintStatus === "DNF" ? "bold" : "normal",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {sprintStatus}
+                    </td>
+                    <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
+                      {driver.points}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          )
+        ) : (
                 <tr key={row.driver_number}>
                   <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>P{row.position}</td>
                   <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>#{row.driver_number}</td>

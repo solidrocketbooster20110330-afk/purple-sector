@@ -17,7 +17,6 @@ import {
 
 type OpenF1Session = {
   session_key: number;
-  meeting_key?: number;
   session_name: string;
   date_start: string;
   country_name?: string;
@@ -29,7 +28,7 @@ type Result = {
   position: number;
   driver_number: number;
   duration?: number | (number | null)[];
-  gap_to_leader?: number | (number | string | null)[];
+  gap_to_leader?: number | string | (number | string | null)[];
   number_of_laps?: number;
   dnf?: boolean;
   dns?: boolean;
@@ -51,8 +50,8 @@ const pageStyle = {
   minHeight: "100vh",
   background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
   color: "white",
-  padding: "24px",
-  paddingBottom: "100px",
+  padding: "20px",
+  paddingBottom: "90px",
   fontFamily: "Arial, sans-serif",
 };
 
@@ -64,15 +63,17 @@ const cardStyle = {
   overflowX: "auto" as const,
 };
 
-const raceHeaders = ["POS", "NO", "DRIVER", "TEAM", "GRID", "STATUS", "PTS"];
 const qualifyingHeaders = ["POS", "NO", "DRIVER", "TEAM", "Q1", "Q2", "Q3"];
+const practiceHeaders = ["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"];
 
 function formatTime(duration?: number | null) {
   if (!Number.isFinite(duration)) return "-";
+
   const ms = Math.round((duration as number) * 1000);
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
   const milliseconds = ms % 1000;
+
   return `${minutes > 0 ? `${minutes}:` : ""}${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
 }
 
@@ -92,7 +93,10 @@ function statusText(row: Row) {
   if (row.dsq) return "DSQ";
   if (row.dns) return "DNS";
   if (row.dnf) return "DNF";
-  return formatTime(row.duration);
+
+  return formatTime(
+    Array.isArray(row.duration) ? row.duration[0] ?? null : row.duration
+  );
 }
 
 function sessionLabel(session: OpenF1Session | null) {
@@ -105,25 +109,22 @@ export default function PracticePage() {
   const params = useParams<{ round: string }>();
   const routeRound = params?.round ?? "";
 
-  const [sessions, setSessions] = useState<OpenF1Session[]>([]);
   const [selected, setSelected] = useState<OpenF1Session | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [races, setRaces] = useState<GrandPrix[]>([]);
   const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
-  const [gridByDriver, setGridByDriver] = useState<Record<number, string>>({});
-  const [pointsByDriver, setPointsByDriver] = useState<Record<number, string>>({});
 
   const sessionName = getWeekendSessionName(selectedRace, "Practice 2");
-  const isSprintSession = sessionName === "Sprint Qualifying";
+  const isSprintQualifying = sessionName === "Sprint Qualifying";
 
   useEffect(() => {
     let cancelled = false;
 
     Promise.all([
       fetchGrandPrix(),
-      fetch("https://api.openf1.org/v1/sessions").then((res) =>
+      fetch("https://api.openf1.org/v1/sessions?year=2026").then((res) =>
         res.ok ? res.json() : []
       ),
     ])
@@ -139,14 +140,30 @@ export default function PracticePage() {
 
         setRaces(gpList);
         setSelectedRace(selectedGp);
+        setRows([]);
 
-        const allSessions = (Array.isArray(sessionData) ? sessionData : [])
+        if (!selectedGp) {
+          setSelected(null);
+          return;
+        }
+
+        const selectedSessionName = getWeekendSessionName(
+          selectedGp,
+          "Practice 2"
+        );
+
+        const targetTime = getSessionTargetTime(
+          selectedGp,
+          selectedSessionName
+        );
+
+        const sessions = (Array.isArray(sessionData) ? sessionData : [])
           .filter(
             (session: OpenF1Session) =>
-              session.session_name === getWeekendSessionName(selectedGp, "Practice 2") &&
+              session.session_name === selectedSessionName &&
+              !session.is_cancelled &&
               Number.isFinite(new Date(session.date_start).getTime()) &&
-              new Date(session.date_start).getTime() <= Date.now() &&
-              !session.is_cancelled
+              new Date(session.date_start).getTime() <= Date.now()
           )
           .sort(
             (a: OpenF1Session, b: OpenF1Session) =>
@@ -154,42 +171,15 @@ export default function PracticePage() {
               new Date(b.date_start).getTime()
           );
 
-        setSessions(allSessions);
-
-        if (!selectedGp) {
-          setSelected(null);
-          return;
-        }
-
-        const weekendStart = selectedGp.FirstPractice?.date
-          ? new Date(
-              `${selectedGp.FirstPractice.date}T${selectedGp.FirstPractice.time ?? "00:00:00Z"}`
-            ).getTime()
-          : selectedGp.SprintQualifying?.date
-          ? new Date(
-              `${selectedGp.SprintQualifying.date}T${selectedGp.SprintQualifying.time ?? "00:00:00Z"}`
-            ).getTime()
-          : selectedGp.date
-          ? new Date(`${selectedGp.date}T00:00:00Z`).getTime()
-          : Number.NaN;
-
-        const weekendEnd = selectedGp.date
-          ? new Date(
-              `${selectedGp.date}T${selectedGp.time ?? "23:59:59Z"}`
-            ).getTime() + 36 * 60 * 60 * 1000
-          : Number.NaN;
-
-        const targetTime = getSessionTargetTime(
-          selectedGp,
-          getWeekendSessionName(selectedGp, "Practice 2")
-        );
-
         const matchingSession = Number.isFinite(targetTime)
-          ? allSessions
-              .filter((session) => {
-                const time = new Date(session.date_start).getTime();
-                return Math.abs(time - targetTime) <= 6 * 60 * 60 * 1000;
-              })
+          ? sessions
+              .filter(
+                (session: OpenF1Session) =>
+                  Math.abs(
+                    new Date(session.date_start).getTime() - targetTime
+                  ) <=
+                  6 * 60 * 60 * 1000
+              )
               .sort(
                 (a: OpenF1Session, b: OpenF1Session) =>
                   Math.abs(new Date(a.date_start).getTime() - targetTime) -
@@ -203,6 +193,7 @@ export default function PracticePage() {
         if (!cancelled) {
           setRaces([]);
           setSelected(null);
+          setRows([]);
         }
       })
       .finally(() => {
@@ -215,8 +206,9 @@ export default function PracticePage() {
   }, [routeRound]);
 
   useEffect(() => {
-    if (!selected || !selectedRace) return;
+    if (!selected) return;
 
+    let cancelled = false;
     setRows([]);
 
     Promise.all([
@@ -224,25 +216,11 @@ export default function PracticePage() {
         `https://api.openf1.org/v1/session_result?session_key=${selected.session_key}`
       ).then((res) => (res.ok ? res.json() : [])),
       fetch(
-        `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/results.json`
-      ).then((res) => (res.ok ? res.json() : null)),
+        `https://api.openf1.org/v1/drivers?session_key=${selected.session_key}`
+      ).then((res) => (res.ok ? res.json() : [])),
     ])
-      .then(([data, raceData]) => {
-        const raceResults =
-          raceData?.MRData?.RaceTable?.Races?.[0]?.Results ?? [];
-        const grids: Record<number, string> = {};
-        const points: Record<number, string> = {};
-
-        raceResults.forEach((result: any) => {
-          const driverNumber = Number(result.number);
-          if (Number.isFinite(driverNumber)) {
-            grids[driverNumber] = result.grid ?? "-";
-            points[driverNumber] = result.points ?? "-";
-          }
-        });
-
-        setGridByDriver(grids);
-        setPointsByDriver(points);
+      .then(([data, drivers]) => {
+        if (cancelled) return;
 
         const results = (Array.isArray(data) ? data : [])
           .filter(
@@ -252,20 +230,14 @@ export default function PracticePage() {
           )
           .sort((a: Result, b: Result) => a.position - b.position);
 
-        return Promise.all([
-          results,
-          fetch(
-            `https://api.openf1.org/v1/drivers?session_key=${selected.session_key}`
-          ).then((res) => (res.ok ? res.json() : [])),
-        ]);
-      })
-      .then(([results, drivers]) => {
-        const driverList = Array.isArray(drivers) ? drivers : [];
+        const driverList = Array.isArray(drivers)
+          ? (drivers as Driver[])
+          : [];
 
         setRows(
           results.map((result: Result) => {
             const driver = driverList.find(
-              (item: Driver) => item.driver_number === result.driver_number
+              (item) => item.driver_number === result.driver_number
             );
 
             return {
@@ -277,12 +249,18 @@ export default function PracticePage() {
           })
         );
       });
-  }, [selected, selectedRace]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selected, isSprintQualifying]);
 
   return (
     <main style={pageStyle}>
       <h1>
-        {isSprintSession ? "🏎️ Sprint Qualifying" : "🛠 Practice 2"}
+        {isSprintQualifying
+          ? "🏎️ Sprint Qualifying"
+          : "🛠 Practice 2"}
       </h1>
 
       <div style={{ position: "relative", marginBottom: "20px" }}>
@@ -304,7 +282,11 @@ export default function PracticePage() {
         >
           <span>
             {selectedRace?.raceName ??
-              (selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest Grand Prix")}
+              (selected
+                ? sessionLabel(selected)
+                : loading
+                ? "Loading..."
+                : "Latest Grand Prix")}
           </span>
           <span style={{ fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
         </button>
@@ -363,7 +345,9 @@ export default function PracticePage() {
       <div style={cardStyle}>
         {rows.length === 0 ? (
           <p>
-            {loading ? "결과를 불러오는 중..." : sessionName + " 데이터 없음"}
+            {loading
+              ? "결과를 불러오는 중..."
+              : sessionName + " 데이터 없음"}
           </p>
         ) : (
           <table
@@ -371,20 +355,40 @@ export default function PracticePage() {
               width: "100%",
               minWidth: "760px",
               borderCollapse: "collapse",
+              tableLayout: "fixed",
             }}
           >
+            <colgroup>
+              {[
+                "60px",
+                "60px",
+                "190px",
+                "150px",
+                "110px",
+                "110px",
+                "110px",
+              ].map((width) => (
+                <col key={width} style={{ width }} />
+              ))}
+            </colgroup>
+
             <thead>
               <tr>
-                {(isSprintSession ? qualifyingHeaders : qualifyingHeaders).map((header) => (
+                {(isSprintQualifying
+                  ? qualifyingHeaders
+                  : practiceHeaders
+                ).map((header) => (
                   <th
                     key={header}
                     style={{
                       textAlign:
-                        header === "DRIVER" || header === "TEAM" ? "left" : "center",
+                        header === "DRIVER" || header === "TEAM"
+                          ? "left"
+                          : "center",
                       padding: "11px 7px",
                       color: "#a9adff",
                       fontSize: "12px",
-                      borderBottom: "1px solid #2b347a",
+                      borderBottom: "2px solid #2b347a",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -393,18 +397,34 @@ export default function PracticePage() {
                 ))}
               </tr>
             </thead>
+
             <tbody>
               {rows.map((row) => (
                 <tr key={row.driver_number}>
-                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
+                  <td
+                    style={{
+                      ...cellStyle,
+                      textAlign: "center",
+                      fontWeight: "bold",
+                    }}
+                  >
                     P{row.position}
                   </td>
-                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
+                  <td
+                    style={{
+                      ...cellStyle,
+                      textAlign: "center",
+                      fontWeight: "bold",
+                    }}
+                  >
                     #{row.driver_number}
                   </td>
                   <td style={cellStyle}>{row.full_name}</td>
-                  <td style={{ ...cellStyle, color: "#a9adff" }}>{row.team_name}</td>
-                  {isSprintSession ? (
+                  <td style={{ ...cellStyle, color: "#a9adff" }}>
+                    {row.team_name}
+                  </td>
+
+                  {isSprintQualifying ? (
                     <>
                       <td style={{ ...cellStyle, textAlign: "center" }}>
                         {formatTime(phaseTime(row.duration, 0))}
@@ -419,12 +439,16 @@ export default function PracticePage() {
                   ) : (
                     <>
                       <td style={{ ...cellStyle, textAlign: "center" }}>
-                        {formatTime(row.duration as number | null | undefined)}
+                        {formatTime(
+                          Array.isArray(row.duration)
+                            ? row.duration[0] ?? null
+                            : row.duration
+                        )}
                       </td>
                       <td style={{ ...cellStyle, textAlign: "center" }}>
                         {formatGap(
                           Array.isArray(row.gap_to_leader)
-                            ? row.gap_to_leader[0]
+                            ? row.gap_to_leader[0] ?? null
                             : row.gap_to_leader
                         )}
                       </td>

@@ -86,9 +86,8 @@ export default function QualifyingPage() {
           <div style={{position:"absolute",top:"32px",left:0,right:0,zIndex:20,background:"#131942",border:"1px solid #2b347a",borderRadius:"14px",padding:"8px",maxHeight:"320px",overflowY:"auto",boxShadow:"0 12px 30px rgba(0,0,0,.35)"}}>
             {races.slice().reverse().map(race => (
               <button key={`${race.season}-${race.round}`} type="button" onClick={() => {
-                  setSelectedRace(race);
                   storeGrandPrix(race.round);
-                  setOpen(false);
+                  window.location.href = `/results/qualifying?round=${race.round}`;
                 }} style={{width:"100%",display:"block",textAlign:"left",padding:"10px 12px",marginBottom:"4px",border:0,borderRadius:"10px",background:selectedRace?.round===race.round ? "#7c3aed" : "transparent",color:"white",cursor:"pointer",fontSize:"14px"}}>
                 {race.raceName}
               </button>

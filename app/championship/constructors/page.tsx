@@ -80,7 +80,7 @@ export default async function ChampionshipConstructorsPage() {
 
   const races: Race[] = racesData?.MRData?.RaceTable?.Races ?? [];
 
-  const chartTeams = constructors.slice(0, 5).map((constructor) => {
+  const chartTeams = constructors.map((constructor) => {
     let cumulative = 0;
     return {
       id: constructor.Constructor.constructorId,
@@ -118,10 +118,56 @@ export default async function ChampionshipConstructorsPage() {
         </Link>
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <div style={{ color: "#a9adff", fontSize: "13px", marginBottom: "12px" }}>
-          Championship Progress
+      <section style={{ marginBottom: "20px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "12px",
+          }}
+        >
+          <div style={{ color: "#a9adff", fontSize: "13px" }}>
+            Championship Progress
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              color: "#c7cbff",
+              fontSize: "13px",
+            }}
+          >
+            순위로 보기
+            <Link
+              href="/championship/constructors?view=rank"
+              style={{
+                width: "54px",
+                height: "30px",
+                borderRadius: "16px",
+                background: "#131942",
+                border: "1px solid #2b347a",
+                position: "relative",
+                display: "block",
+              }}
+              aria-label="순위로 보기"
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: "3px",
+                  left: "3px",
+                  width: "22px",
+                  height: "22px",
+                  borderRadius: "50%",
+                  background: "#7c3aed",
+                }}
+              />
+            </Link>
+          </div>
         </div>
+
         <div
           style={{
             ...cardStyle,

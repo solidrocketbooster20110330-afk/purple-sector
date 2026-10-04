@@ -200,29 +200,28 @@ export default async function HomePage() {
           <a
             href="/schedule"
             style={{
-            ...cardStyle,
-            display: "block",
-            textDecoration: "none",
-            color: "white",
-            marginBottom: "20px",
-          }}
-        >
-          <div
-            style={{
-              color: accent,
-              fontSize: "13px",
-              marginBottom: "8px",
+              ...cardStyle,
+              display: "block",
+              textDecoration: "none",
+              color: "white",
+              marginBottom: "20px",
             }}
           >
-            NEXT RACE
-          </div>
-          <div style={{ fontSize: "28px", fontWeight: "bold" }}>
-            {race.raceName}
-          </div>
+            <div
+              style={{
+                color: accent,
+                fontSize: "13px",
+                marginBottom: "8px",
+              }}
+            >
+              NEXT RACE
+            </div>
+            <div style={{ fontSize: "28px", fontWeight: "bold" }}>
+              {race.raceName}
+            </div>
             <div style={{ marginTop: "8px", color: "#c7cbff" }}>
               {formatRaceDate(race.date)} →
             </div>
-          </a>
           </a>
         </>
       )}

@@ -58,6 +58,131 @@ function positionLabel(position?: string) {
   return position ? `P${position}` : "-";
 }
 
+type ChartPoint = {
+  round: string;
+  points: number;
+};
+
+function buildChart(races: Race[]): ChartPoint[] {
+  let total = 0;
+  return races.map((race) => {
+    total += Number(race.Results?.[0]?.points ?? 0);
+    return { round: race.round, points: total };
+  });
+}
+
+function PointsChart({ points }: { points: ChartPoint[] }) {
+  if (points.length < 2) return null;
+
+  const width = 720;
+  const height = 260;
+  const pad = { top: 20, right: 18, bottom: 42, left: 42 };
+  const max = Math.max(1, ...points.map((p) => p.points));
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
+
+  const coords = points.map((p, i) => ({
+    ...p,
+    x: pad.left + (i * innerW) / Math.max(1, points.length - 1),
+    y: pad.top + innerH - (p.points / max) * innerH,
+  }));
+
+  const line = coords.map((p) => `${p.x},${p.y}`).join(" ");
+  const area = `${pad.left},${height - pad.bottom} ${line} ${coords[coords.length - 1].x},${height - pad.bottom}`;
+
+  return (
+    <section
+      style={{
+        background: "#131942",
+        border: "1px solid #2b347a",
+        borderRadius: "20px",
+        padding: "20px",
+        marginBottom: "20px",
+        overflowX: "auto",
+      }}
+    >
+      <h2 style={{ marginTop: 0 }}>Championship Progress</h2>
+      <div style={{ color: "#a9adff", fontSize: "12px", marginBottom: "8px" }}>
+        Cumulative points by race
+      </div>
+
+      <svg
+        viewBox="0 0 720 260"
+        width="100%"
+        role="img"
+        aria-label="Championship points progress graph"
+        style={{ display: "block", minWidth: "520px" }}
+      >
+        {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+          const y = pad.top + innerH * (1 - fraction);
+          return (
+            <g key={fraction}>
+              <line
+                x1={pad.left}
+                x2={width - pad.right}
+                y1={y}
+                y2={y}
+                stroke="#2b347a"
+                strokeWidth="1"
+              />
+              <text
+                x={pad.left - 8}
+                y={y + 4}
+                textAnchor="end"
+                fill="#a9adff"
+                fontSize="10"
+              >
+                {Math.round(max * fraction)}
+              </text>
+            </g>
+          );
+        })}
+
+        <polygon points={area} fill="rgba(124,58,237,0.16)" />
+
+        <polyline
+          points={line}
+          fill="none"
+          stroke="#a855f7"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {coords.map((p, i) => (
+          <g key={p.round}>
+            <circle cx={p.x} cy={p.y} r="4" fill="#a9adff" />
+            {(i === 0 ||
+              i === coords.length - 1 ||
+              i % Math.ceil(coords.length / 6) === 0) && (
+              <>
+                <text
+                  x={p.x}
+                  y={height - 20}
+                  textAnchor="middle"
+                  fill="#a9adff"
+                  fontSize="10"
+                >
+                  R{p.round}
+                </text>
+                <text
+                  x={p.x}
+                  y={p.y - 9}
+                  textAnchor="middle"
+                  fill="white"
+                  fontSize="10"
+                >
+                  {p.points}
+                </text>
+              </>
+            )}
+          </g>
+        ))}
+      </svg>
+    </section>
+  );
+}
+
 export default async function DriverDetailPage({
   params,
 }: {
@@ -113,6 +238,7 @@ export default async function DriverDetailPage({
   }).length;
 
   const recentRaces = races.slice(-5).reverse();
+  const chartPoints = buildChart(races);
 
   return (
     <main style={pageStyle}>
@@ -204,6 +330,8 @@ export default async function DriverDetailPage({
           ))}
         </div>
       </section>
+
+      <PointsChart points={chartPoints} />
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Recent Form</h2>

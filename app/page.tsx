@@ -1,4 +1,5 @@
 import BottomNav from "./components/BottomNav";
+import NextSessionCountdown from "./components/NextSessionCountdown";
 
 type DriverStanding = {
   position: string;
@@ -12,7 +13,7 @@ type ConstructorStanding = {
   Constructor: { name: string };
 };
 
-type Race = { raceName: string; date: string };
+type Race = { raceName: string; date: string; time?: string };
 
 type NewsItem = { title: string; link: string };
 
@@ -85,6 +86,13 @@ function formatRaceDate(date: string) {
   });
 }
 
+function getRaceTargetTime(race: Race | null) {
+  if (!race?.date) return Number.NaN;
+  return new Date(
+    `${race.date}T${race.time ?? "00:00:00Z"}`
+  ).getTime();
+}
+
 const detailLinkStyle = {
   color: "#a855f7",
   textDecoration: "none",
@@ -97,6 +105,7 @@ export default async function HomePage() {
     await getHomeData();
 
   const winner = lastRace?.Results?.[0];
+  const nextRaceTarget = getRaceTargetTime(race);
 
   return (
     <main style={pageStyle}>
@@ -108,9 +117,16 @@ export default async function HomePage() {
         Formula 1 Dashboard
       </p>
 
-      {race && (
-        <a
-          href="/schedule"
+      {race && Number.isFinite(nextRaceTarget) && (
+        <>
+          <NextSessionCountdown
+            label="🏁 Next Race"
+            raceName={race.raceName}
+            targetTime={nextRaceTarget}
+          />
+
+          <a
+            href="/schedule"
           style={{
             ...cardStyle,
             display: "block",
@@ -131,10 +147,11 @@ export default async function HomePage() {
           <div style={{ fontSize: "28px", fontWeight: "bold" }}>
             {race.raceName}
           </div>
-          <div style={{ marginTop: "8px", color: "#c7cbff" }}>
-            {formatRaceDate(race.date)} →
-          </div>
-        </a>
+            <div style={{ marginTop: "8px", color: "#c7cbff" }}>
+              {formatRaceDate(race.date)} →
+            </div>
+          </a>
+        </>
       )}
 
       {lastRace && winner && (

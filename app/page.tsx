@@ -189,7 +189,7 @@ export default async function HomePage() {
         Formula 1 Dashboard
       </p>
 
-      {nextSession && (
+      {searchBlock}      {nextSession && (
         <>
           <NextSessionCountdown
             label={`🏎️ ${nextSession.label}`}
@@ -225,26 +225,6 @@ export default async function HomePage() {
           </a>
         </>
       )}
-
-      <a
-        href="/search"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          background: "#11152f",
-          border: "1px solid #2b347a",
-          borderRadius: "16px",
-          padding: "13px 15px",
-          marginBottom: "14px",
-          color: "#c7cbff",
-          textDecoration: "none",
-          fontSize: "15px",
-        }}
-      >
-        <span style={{ fontSize: "19px" }}>🔎</span>
-        <span>Search drivers, teams, or Grands Prix</span>
-      </a>
 
       {lastRace && winner && (
         <div style={{ ...cardStyle, marginBottom: "14px" }}>

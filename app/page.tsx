@@ -199,7 +199,7 @@ export default async function HomePage() {
 
           <a
             href="/schedule"
-          style={{
+            style={{
             ...cardStyle,
             display: "block",
             textDecoration: "none",
@@ -222,6 +222,7 @@ export default async function HomePage() {
             <div style={{ marginTop: "8px", color: "#c7cbff" }}>
               {formatRaceDate(race.date)} →
             </div>
+          </a>
           </a>
         </>
       )}

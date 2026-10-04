@@ -7,7 +7,6 @@ import {
   fetchGrandPrix,
   getGrandPrixByRound,
   getRelevantGrandPrix,
-  getStoredGrandPrixRound,
   hasSprintWeekend,
   type GrandPrix,
 } from "../../lib/grandPrix";
@@ -37,11 +36,12 @@ export default function ResultsTabs() {
   }, [pathname]);
 
   useEffect(() => {
-    const round = currentRound ?? getStoredGrandPrixRound();
-
     fetchGrandPrix()
       .then((races) => {
-        const selected = getGrandPrixByRound(races, round) ?? getRelevantGrandPrix(races) ?? null;
+        const selected =
+          getGrandPrixByRound(races, currentRound) ??
+          getRelevantGrandPrix(races) ??
+          null;
         setRace(selected);
       })
       .catch(() => setRace(null));

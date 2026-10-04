@@ -118,7 +118,7 @@ export default async function ChampionshipConstructorsPage() {
         </Link>
       </div>
 
-      <section style={{ marginBottom: "20px" }}>
+      <div style={{ marginBottom: "20px" }}>
         <div
           style={{
             display: "flex",
@@ -130,18 +130,19 @@ export default async function ChampionshipConstructorsPage() {
           <div style={{ color: "#a9adff", fontSize: "13px" }}>
             Championship Progress
           </div>
-          <div
+          <Link
+            href="/championship/constructors"
             style={{
-              display: "flex",
+              display: "inline-flex",
               alignItems: "center",
               gap: "8px",
               color: "#c7cbff",
               fontSize: "13px",
+              textDecoration: "none",
             }}
           >
             순위로 보기
-            <Link
-              href="/championship/constructors?view=rank"
+            <span
               style={{
                 width: "54px",
                 height: "30px",
@@ -149,9 +150,8 @@ export default async function ChampionshipConstructorsPage() {
                 background: "#131942",
                 border: "1px solid #2b347a",
                 position: "relative",
-                display: "block",
+                display: "inline-block",
               }}
-              aria-label="순위로 보기"
             >
               <span
                 style={{
@@ -164,10 +164,9 @@ export default async function ChampionshipConstructorsPage() {
                   background: "#7c3aed",
                 }}
               />
-            </Link>
-          </div>
+            </span>
+          </Link>
         </div>
-
         <div
           style={{
             ...cardStyle,
@@ -178,7 +177,6 @@ export default async function ChampionshipConstructorsPage() {
           <div style={{ color: "#a9adff", fontSize: "12px", marginBottom: "8px" }}>
             Cumulative constructor points by round
           </div>
-
           {(() => {
             const width = 720;
             const height = 260;
@@ -199,6 +197,11 @@ export default async function ChampionshipConstructorsPage() {
               "#ff7a45",
               "#4ade80",
               "#facc15",
+              "#ec4899",
+              "#22d3ee",
+              "#a78bfa",
+              "#14b8a6",
+              "#94a3b8",
             ];
 
             return (
@@ -236,38 +239,35 @@ export default async function ChampionshipConstructorsPage() {
                         </g>
                       );
                     })}
-
-                    {chartTeams.map((team, teamIndex) => {
+                    {chartTeams.map((team, index) => {
                       const line = team.points
                         .map(
-                          (point, index) =>
-                            `${getX(index)},${getY(point.points)}`
+                          (point, pointIndex) =>
+                            `${getX(pointIndex)},${getY(point.points)}`
                         )
                         .join(" ");
-
                       return (
                         <g key={team.id}>
                           <polyline
                             points={line}
                             fill="none"
-                            stroke={lineColors[teamIndex]}
-                            strokeWidth="4"
+                            stroke={lineColors[index % lineColors.length]}
+                            strokeWidth="3.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                           />
-                          {team.points.map((point) => (
+                          {team.points.map((point, pointIndex) => (
                             <circle
                               key={`${team.id}-${point.round}`}
-                              cx={getX(Number(point.round) - 1)}
+                              cx={getX(pointIndex)}
                               cy={getY(point.points)}
-                              r="3.5"
-                              fill="#a9adff"
+                              r="3"
+                              fill={lineColors[index % lineColors.length]}
                             />
                           ))}
                         </g>
                       );
                     })}
-
                     {races.map((race, index) => (
                       <text
                         key={race.round}
@@ -282,7 +282,6 @@ export default async function ChampionshipConstructorsPage() {
                     ))}
                   </svg>
                 </div>
-
                 <div
                   style={{
                     display: "flex",
@@ -304,10 +303,9 @@ export default async function ChampionshipConstructorsPage() {
                     >
                       <span
                         style={{
-                          width: "10px",
-                          height: "10px",
-                          borderRadius: "50%",
-                          background: lineColors[index],
+                          width: "28px",
+                          height: "3px",
+                          background: lineColors[index % lineColors.length],
                           display: "inline-block",
                         }}
                       />

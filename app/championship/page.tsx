@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
 
@@ -5,6 +7,7 @@ type DriverStanding = {
   position: string;
   points: string;
   Driver: {
+    driverId: string;
     givenName: string;
     familyName: string;
     permanentNumber?: string;
@@ -88,29 +91,35 @@ export default async function ChampionshipDriversPage() {
           <p style={{ color: "#a9adff" }}>Driver 데이터가 없습니다.</p>
         ) : (
           drivers.map((driver, index) => (
-            <div
-              key={driver.position}
+            <Link
+              key={driver.Driver.driverId}
+              href={`/championship/${driver.Driver.driverId}`}
               style={{
-                padding: "12px 0",
+                display: "grid",
+                gridTemplateColumns: "50px 1fr auto",
+                gap: "12px",
+                alignItems: "center",
+                padding: "14px 0",
                 borderBottom:
-                  index === drivers.length - 1
-                    ? "none"
-                    : "1px solid #2b347a",
+                  index === drivers.length - 1 ? "none" : "1px solid #2b347a",
+                color: "white",
+                textDecoration: "none",
               }}
             >
               <strong>{positionLabel(driver.position)}</strong>
 
               <div>
-                #{driver.Driver.permanentNumber ?? "-"}{" "}
-                {driver.Driver.givenName} {driver.Driver.familyName}
+                <div>
+                  #{driver.Driver.permanentNumber ?? "-"}{" "}
+                  {driver.Driver.givenName} {driver.Driver.familyName}
+                </div>
+                <div style={{ color: "#a9adff", marginTop: "4px", fontSize: "13px" }}>
+                  {driver.Constructors?.[0]?.name ?? "Unknown Team"}
+                </div>
               </div>
 
-              <div style={{ color: "#a9adff" }}>
-                {driver.Constructors?.[0]?.name ?? "Unknown Team"}
-              </div>
-
-              <div>{driver.points} pts</div>
-            </div>
+              <strong>{driver.points} pts</strong>
+            </Link>
           ))
         )}
       </div>

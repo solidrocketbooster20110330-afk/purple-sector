@@ -201,9 +201,9 @@ export default async function RoundPage({
             href={
               session.title === "FP1"
                 ? `/results/practice/${round}`
-                : session.title === "FP2"
+                : session.title === "FP2" || session.title === "Sprint Qualifying"
                 ? `/results/practice2/${round}`
-                : session.title === "FP3"
+                : session.title === "FP3" || session.title === "Sprint"
                 ? `/results/practice3/${round}`
                 : session.title === "Qualifying"
                 ? `/results/qualifying?round=${round}`

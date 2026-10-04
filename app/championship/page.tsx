@@ -123,13 +123,20 @@ export default async function ChampionshipDriversPage() {
         )}
       </div>
 
-      <PointsGraph
-        series={drivers.slice(0, 6).map((driver) => ({
-          name: `${driver.Driver.givenName} ${driver.Driver.familyName}`,
-          points: [{ round: 1, points: Number(driver.points) }],
-        }))}
-      />
-
+      <section
+        style={{
+          marginTop: "20px",
+          background: "#131942",
+          border: "1px solid #2b347a",
+          borderRadius: "18px",
+          padding: "16px",
+        }}
+      >
+        <h2 style={{ margin: "0 0 8px" }}>📈 Points Graph</h2>
+        <p style={{ color: "#a9adff", margin: 0, fontSize: "13px" }}>
+          현재 챔피언십 포인트 비교
+        </p>
+      </section>
       <BottomNav />
     </main>
   );

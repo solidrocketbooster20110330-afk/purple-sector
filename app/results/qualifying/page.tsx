@@ -7,6 +7,7 @@ import {
   fetchGrandPrix,
   getGrandPrixByRound,
   getLatestGrandPrix,
+  getRelevantGrandPrix,
   getStoredGrandPrixRound,
   storeGrandPrix,
   type GrandPrix,
@@ -50,8 +51,14 @@ export default function QualifyingPage() {
     fetchGrandPrix()
       .then((items) => {
         setRaces(items);
+        const queryRound = new URLSearchParams(window.location.search).get("round");
         const stored = getStoredGrandPrixRound();
-        setSelectedRace(getGrandPrixByRound(items, stored) ?? getLatestGrandPrix(items));
+        setSelectedRace(
+          getGrandPrixByRound(items, queryRound) ??
+          getGrandPrixByRound(items, stored) ??
+          getRelevantGrandPrix(items) ??
+          getLatestGrandPrix(items)
+        );
       })
       .catch(() => setRaces([]))
       .finally(() => setLoading(false));

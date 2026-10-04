@@ -85,6 +85,13 @@ function formatRaceDate(date: string) {
   });
 }
 
+const detailLinkStyle = {
+  color: "#a855f7",
+  textDecoration: "none",
+  fontWeight: "bold",
+  fontSize: "14px",
+};
+
 export default async function HomePage() {
   const { drivers, constructors, race, lastRace, news } =
     await getHomeData();
@@ -168,7 +175,21 @@ export default async function HomePage() {
       )}
 
       <section style={{ ...cardStyle, marginBottom: "20px" }}>
-        <h2>Drivers</h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            marginBottom: "8px",
+          }}
+        >
+          <h2 style={{ margin: 0 }}>Drivers</h2>
+          <a href="/standings" style={detailLinkStyle}>
+            View Detail →
+          </a>
+        </div>
+
         {drivers.slice(0, 5).map((driver: DriverStanding) => (
           <div
             key={driver.position}
@@ -187,7 +208,21 @@ export default async function HomePage() {
       </section>
 
       <section style={{ ...cardStyle, marginBottom: "20px" }}>
-        <h2>Constructors</h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            marginBottom: "8px",
+          }}
+        >
+          <h2 style={{ margin: 0 }}>Constructors</h2>
+          <a href="/constructors" style={detailLinkStyle}>
+            View Detail →
+          </a>
+        </div>
+
         {constructors.slice(0, 5).map(
           (team: ConstructorStanding) => (
             <div

@@ -163,9 +163,8 @@ export default function ResultsPage() {
                   key={`${race.season}-${race.round}`}
                   type="button"
                   onClick={() => {
-                    setSelectedRace(race);
                     storeGrandPrix(race.round);
-                    setOpen(false);
+                    window.location.href = `/results?round=${race.round}`;
                   }}
                   style={{
                     width: "100%",

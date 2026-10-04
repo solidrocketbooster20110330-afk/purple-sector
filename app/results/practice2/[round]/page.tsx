@@ -8,6 +8,8 @@ import {
   fetchGrandPrix,
   getGrandPrixByRound,
   getLatestGrandPrix,
+  getRelevantGrandPrix,
+  getSessionTargetTime,
   getStoredGrandPrixRound,
   getWeekendSessionName,
   type GrandPrix,
@@ -26,8 +28,8 @@ type OpenF1Session = {
 type Result = {
   position: number;
   driver_number: number;
-  duration?: number;
-  gap_to_leader?: number;
+  duration?: number | (number | null)[];
+  gap_to_leader?: number | (number | string | null)[];
   number_of_laps?: number;
   dnf?: boolean;
   dns?: boolean;
@@ -65,7 +67,7 @@ const cardStyle = {
 const raceHeaders = ["POS", "NO", "DRIVER", "TEAM", "GRID", "STATUS", "PTS"];
 const qualifyingHeaders = ["POS", "NO", "DRIVER", "TEAM", "Q1", "Q2", "Q3"];
 
-function formatTime(duration?: number) {
+function formatTime(duration?: number | null) {
   if (!Number.isFinite(duration)) return "-";
   const ms = Math.round((duration as number) * 1000);
   const minutes = Math.floor(ms / 60000);
@@ -74,9 +76,16 @@ function formatTime(duration?: number) {
   return `${minutes > 0 ? `${minutes}:` : ""}${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
 }
 
-function formatGap(gap?: number) {
-  if (!Number.isFinite(gap) || gap === 0) return "LEADER";
-  return `+${(gap as number).toFixed(3)}s`;
+function formatGap(gap?: number | string | null) {
+  if (gap === null || gap === undefined || gap === 0) return "LEADER";
+  if (typeof gap === "string") return gap;
+  if (!Number.isFinite(gap)) return "-";
+  return `+${gap.toFixed(3)}s`;
+}
+
+function phaseTime(duration: Result["duration"], index: number) {
+  if (Array.isArray(duration)) return duration[index] ?? null;
+  return index === 0 ? duration ?? null : null;
 }
 
 function statusText(row: Row) {
@@ -125,6 +134,7 @@ export default function PracticePage() {
         const selectedGp =
           getGrandPrixByRound(gpList, routeRound) ??
           getGrandPrixByRound(gpList, storedRound) ??
+          getRelevantGrandPrix(gpList) ??
           getLatestGrandPrix(gpList);
 
         setRaces(gpList);
@@ -169,13 +179,23 @@ export default function PracticePage() {
             ).getTime() + 36 * 60 * 60 * 1000
           : Number.NaN;
 
-        const matchingSession =
-          Number.isFinite(weekendStart) && Number.isFinite(weekendEnd)
-            ? allSessions.find((session) => {
+        const targetTime = getSessionTargetTime(
+          selectedGp,
+          getWeekendSessionName(selectedGp, "Practice 2")
+        );
+
+        const matchingSession = Number.isFinite(targetTime)
+          ? allSessions
+              .filter((session) => {
                 const time = new Date(session.date_start).getTime();
-                return time >= weekendStart && time <= weekendEnd;
-              }) ?? null
-            : null;
+                return Math.abs(time - targetTime) <= 6 * 60 * 60 * 1000;
+              })
+              .sort(
+                (a: OpenF1Session, b: OpenF1Session) =>
+                  Math.abs(new Date(a.date_start).getTime() - targetTime) -
+                  Math.abs(new Date(b.date_start).getTime() - targetTime)
+              )[0] ?? null
+          : null;
 
         setSelected(matchingSession);
       })
@@ -355,7 +375,7 @@ export default function PracticePage() {
           >
             <thead>
               <tr>
-                {(isSprintSession ? raceHeaders : qualifyingHeaders).map((header) => (
+                {(isSprintSession ? qualifyingHeaders : qualifyingHeaders).map((header) => (
                   <th
                     key={header}
                     style={{
@@ -387,29 +407,26 @@ export default function PracticePage() {
                   {isSprintSession ? (
                     <>
                       <td style={{ ...cellStyle, textAlign: "center" }}>
-                        P{gridByDriver[row.driver_number] ?? "-"}
+                        {formatTime(phaseTime(row.duration, 0))}
                       </td>
-                      <td
-                        style={{
-                          ...cellStyle,
-                          textAlign: "center",
-                          color: row.dnf || row.dns || row.dsq ? "#ff7a7a" : "white",
-                          fontWeight: row.dnf || row.dns || row.dsq ? "bold" : "normal",
-                        }}
-                      >
-                        {statusText(row)}
+                      <td style={{ ...cellStyle, textAlign: "center" }}>
+                        {formatTime(phaseTime(row.duration, 1))}
                       </td>
-                      <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
-                        {pointsByDriver[row.driver_number] ?? "-"}
+                      <td style={{ ...cellStyle, textAlign: "center" }}>
+                        {formatTime(phaseTime(row.duration, 2))}
                       </td>
                     </>
                   ) : (
                     <>
                       <td style={{ ...cellStyle, textAlign: "center" }}>
-                        {formatTime(row.duration)}
+                        {formatTime(row.duration as number | null | undefined)}
                       </td>
                       <td style={{ ...cellStyle, textAlign: "center" }}>
-                        {formatGap(row.gap_to_leader)}
+                        {formatGap(
+                          Array.isArray(row.gap_to_leader)
+                            ? row.gap_to_leader[0]
+                            : row.gap_to_leader
+                        )}
                       </td>
                       <td style={{ ...cellStyle, textAlign: "center" }}>
                         {row.number_of_laps ?? "-"}

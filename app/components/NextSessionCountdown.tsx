@@ -53,9 +53,9 @@ export default function NextSessionCountdown({
         background:
           "linear-gradient(135deg,#171d57 0%,#24105a 55%,#131942 100%)",
         border: "1px solid #4b3c9a",
-        borderRadius: "20px",
-        padding: "20px",
-        marginBottom: "20px",
+        borderRadius: "18px",
+        padding: "15px",
+        marginBottom: "14px",
         boxShadow: "0 12px 30px rgba(91,54,180,0.18)",
       }}
     >
@@ -73,7 +73,7 @@ export default function NextSessionCountdown({
       <div
         style={{
           marginTop: "7px",
-          fontSize: "24px",
+          fontSize: "20px",
           fontWeight: "800",
         }}
       >
@@ -84,7 +84,7 @@ export default function NextSessionCountdown({
         style={{
           color: "#c7cbff",
           marginTop: "5px",
-          fontSize: "14px",
+          fontSize: "13px",
         }}
       >
         {raceName}
@@ -92,8 +92,8 @@ export default function NextSessionCountdown({
 
       <div
         style={{
-          marginTop: "18px",
-          fontSize: "clamp(28px, 8vw, 44px)",
+          marginTop: "12px",
+          fontSize: "clamp(22px, 7vw, 34px)",
           lineHeight: 1,
           fontWeight: "900",
           letterSpacing: "-0.03em",

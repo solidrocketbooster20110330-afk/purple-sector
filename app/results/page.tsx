@@ -8,7 +8,6 @@ import {
   getGrandPrixByRound,
   getLatestGrandPrix,
   getRelevantGrandPrix,
-  getStoredGrandPrixRound,
   storeGrandPrix,
   type GrandPrix,
 } from "../../lib/grandPrix";
@@ -166,7 +165,6 @@ export default function ResultsPage() {
   const [results, setResults] = useState<RaceResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     fetchGrandPrix()
@@ -182,7 +180,6 @@ export default function ResultsPage() {
       })
       .catch(() => setRaces([]))
       .finally(() => {
-        setHydrated(true);
         setLoading(false);
       });
   }, []);

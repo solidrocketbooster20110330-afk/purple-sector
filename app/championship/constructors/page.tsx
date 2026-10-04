@@ -231,7 +231,7 @@ export default function ChampionshipConstructorsPage() {
                 rankView
                   ? pad.top + ((value - 1) / Math.max(1, maxRank - 1)) * innerH
                   : pad.top + innerH - (value / max) * innerH;
-              const teams = rankView ? rankedTeams : chartTeams;
+              const teams: any[] = rankView ? rankedTeams : chartTeams;
 
               return (
                 <>

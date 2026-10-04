@@ -13,7 +13,22 @@ type ConstructorStanding = {
   Constructor: { name: string };
 };
 
-type Race = { raceName: string; date: string; time?: string };
+type Session = {
+  date?: string;
+  time?: string;
+};
+
+type Race = {
+  raceName: string;
+  date: string;
+  time?: string;
+  FirstPractice?: Session;
+  SecondPractice?: Session;
+  ThirdPractice?: Session;
+  SprintQualifying?: Session;
+  Sprint?: Session;
+  Qualifying?: Session;
+};
 
 type NewsItem = { title: string; link: string };
 
@@ -23,6 +38,7 @@ const API = {
   constructors:
     "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
   nextRace: "https://api.jolpi.ca/ergast/f1/current/next.json",
+  calendar: "https://api.jolpi.ca/ergast/f1/current.json",
   news:
     "https://api.rss2json.com/v1/api.json?rss_url=https://www.formula1.com/content/fom-website/en/latest/all.xml",
   lastResult: "https://api.jolpi.ca/ergast/f1/current/last/results.json",
@@ -58,10 +74,11 @@ async function getHomeData() {
     driversData,
     constructorsData,
     raceData,
+    calendarData,
     newsData,
     resultData,
   ] = await Promise.all(
-    [driversRes, constructorsRes, raceRes, newsRes, resultRes].map(
+    [driversRes, constructorsRes, raceRes, calendarRes, newsRes, resultRes].map(
       (response) => response.json()
     )
   );
@@ -74,6 +91,7 @@ async function getHomeData() {
       constructorsData?.MRData?.StandingsTable?.StandingsLists?.[0]
         ?.ConstructorStandings ?? [],
     race: raceData?.MRData?.RaceTable?.Races?.[0] ?? null,
+    calendar: calendarData?.MRData?.RaceTable?.Races ?? [],
     lastRace: resultData?.MRData?.RaceTable?.Races?.[0] ?? null,
     news: newsData?.items?.slice(0, 3) ?? [],
   };
@@ -86,11 +104,52 @@ function formatRaceDate(date: string) {
   });
 }
 
-function getRaceTargetTime(race: Race | null) {
-  if (!race?.date) return Number.NaN;
+function getSessionTargetTime(
+  date?: string,
+  time?: string
+) {
+  if (!date) return Number.NaN;
   return new Date(
-    `${race.date}T${race.time ?? "00:00:00Z"}`
+    `${date}T${time ?? "00:00:00Z"}`
   ).getTime();
+}
+
+function getNextSession(races: Race[]) {
+  const sessions: Array<{
+    label: string;
+    raceName: string;
+    targetTime: number;
+  }> = [];
+
+  for (const race of races) {
+    const sessionList: Array<[string, Session | undefined]> = [
+      ["FP1", race.FirstPractice],
+      ["Sprint Qualifying", race.SprintQualifying],
+      ["FP2", race.SecondPractice],
+      ["FP3", race.ThirdPractice],
+      ["Qualifying", race.Qualifying],
+      ["Sprint", race.Sprint],
+      ["Race", { date: race.date, time: race.time }],
+    ];
+
+    for (const [label, session] of sessionList) {
+      const targetTime = getSessionTargetTime(session?.date, session?.time);
+      if (Number.isFinite(targetTime)) {
+        sessions.push({
+          label,
+          raceName: race.raceName,
+          targetTime,
+        });
+      }
+    }
+  }
+
+  const now = Date.now();
+  return (
+    sessions
+      .filter((session) => session.targetTime > now)
+      .sort((a, b) => a.targetTime - b.targetTime)[0] ?? null
+  );
 }
 
 const detailLinkStyle = {
@@ -101,11 +160,11 @@ const detailLinkStyle = {
 };
 
 export default async function HomePage() {
-  const { drivers, constructors, race, lastRace, news } =
+  const { drivers, constructors, race, calendar, lastRace, news } =
     await getHomeData();
 
   const winner = lastRace?.Results?.[0];
-  const nextRaceTarget = getRaceTargetTime(race);
+  const nextSession = getNextSession(calendar as Race[]);
 
   return (
     <main style={pageStyle}>
@@ -117,12 +176,12 @@ export default async function HomePage() {
         Formula 1 Dashboard
       </p>
 
-      {race && Number.isFinite(nextRaceTarget) && (
+      {nextSession && (
         <>
           <NextSessionCountdown
-            label="🏁 Next Race"
-            raceName={race.raceName}
-            targetTime={nextRaceTarget}
+            label={`🏎️ ${nextSession.label}`}
+            raceName={nextSession.raceName}
+            targetTime={nextSession.targetTime}
           />
 
           <a

@@ -57,7 +57,7 @@ const cardStyle = {
   background: "#11152f",
   border: "1px solid #2b347a",
   borderRadius: "18px",
-  padding: "18px",
+  padding: "15px",
 };
 
 const accent = "#9fa7ff";
@@ -204,49 +204,69 @@ export default async function HomePage() {
               display: "block",
               textDecoration: "none",
               color: "white",
-              marginBottom: "20px",
+              marginBottom: "14px",
             }}
           >
             <div
               style={{
                 color: accent,
-                fontSize: "13px",
+                fontSize: "12px",
                 marginBottom: "8px",
               }}
             >
               NEXT RACE
             </div>
-            <div style={{ fontSize: "28px", fontWeight: "bold" }}>
+            <div style={{ fontSize: "23px", lineHeight: 1.15, fontWeight: "bold" }}>
               {race.raceName}
             </div>
-            <div style={{ marginTop: "8px", color: "#c7cbff" }}>
+            <div style={{ marginTop: "6px", color: "#c7cbff", fontSize: "13px" }}>
               {formatRaceDate(race.date)} →
             </div>
           </a>
         </>
       )}
 
+      <a
+        href="/search"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          background: "#11152f",
+          border: "1px solid #2b347a",
+          borderRadius: "16px",
+          padding: "13px 15px",
+          marginBottom: "14px",
+          color: "#c7cbff",
+          textDecoration: "none",
+          fontSize: "15px",
+        }}
+      >
+        <span style={{ fontSize: "19px" }}>🔎</span>
+        <span>Search drivers, teams, or Grands Prix</span>
+      </a>
+
       {lastRace && winner && (
-        <div style={{ ...cardStyle, marginBottom: "20px" }}>
+        <div style={{ ...cardStyle, marginBottom: "14px" }}>
           <div
             style={{
               color: accent,
-              fontSize: "13px",
-              marginBottom: "8px",
+              fontSize: "12px",
+              marginBottom: "6px",
             }}
           >
             LAST RESULT
           </div>
           <div
             style={{
-              fontSize: "22px",
+              fontSize: "19px",
               fontWeight: "bold",
               marginBottom: "8px",
             }}
           >
             {lastRace.raceName}
           </div>
-          <div>
+          <div style={{ fontSize: "14px" }}>
             🏆 {winner.Driver.givenName} {winner.Driver.familyName}
           </div>
           <a

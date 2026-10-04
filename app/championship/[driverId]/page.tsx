@@ -30,6 +30,7 @@ type RaceResult = {
 type Race = {
   raceName: string;
   round: string;
+  date?: string;
   Results?: RaceResult[];
 };
 
@@ -102,6 +103,17 @@ export default async function DriverDetailPage({
   const team = driver?.Constructors?.[0]?.name ?? resultDriver?.Constructor?.name ?? "Unknown Team";
   const number = driver?.Driver.permanentNumber ?? "-";
 
+  const wins = races.filter(
+    (race) => race.Results?.[0]?.position === "1"
+  ).length;
+
+  const podiums = races.filter((race) => {
+    const position = Number(race.Results?.[0]?.position);
+    return Number.isFinite(position) && position >= 1 && position <= 3;
+  }).length;
+
+  const recentRaces = races.slice(-5).reverse();
+
   return (
     <main style={pageStyle}>
       <Link
@@ -153,6 +165,89 @@ export default async function DriverDetailPage({
             <strong style={{ fontSize: "24px" }}>{points}</strong>
           </div>
         </div>
+      </section>
+
+      <section style={cardStyle}>
+        <h2 style={{ marginTop: 0 }}>Season Stats</h2>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3,minmax(0,1fr))",
+            gap: "12px",
+          }}
+        >
+          {[
+            ["WINS", String(wins)],
+            ["PODIUMS", String(podiums)],
+            ["RACES", String(races.length)],
+          ].map(([label, value]) => (
+            <div
+              key={label}
+              style={{
+                background: "#0d1232",
+                borderRadius: "14px",
+                padding: "14px",
+              }}
+            >
+              <div
+                style={{
+                  color: "#a9adff",
+                  fontSize: "12px",
+                  marginBottom: "5px",
+                }}
+              >
+                {label}
+              </div>
+              <strong style={{ fontSize: "22px" }}>{value}</strong>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={cardStyle}>
+        <h2 style={{ marginTop: 0 }}>Recent Form</h2>
+
+        {recentRaces.length === 0 ? (
+          <p style={{ color: "#a9adff" }}>최근 레이스 데이터가 없습니다.</p>
+        ) : (
+          <div style={{ display: "grid", gap: "10px" }}>
+            {recentRaces.map((race) => {
+              const result = race.Results?.[0];
+              return (
+                <div
+                  key={race.round}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "12px 0",
+                    borderBottom: "1px solid #2b347a",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: "bold" }}>{race.raceName}</div>
+                    <div
+                      style={{
+                        color: "#a9adff",
+                        fontSize: "12px",
+                        marginTop: "3px",
+                      }}
+                    >
+                      Round {race.round}
+                    </div>
+                  </div>
+                  <strong>
+                    {result?.position
+                      ? positionLabel(result.position)
+                      : "-"}
+                  </strong>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section style={cardStyle}>

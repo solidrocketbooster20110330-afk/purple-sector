@@ -4,13 +4,13 @@ import BottomNav from "../../../components/BottomNav";
 import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
 import { useParams } from "next/navigation";
-import type { GrandPrix } from "../../../../lib/grandPrix";
-import { hasSprintWeekend } from "../../../../lib/grandPrix";
 import {
   fetchGrandPrix,
   getGrandPrixByRound,
   getLatestGrandPrix,
   getStoredGrandPrixRound,
+  getWeekendSessionName,
+  type GrandPrix,
 } from "../../../../lib/grandPrix";
 
 type OpenF1Session = {
@@ -45,8 +45,6 @@ type Row = Result & {
   team_name: string;
 };
 
-const DEFAULT_SESSION_NAME = "Practice 2";
-
 const pageStyle = {
   minHeight: "100vh",
   background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
@@ -65,7 +63,6 @@ const cardStyle = {
 };
 
 const headers = ["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"];
-const gridColumns = "56px 56px minmax(150px, 1.4fr) minmax(120px, 1fr) 110px 100px 70px";
 
 function formatTime(duration?: number) {
   if (!Number.isFinite(duration)) return "-";
@@ -88,19 +85,16 @@ function statusText(row: Row) {
   return formatTime(row.duration);
 }
 
-
-
-function sessionLabel(session: OpenF1Session | null, raceName?: string) {
-  return raceName ?? (
-    session
-      ? `${session.country_name ?? session.location ?? "Latest"} Grand Prix`
-      : "Latest Grand Prix"
-  );
+function sessionLabel(session: OpenF1Session | null) {
+  return session
+    ? `${session.country_name ?? session.location ?? "Latest"} Grand Prix`
+    : "Latest Grand Prix";
 }
 
 export default function PracticePage() {
   const params = useParams<{ round: string }>();
   const routeRound = params?.round ?? "";
+
   const [sessions, setSessions] = useState<OpenF1Session[]>([]);
   const [selected, setSelected] = useState<OpenF1Session | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
@@ -108,14 +102,18 @@ export default function PracticePage() {
   const [loading, setLoading] = useState(true);
   const [races, setRaces] = useState<GrandPrix[]>([]);
   const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
-  const sessionName = hasSprintWeekend(selectedRace) ? "Sprint Qualifying" : DEFAULT_SESSION_NAME;
+
+  const sessionName = getWeekendSessionName(selectedRace, "Practice 2");
+  const isSprintSession = sessionName === "Sprint Qualifying";
 
   useEffect(() => {
     let cancelled = false;
 
     Promise.all([
       fetchGrandPrix(),
-      fetch("https://api.openf1.org/v1/sessions").then((res) => (res.ok ? res.json() : [])),
+      fetch("https://api.openf1.org/v1/sessions").then((res) =>
+        res.ok ? res.json() : []
+      ),
     ])
       .then(([gpList, sessionData]) => {
         if (cancelled) return;
@@ -130,15 +128,17 @@ export default function PracticePage() {
         setSelectedRace(selectedGp);
 
         const allSessions = (Array.isArray(sessionData) ? sessionData : [])
-          .filter((session: OpenF1Session) =>
-            session.session_name === sessionName &&
-            Number.isFinite(new Date(session.date_start).getTime()) &&
-            new Date(session.date_start).getTime() <= Date.now() &&
-            !session.is_cancelled
+          .filter(
+            (session: OpenF1Session) =>
+              session.session_name === getWeekendSessionName(selectedGp, "Practice 2") &&
+              Number.isFinite(new Date(session.date_start).getTime()) &&
+              new Date(session.date_start).getTime() <= Date.now() &&
+              !session.is_cancelled
           )
           .sort(
             (a: OpenF1Session, b: OpenF1Session) =>
-              new Date(a.date_start).getTime() - new Date(b.date_start).getTime()
+              new Date(a.date_start).getTime() -
+              new Date(b.date_start).getTime()
           );
 
         setSessions(allSessions);
@@ -148,21 +148,39 @@ export default function PracticePage() {
           return;
         }
 
-        const raceTime = selectedGp.date
-          ? new Date(selectedGp.date).getTime()
+        const weekendStart = selectedGp.FirstPractice?.date
+          ? new Date(
+              `${selectedGp.FirstPractice.date}T${selectedGp.FirstPractice.time ?? "00:00:00Z"}`
+            ).getTime()
+          : selectedGp.SprintQualifying?.date
+          ? new Date(
+              `${selectedGp.SprintQualifying.date}T${selectedGp.SprintQualifying.time ?? "00:00:00Z"}`
+            ).getTime()
+          : selectedGp.date
+          ? new Date(`${selectedGp.date}T00:00:00Z`).getTime()
           : Number.NaN;
 
-        const matchingSession = Number.isFinite(raceTime)
-          ? allSessions
-              .filter((session) => new Date(session.date_start).getTime() <= raceTime)
-              .sort(
-                (a: OpenF1Session, b: OpenF1Session) =>
-                  Math.abs(new Date(a.date_start).getTime() - raceTime) -
-                  Math.abs(new Date(b.date_start).getTime() - raceTime)
-              )[0] ?? null
-          : null;
+        const weekendEnd = selectedGp.date
+          ? new Date(
+              `${selectedGp.date}T${selectedGp.time ?? "23:59:59Z"}`
+            ).getTime() + 36 * 60 * 60 * 1000
+          : Number.NaN;
+
+        const matchingSession =
+          Number.isFinite(weekendStart) && Number.isFinite(weekendEnd)
+            ? allSessions.find((session) => {
+                const time = new Date(session.date_start).getTime();
+                return time >= weekendStart && time <= weekendEnd;
+              }) ?? null
+            : null;
 
         setSelected(matchingSession);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRaces([]);
+          setSelected(null);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -175,41 +193,54 @@ export default function PracticePage() {
 
   useEffect(() => {
     if (!selected) return;
+
     setRows([]);
-    fetch(`https://api.openf1.org/v1/session_result?session_key=${selected.session_key}`)
+
+    fetch(
+      `https://api.openf1.org/v1/session_result?session_key=${selected.session_key}`
+    )
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         const results = (Array.isArray(data) ? data : [])
-          .filter((result: Result) =>
-            Number.isFinite(result.position) &&
-            Number.isFinite(result.driver_number)
+          .filter(
+            (result: Result) =>
+              Number.isFinite(result.position) &&
+              Number.isFinite(result.driver_number)
           )
           .sort((a: Result, b: Result) => a.position - b.position);
 
         return Promise.all([
           results,
-          fetch(`https://api.openf1.org/v1/drivers?session_key=${selected.session_key}`)
-            .then((res) => (res.ok ? res.json() : [])),
+          fetch(
+            `https://api.openf1.org/v1/drivers?session_key=${selected.session_key}`
+          ).then((res) => (res.ok ? res.json() : [])),
         ]);
       })
       .then(([results, drivers]) => {
         const driverList = Array.isArray(drivers) ? drivers : [];
-        setRows(results.map((result: Result) => {
-          const driver = driverList.find(
-            (item: Driver) => item.driver_number === result.driver_number
-          );
-          return {
-            ...result,
-            full_name: driver?.full_name ?? `Driver #${result.driver_number}`,
-            team_name: driver?.team_name ?? "Unknown Team",
-          };
-        }));
+
+        setRows(
+          results.map((result: Result) => {
+            const driver = driverList.find(
+              (item: Driver) => item.driver_number === result.driver_number
+            );
+
+            return {
+              ...result,
+              full_name:
+                driver?.full_name ?? `Driver #${result.driver_number}`,
+              team_name: driver?.team_name ?? "Unknown Team",
+            };
+          })
+        );
       });
   }, [selected]);
 
   return (
     <main style={pageStyle}>
-      <h1>{hasSprintWeekend(selectedRace) ? "🏎️ Sprint Qualifying" : "🛠 Practice 2"}</h1>
+      <h1>
+        {isSprintSession ? "🏎️ Sprint Qualifying" : "🛠 Practice 2"}
+      </h1>
 
       <div style={{ position: "relative", marginBottom: "20px" }}>
         <button
@@ -228,7 +259,10 @@ export default function PracticePage() {
             cursor: "pointer",
           }}
         >
-          <span>{selectedRace?.raceName ?? (selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest Grand Prix")}</span>
+          <span>
+            {selectedRace?.raceName ??
+              (selected ? sessionLabel(selected) : loading ? "Loading..." : "Latest Grand Prix")}
+          </span>
           <span style={{ fontSize: "12px" }}>{open ? "▲" : "▼"}</span>
         </button>
 
@@ -256,7 +290,6 @@ export default function PracticePage() {
                 onClick={() => {
                   localStorage.setItem("selectedGrandPrix", race.round);
                   window.location.href = `/results/practice2/${race.round}`;
-                  setOpen(false);
                 }}
                 style={{
                   width: "100%",
@@ -266,7 +299,10 @@ export default function PracticePage() {
                   marginBottom: "4px",
                   border: 0,
                   borderRadius: "10px",
-                  background: selectedRace?.round === race.round ? "#7c3aed" : "transparent",
+                  background:
+                    selectedRace?.round === race.round
+                      ? "#7c3aed"
+                      : "transparent",
                   color: "white",
                   cursor: "pointer",
                   fontSize: "14px",
@@ -283,16 +319,25 @@ export default function PracticePage() {
 
       <div style={cardStyle}>
         {rows.length === 0 ? (
-          <p>{loading ? "결과를 불러오는 중..." : sessionName + " 데이터 없음"}</p>
+          <p>
+            {loading ? "결과를 불러오는 중..." : sessionName + " 데이터 없음"}
+          </p>
         ) : (
-          <table style={{ width: "100%", minWidth: "760px", borderCollapse: "collapse" }}>
+          <table
+            style={{
+              width: "100%",
+              minWidth: "760px",
+              borderCollapse: "collapse",
+            }}
+          >
             <thead>
               <tr>
                 {headers.map((header) => (
                   <th
                     key={header}
                     style={{
-                      textAlign: header === "DRIVER" || header === "TEAM" ? "left" : "center",
+                      textAlign:
+                        header === "DRIVER" || header === "TEAM" ? "left" : "center",
                       padding: "11px 7px",
                       color: "#a9adff",
                       fontSize: "12px",
@@ -308,15 +353,21 @@ export default function PracticePage() {
             <tbody>
               {rows.map((row) => (
                 <tr key={row.driver_number}>
-                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>P{row.position}</td>
-                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>#{row.driver_number}</td>
+                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
+                    P{row.position}
+                  </td>
+                  <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
+                    #{row.driver_number}
+                  </td>
                   <td style={cellStyle}>{row.full_name}</td>
                   <td style={{ ...cellStyle, color: "#a9adff" }}>{row.team_name}</td>
                   <td style={{ ...cellStyle, textAlign: "center" }}>{statusText(row)}</td>
                   <td style={{ ...cellStyle, textAlign: "center" }}>
                     {row.dnf || row.dns || row.dsq ? "-" : formatGap(row.gap_to_leader)}
                   </td>
-                  <td style={{ ...cellStyle, textAlign: "center" }}>{row.number_of_laps ?? "-"}</td>
+                  <td style={{ ...cellStyle, textAlign: "center" }}>
+                    {row.number_of_laps ?? "-"}
+                  </td>
                 </tr>
               ))}
             </tbody>

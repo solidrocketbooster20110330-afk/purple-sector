@@ -5,7 +5,6 @@ const navItems = [
   { href: "/schedule", icon: "📅", label: "Schedule" },
   { href: "/results", icon: "🏁", label: "Results" },
   { href: "/championship", icon: "🏆", label: "Championship" },
-  { href: "/search", icon: "🔎", label: "Search" },
 ];
 
 const navStyle = {

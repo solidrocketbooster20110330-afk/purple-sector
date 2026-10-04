@@ -13,6 +13,14 @@ type DriverStanding = {
   Constructors?: { name: string }[];
 };
 
+type Race = {
+  round: string;
+  Results?: {
+    Driver?: { driverId?: string };
+    points?: string;
+  }[];
+};
+
 const pageStyle = {
   minHeight: "100vh",
   background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
@@ -56,14 +64,39 @@ function positionLabel(position: string) {
 }
 
 export default async function ChampionshipDriversPage() {
-  const res = await fetch(
-    "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
-    { next: { revalidate: 3600 } }
-  );
-  const data = await res.json();
+  const [standingsRes, racesRes] = await Promise.all([
+    fetch(
+      "https://api.jolpi.ca/ergast/f1/2026/driverstandings.json",
+      { next: { revalidate: 3600 } }
+    ),
+    fetch(
+      "https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000",
+      { next: { revalidate: 3600 } }
+    ),
+  ]);
+
+  const standingsData = await standingsRes.json();
+  const racesData = await racesRes.json();
 
   const drivers: DriverStanding[] =
-    data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
+    standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
+
+  const races: Race[] = racesData?.MRData?.RaceTable?.Races ?? [];
+
+  const chartDrivers = drivers.map((driver) => {
+    let cumulative = 0;
+    return {
+      id: driver.Driver.driverId,
+      name: `${driver.Driver.givenName} ${driver.Driver.familyName}`,
+      points: races.map((race) => {
+        const racePoints = (race.Results ?? [])
+          .filter((result) => result.Driver?.driverId === driver.Driver.driverId)
+          .reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+        cumulative += racePoints;
+        return { round: race.round, points: cumulative };
+      }),
+    };
+  });
 
   return (
     <main style={pageStyle}>
@@ -83,6 +116,167 @@ export default async function ChampionshipDriversPage() {
           🏭 Constructors
         </Link>
       </div>
+
+      <section
+        style={{
+          ...cardStyle,
+          maxHeight: "none",
+          overflow: "hidden",
+          marginBottom: "20px",
+        }}
+      >
+        <div
+          style={{
+            color: "#a9adff",
+            fontSize: "13px",
+            marginBottom: "12px",
+          }}
+        >
+          Championship Progress
+        </div>
+        <div style={{ color: "#a9adff", fontSize: "12px", marginBottom: "8px" }}>
+          Cumulative driver points by round
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          {(() => {
+            const width = 720;
+            const height = 260;
+            const pad = { top: 20, right: 18, bottom: 42, left: 42 };
+            const max = Math.max(
+              1,
+              ...chartDrivers.flatMap((driver) =>
+                driver.points.map((point) => point.points)
+              )
+            );
+            const innerW = width - pad.left - pad.right;
+            const innerH = height - pad.top - pad.bottom;
+            const getX = (index: number) =>
+              pad.left + (index * innerW) / Math.max(1, races.length - 1);
+            const getY = (value: number) =>
+              pad.top + innerH - (value / max) * innerH;
+            const lineColors = [
+              "#a855f7",
+              "#5b8cff",
+              "#ff7a45",
+              "#4ade80",
+              "#facc15",
+              "#ec4899",
+              "#22d3ee",
+              "#a78bfa",
+            ];
+            return (
+              <>
+                <svg
+                  viewBox="0 0 720 260"
+                  width="100%"
+                  height="260"
+                  role="img"
+                  aria-label="Driver championship points progress graph"
+                  style={{ display: "block", minWidth: "520px" }}
+                >
+                  {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+                    const gridY = getY(max * fraction);
+                    return (
+                      <g key={fraction}>
+                        <line
+                          x1={pad.left}
+                          x2={width - pad.right}
+                          y1={gridY}
+                          y2={gridY}
+                          stroke="#2b347a"
+                          strokeWidth="1"
+                        />
+                        <text
+                          x={pad.left - 8}
+                          y={gridY + 4}
+                          textAnchor="end"
+                          fill="#a9adff"
+                          fontSize="10"
+                        >
+                          {Math.round(max * fraction)}
+                        </text>
+                      </g>
+                    );
+                  })}
+                  {chartDrivers.map((driver, index) => {
+                    const line = driver.points
+                      .map(
+                        (point, pointIndex) =>
+                          `${getX(pointIndex)},${getY(point.points)}`
+                      )
+                      .join(" ");
+                    return (
+                      <g key={driver.id}>
+                        <polyline
+                          points={line}
+                          fill="none"
+                          stroke={lineColors[index % lineColors.length]}
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        {driver.points.map((point, pointIndex) => (
+                          <circle
+                            key={`${driver.id}-${point.round}`}
+                            cx={getX(pointIndex)}
+                            cy={getY(point.points)}
+                            r="3"
+                            fill={lineColors[index % lineColors.length]}
+                          />
+                        ))}
+                      </g>
+                    );
+                  })}
+                  {races.map((race, index) => (
+                    <text
+                      key={race.round}
+                      x={getX(index)}
+                      y={height - 20}
+                      textAnchor="middle"
+                      fill="#a9adff"
+                      fontSize="9"
+                    >
+                      R{race.round}
+                    </text>
+                  ))}
+                </svg>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                    marginTop: "8px",
+                  }}
+                >
+                  {chartDrivers.map((driver, index) => (
+                    <div
+                      key={driver.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        color: "white",
+                        fontSize: "12px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "10px",
+                          height: "10px",
+                          borderRadius: "50%",
+                          background: lineColors[index % lineColors.length],
+                          display: "inline-block",
+                        }}
+                      />
+                      {driver.name}
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </section>
 
       <div style={cardStyle}>
         {drivers.length === 0 ? (

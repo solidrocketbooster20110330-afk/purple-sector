@@ -64,7 +64,8 @@ const cardStyle = {
   overflowX: "auto" as const,
 };
 
-const headers = ["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"];
+const raceHeaders = ["POS", "NO", "DRIVER", "TEAM", "GRID", "STATUS", "PTS"];
+const qualifyingHeaders = ["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"];
 const gridColumns = "56px 56px minmax(150px, 1.4fr) minmax(120px, 1fr) 110px 100px 70px";
 
 function formatTime(duration?: number) {
@@ -108,6 +109,8 @@ export default function PracticePage() {
   const [loading, setLoading] = useState(true);
   const [races, setRaces] = useState<GrandPrix[]>([]);
   const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
+  const [gridByDriver, setGridByDriver] = useState<Record<number, string>>({});
+  const [pointsByDriver, setPointsByDriver] = useState<Record<number, string>>({});
   const sessionName = getWeekendSessionName(selectedRace, "Practice 3");
 
   useEffect(() => {
@@ -174,11 +177,33 @@ export default function PracticePage() {
   }, [routeRound]);
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selected || !selectedRace) return;
     setRows([]);
-    fetch(`https://api.openf1.org/v1/session_result?session_key=${selected.session_key}`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
+
+    Promise.all([
+      fetch(
+        `https://api.openf1.org/v1/session_result?session_key=${selected.session_key}`
+      ).then((res) => (res.ok ? res.json() : [])),
+      fetch(
+        `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/results.json`
+      ).then((res) => (res.ok ? res.json() : null)),
+    ])
+      .then(([data, raceData]) => {
+        const raceResults =
+          raceData?.MRData?.RaceTable?.Races?.[0]?.Results ?? [];
+        const grids: Record<number, string> = {};
+        const points: Record<number, string> = {};
+
+        raceResults.forEach((result: any) => {
+          const driverNumber = Number(result.number);
+          if (Number.isFinite(driverNumber)) {
+            grids[driverNumber] = result.grid ?? "-";
+            points[driverNumber] = result.points ?? "-";
+          }
+        });
+
+        setGridByDriver(grids);
+        setPointsByDriver(points);
         const results = (Array.isArray(data) ? data : [])
           .filter((result: Result) =>
             Number.isFinite(result.position) &&
@@ -288,7 +313,7 @@ export default function PracticePage() {
           <table style={{ width: "100%", minWidth: "760px", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {headers.map((header) => (
+                {(sessionName === "Sprint" ? raceHeaders : qualifyingHeaders).map((header) => (
                   <th
                     key={header}
                     style={{
@@ -312,11 +337,40 @@ export default function PracticePage() {
                   <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>#{row.driver_number}</td>
                   <td style={cellStyle}>{row.full_name}</td>
                   <td style={{ ...cellStyle, color: "#a9adff" }}>{row.team_name}</td>
-                  <td style={{ ...cellStyle, textAlign: "center" }}>{statusText(row)}</td>
-                  <td style={{ ...cellStyle, textAlign: "center" }}>
-                    {row.dnf || row.dns || row.dsq ? "-" : formatGap(row.gap_to_leader)}
-                  </td>
-                  <td style={{ ...cellStyle, textAlign: "center" }}>{row.number_of_laps ?? "-"}</td>
+                  {sessionName === "Sprint" ? (
+                    <>
+                      <td style={{ ...cellStyle, textAlign: "center" }}>
+                        P{gridByDriver[row.driver_number] ?? "-"}
+                      </td>
+                      <td
+                        style={{
+                          ...cellStyle,
+                          textAlign: "center",
+                          color:
+                            row.dnf || row.dns || row.dsq
+                              ? "#ff7a7a"
+                              : "white",
+                          fontWeight:
+                            row.dnf || row.dns || row.dsq
+                              ? "bold"
+                              : "normal",
+                        }}
+                      >
+                        {statusText(row)}
+                      </td>
+                      <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>
+                        {pointsByDriver[row.driver_number] ?? "-"}
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td style={{ ...cellStyle, textAlign: "center" }}>{statusText(row)}</td>
+                      <td style={{ ...cellStyle, textAlign: "center" }}>
+                        {row.dnf || row.dns || row.dsq ? "-" : formatGap(row.gap_to_leader)}
+                      </td>
+                      <td style={{ ...cellStyle, textAlign: "center" }}>{row.number_of_laps ?? "-"}</td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>

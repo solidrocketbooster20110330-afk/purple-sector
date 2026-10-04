@@ -1,6 +1,8 @@
 import Link from "next/link";
 import BottomNav from "../../components/BottomNav";
 
+const KST_TIME_ZONE = "Asia/Seoul";
+
 type Session = {
   date?: string;
   time?: string;
@@ -36,15 +38,14 @@ export default async function RoundPage({
       }`
     );
 
-    return date.toLocaleString(
-      "en-US",
-      {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }
-    );
+    return date.toLocaleString("ko-KR", {
+      timeZone: KST_TIME_ZONE,
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }) + " KST";
   };
 
   const sessions = [

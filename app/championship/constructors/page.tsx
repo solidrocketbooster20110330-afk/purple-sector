@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import BottomNav from "../../components/BottomNav";
 
 type ConstructorStanding = {
   position: string;
   points: string;
-  Constructor: { name: string };
+  Constructor: {
+    constructorId: string;
+    name: string;
+  };
 };
 
 const pageStyle = {
@@ -80,27 +85,32 @@ export default async function ChampionshipConstructorsPage() {
 
       <div style={cardStyle}>
         {constructors.length === 0 ? (
-          <p style={{ color: "#a9adff" }}>
-            Constructor 데이터가 없습니다.
-          </p>
+          <p style={{ color: "#a9adff" }}>Constructor 데이터가 없습니다.</p>
         ) : (
           constructors.map((constructor, index) => (
-            <div
-              key={constructor.position}
+            <Link
+              key={constructor.Constructor.constructorId}
+              href={`/championship/constructors/${constructor.Constructor.constructorId}`}
               style={{
+                display: "grid",
+                gridTemplateColumns: "50px 1fr auto",
+                gap: "12px",
+                alignItems: "center",
                 padding: "14px 0",
                 borderBottom:
-                  index === constructors.length - 1
-                    ? "none"
-                    : "1px solid #2b347a",
+                  index === constructors.length - 1 ? "none" : "1px solid #2b347a",
+                color: "white",
+                textDecoration: "none",
               }}
             >
               <strong>{positionLabel(constructor.position)}</strong>
-              <div>{constructor.Constructor.name}</div>
-              <div style={{ marginTop: "4px" }}>
-                {constructor.points} pts
+
+              <div style={{ fontWeight: "bold" }}>
+                {constructor.Constructor.name}
               </div>
-            </div>
+
+              <strong>{constructor.points} pts</strong>
+            </Link>
           ))
         )}
       </div>

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
 import { useParams } from "next/navigation";
 import type { GrandPrix } from "../../../../lib/grandPrix";
-import { hasSprintWeekend } from "../../../../lib/grandPrix";
+import { getWeekendSessionName } from "../../../../lib/grandPrix";
 import {
   fetchGrandPrix,
   getGrandPrixByRound,
@@ -108,7 +108,7 @@ export default function PracticePage() {
   const [loading, setLoading] = useState(true);
   const [races, setRaces] = useState<GrandPrix[]>([]);
   const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
-  const sessionName = hasSprintWeekend(selectedRace) ? "Sprint" : DEFAULT_SESSION_NAME;
+  const sessionName = getWeekendSessionName(selectedRace, "Practice 3");
 
   useEffect(() => {
     let cancelled = false;
@@ -209,7 +209,7 @@ export default function PracticePage() {
 
   return (
     <main style={pageStyle}>
-      <h1>{hasSprintWeekend(selectedRace) ? "🏁 Sprint" : "🛠 Practice 3"}</h1>
+      <h1>{sessionName === "Sprint" ? "🏁 Sprint" : "🛠 Practice 3"}</h1>
 
       <div style={{ position: "relative", marginBottom: "20px" }}>
         <button

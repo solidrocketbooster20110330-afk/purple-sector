@@ -206,20 +206,24 @@ export default function PracticePage() {
       fetch(
         `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/results.json`
       ).then((res) => (res.ok ? res.json() : null)),
-    ]).then(([data, raceData]) => {
-      const raceResults = raceData?.MRData?.RaceTable?.Races?.[0]?.Results ?? [];
-      const grids: Record<number, string> = {};
-      const points: Record<number, string> = {};
-      raceResults.forEach((result: any) => {
-        const driverNumber = Number(result.number);
-        if (Number.isFinite(driverNumber)) {
-          grids[driverNumber] = result.grid ?? "-";
-          points[driverNumber] = result.points ?? "-";
-        }
-      });
-      setGridByDriver(grids);
-      setPointsByDriver(points);
-      
+    ])
+      .then(([data, raceData]) => {
+        const raceResults =
+          raceData?.MRData?.RaceTable?.Races?.[0]?.Results ?? [];
+        const grids: Record<number, string> = {};
+        const points: Record<number, string> = {};
+
+        raceResults.forEach((result: any) => {
+          const driverNumber = Number(result.number);
+          if (Number.isFinite(driverNumber)) {
+            grids[driverNumber] = result.grid ?? "-";
+            points[driverNumber] = result.points ?? "-";
+          }
+        });
+
+        setGridByDriver(grids);
+        setPointsByDriver(points);
+
         const results = (Array.isArray(data) ? data : [])
           .filter(
             (result: Result) =>
@@ -253,7 +257,7 @@ export default function PracticePage() {
           })
         );
       });
-  }, [selected]);
+  }, [selected, selectedRace]);
 
   return (
     <main style={pageStyle}>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
+import PointsGraph from "../components/PointsGraph";
 
 type DriverStanding = {
   position: string;
@@ -121,6 +122,13 @@ export default async function ChampionshipDriversPage() {
           ))
         )}
       </div>
+
+      <PointsGraph
+        series={drivers.slice(0, 6).map((driver) => ({
+          name: `${driver.Driver.givenName} ${driver.Driver.familyName}`,
+          points: [{ round: 1, points: Number(driver.points) }],
+        }))}
+      />
 
       <BottomNav />
     </main>

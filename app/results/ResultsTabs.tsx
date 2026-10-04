@@ -26,8 +26,14 @@ const baseStyle = {
 export default function ResultsTabs() {
   const pathname = usePathname();
   const practiceMatch = pathname.match(/^\/results\/practice(?:2|3)?\/(\d+)$/);
-  const currentRound = practiceMatch?.[1] ?? null;
+  const [queryRound, setQueryRound] = useState<string | null>(null);
+  const currentRound = practiceMatch?.[1] ?? queryRound;
   const [race, setRace] = useState<GrandPrix | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQueryRound(params.get("round"));
+  }, [pathname]);
 
   useEffect(() => {
     const round = currentRound ?? getStoredGrandPrixRound();

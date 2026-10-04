@@ -8,7 +8,6 @@ import {
   getGrandPrixByRound,
   getLatestGrandPrix,
   getRelevantGrandPrix,
-  getRelevantGrandPrix,
   getStoredGrandPrixRound,
   storeGrandPrix,
   type GrandPrix,

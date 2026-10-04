@@ -20,8 +20,18 @@ type RaceResult = {
   points: string;
   status: string;
   Time?: { time: string };
+  FastestLap?: {
+    rank?: string;
+    lap?: string;
+    Time?: { time: string };
+    AverageSpeed?: { units: string; speed: string };
+  };
   Driver: { givenName: string; familyName: string };
   Constructor: { name: string };
+};
+
+type GrandPrixWithCircuit = GrandPrix & {
+  Circuit?: GrandPrix["Circuit"];
 };
 
 const pageStyle = {
@@ -63,9 +73,96 @@ function getStatusText(result: RaceResult) {
   return "DNF";
 }
 
+const teamColors: Record<string, string> = {
+  "McLaren": "#FF8000",
+  "Ferrari": "#E80020",
+  "Red Bull Racing": "#3671C6",
+  "Mercedes": "#27F4D2",
+  "Aston Martin": "#00665E",
+  "Alpine F1 Team": "#FF87BC",
+  "Alpine": "#FF87BC",
+  "Williams": "#64C4FF",
+  "Racing Bulls": "#6692FF",
+  "RB": "#6692FF",
+  "Haas F1 Team": "#E6002B",
+  "Haas": "#E6002B",
+  "Audi": "#F50537",
+  "Cadillac": "#111111",
+};
+
+function teamInitials(name: string) {
+  const words = name
+    .replace(/F1 Team|F1|Racing|Team|Formula One/gi, "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length >= 2) {
+    return `${words[0][0]}${words[1][0]}`.toUpperCase();
+  }
+
+  return name.slice(0, 2).toUpperCase();
+}
+
+function teamBadge(name: string) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "30px",
+    height: "30px",
+    marginRight: "8px",
+    borderRadius: "50%",
+    background: teamColors[name] ?? "#5c63a8",
+    color: "#05071f",
+    fontSize: "11px",
+    fontWeight: "900",
+    flexShrink: 0,
+  } as const;
+}
+
+function countryFlag(country?: string) {
+  const flags: Record<string, string> = {
+    Australia: "🇦🇺",
+    China: "🇨🇳",
+    Japan: "🇯🇵",
+    Canada: "🇨🇦",
+    Monaco: "🇲🇨",
+    Austria: "🇦🇹",
+    UnitedKingdom: "🇬🇧",
+    Belgium: "🇧🇪",
+    Hungary: "🇭🇺",
+    Netherlands: "🇳🇱",
+    Italy: "🇮🇹",
+    Azerbaijan: "🇦🇿",
+    Singapore: "🇸🇬",
+    UnitedStates: "🇺🇸",
+    Mexico: "🇲🇽",
+    Brazil: "🇧🇷",
+    Qatar: "🇶🇦",
+    "United Arab Emirates": "🇦🇪",
+    Spain: "🇪🇸",
+    Bahrain: "🇧🇭",
+    Germany: "🇩🇪",
+  };
+
+  if (!country) return "🌍";
+  return flags[country] ?? flags[country.replace(/\s+/g, "")] ?? "🌍";
+}
+
+function getFastestLap(results: RaceResult[]) {
+  return results
+    .filter((result) => result.FastestLap?.Time?.time)
+    .sort(
+      (a, b) =>
+        Number(a.FastestLap?.rank ?? "999") -
+        Number(b.FastestLap?.rank ?? "999")
+    )[0] ?? null;
+}
+
 export default function ResultsPage() {
   const [races, setRaces] = useState<GrandPrix[]>([]);
-  const [selectedRace, setSelectedRace] = useState<GrandPrix | null>(null);
+  const [selectedRace, setSelectedRace] = useState<GrandPrixWithCircuit | null>(null);
   const [results, setResults] = useState<RaceResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -105,6 +202,9 @@ export default function ResultsPage() {
       });
   }, [selectedRace]);
 
+  const fastestLap = getFastestLap(results);
+  const selectedCountry = selectedRace?.Circuit?.Location?.country;
+
   return (
     <main style={pageStyle}>
       <h1 style={{ marginBottom: "6px" }}>🏁 Results</h1>
@@ -126,7 +226,10 @@ export default function ResultsPage() {
             cursor: "pointer",
           }}
         >
-          <span>{selectedRace?.raceName ?? (loading ? "Loading..." : "Grand Prix")}</span>
+          <span>
+            {countryFlag(selectedCountry)}{" "}
+            {selectedRace?.raceName ?? (loading ? "Loading..." : "Grand Prix")}
+          </span>
           <span
             style={{
               fontSize: "12px",
@@ -179,7 +282,7 @@ export default function ResultsPage() {
                     fontSize: "14px",
                   }}
                 >
-                  {race.raceName}
+                  {countryFlag(race.Circuit?.Location?.country)} {race.raceName}
                 </button>
               );
             })}
@@ -188,6 +291,51 @@ export default function ResultsPage() {
       </div>
 
       <ResultsTabs />
+
+      {fastestLap && (
+        <div
+          style={{
+            ...cardStyle,
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                color: "#a9adff",
+                fontSize: "12px",
+                fontWeight: "bold",
+                letterSpacing: "0.08em",
+              }}
+            >
+              ⚡ FASTEST LAP
+            </div>
+            <div style={{ fontSize: "20px", fontWeight: "bold", marginTop: "5px" }}>
+              {fastestLap.Driver.givenName} {fastestLap.Driver.familyName}
+            </div>
+            <div style={{ color: "#a9adff", marginTop: "4px" }}>
+              Lap {fastestLap.FastestLap?.lap ?? "-"}
+            </div>
+          </div>
+
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "24px", fontWeight: "bold" }}>
+              {fastestLap.FastestLap?.Time?.time}
+            </div>
+            {fastestLap.FastestLap?.AverageSpeed && (
+              <div style={{ color: "#a9adff", marginTop: "4px", fontSize: "13px" }}>
+                {fastestLap.FastestLap.AverageSpeed.speed}{" "}
+                {fastestLap.FastestLap.AverageSpeed.units}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div style={cardStyle}>
         {results.length === 0 ? (
@@ -205,7 +353,7 @@ export default function ResultsPage() {
               <col style={{ width: "60px" }} />
               <col style={{ width: "60px" }} />
               <col style={{ width: "190px" }} />
-              <col style={{ width: "150px" }} />
+              <col style={{ width: "175px" }} />
               <col style={{ width: "70px" }} />
               <col style={{ width: "140px" }} />
               <col style={{ width: "60px" }} />
@@ -248,8 +396,15 @@ export default function ResultsPage() {
                     <td style={{ padding: "14px 8px", borderBottom: "1px solid #2b347a", whiteSpace: "nowrap" }}>
                       {driver.Driver.givenName} {driver.Driver.familyName}
                     </td>
-                    <td style={{ padding: "14px 8px", borderBottom: "1px solid #2b347a", color: "#a9adff", whiteSpace: "normal" }}>
-                      {driver.Constructor.name}
+                    <td style={{ padding: "14px 8px", borderBottom: "1px solid #2b347a", whiteSpace: "normal" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", maxWidth: "100%" }}>
+                        <span style={teamBadge(driver.Constructor.name)}>
+                          {teamInitials(driver.Constructor.name)}
+                        </span>
+                        <span style={{ color: "#a9adff" }}>
+                          {driver.Constructor.name}
+                        </span>
+                      </span>
                     </td>
                     <td style={{ padding: "14px 8px", textAlign: "center", borderBottom: "1px solid #2b347a" }}>
                       P{driver.grid}

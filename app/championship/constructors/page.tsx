@@ -214,7 +214,7 @@ export default function ChampionshipConstructorsPage() {
             <p style={{ color: "#a9adff" }}>Chart data가 없습니다.</p>
           ) : (
             (() => {
-              const width = 720;
+              const width = Math.max(720, races.length * 58);
               const height = 300;
               const pad = { top: 20, right: 18, bottom: 44, left: 42 };
               const innerW = width - pad.left - pad.right;
@@ -242,7 +242,7 @@ export default function ChampionshipConstructorsPage() {
                       height="300"
                       role="img"
                       aria-label="Constructor championship graph"
-                      style={{ display: "block", minWidth: "560px" }}
+                      style={{ display: "block", minWidth: `${width}px` }}
                     >
                       {(rankView
                         ? Array.from({ length: maxRank }, (_, index) => index + 1)

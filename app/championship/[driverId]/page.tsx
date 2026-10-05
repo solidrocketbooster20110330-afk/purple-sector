@@ -51,7 +51,8 @@ const cardStyle = {
   marginBottom: "20px",
 };
 
-function positionLabel(position?: string) {
+function positionLabel(position?: string, status?: string) {
+  if (status?.toLowerCase() === "dnf") return "DNF";
   if (position === "1") return "🥇";
   if (position === "2") return "🥈";
   if (position === "3") return "🥉";
@@ -367,8 +368,10 @@ export default async function DriverDetailPage({
                     </div>
                   </div>
                   <strong>
-                    {result?.position
-                      ? positionLabel(result.position)
+                    {result?.status?.toLowerCase() === "dnf"
+                      ? "DNF"
+                      : result?.position
+                      ? positionLabel(result.position, result.status)
                       : "-"}
                   </strong>
                 </div>
@@ -402,7 +405,7 @@ export default async function DriverDetailPage({
                     borderBottom: "1px solid #2b347a",
                   }}
                 >
-                  <strong>{positionLabel(result?.position)}</strong>
+                  <strong>{positionLabel(result?.position, result?.status)}</strong>
 
                   <div>
                     <div style={{ fontWeight: "bold" }}>{race.raceName}</div>

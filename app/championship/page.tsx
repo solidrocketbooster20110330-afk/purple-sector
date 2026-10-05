@@ -21,6 +21,23 @@ type Race = {
   }[];
 };
 
+const teamColors: Record<string, string> = {
+  "Red Bull": "#3671C6",
+  "Ferrari": "#E80020",
+  "Mercedes": "#00D2BE",
+  "McLaren": "#FF8000",
+  "Aston Martin": "#229971",
+  "Alpine F1 Team": "#0093CC",
+  "Williams": "#64C4FF",
+  "RB F1 Team": "#6692FF",
+  "Kick Sauber": "#52E252",
+  "Haas F1 Team": "#B6BABD",
+};
+
+function getTeamColor(team: string) {
+  return teamColors[team] ?? "#a9adff";
+}
+
 const pageStyle = {
   minHeight: "100vh",
   background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
@@ -88,6 +105,8 @@ export default async function ChampionshipDriversPage() {
     return {
       id: driver.Driver.driverId,
       name: `${driver.Driver.givenName} ${driver.Driver.familyName}`,
+      team: driver.Constructors?.[0]?.name ?? "Unknown Team",
+      color: getTeamColor(driver.Constructors?.[0]?.name ?? ""),
       points: races.map((race) => {
         const racePoints = (race.Results ?? [])
           .filter((result) => result.Driver?.driverId === driver.Driver.driverId)
@@ -210,7 +229,7 @@ export default async function ChampionshipDriversPage() {
                         <polyline
                           points={line}
                           fill="none"
-                          stroke={lineColors[index % lineColors.length]}
+                          stroke={driver.color}
                           strokeWidth="3.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -221,7 +240,7 @@ export default async function ChampionshipDriversPage() {
                             cx={getX(pointIndex)}
                             cy={getY(point.points)}
                             r="3"
-                            fill={lineColors[index % lineColors.length]}
+                            fill={driver.color}
                           />
                         ))}
                       </g>
@@ -261,10 +280,9 @@ export default async function ChampionshipDriversPage() {
                     >
                       <span
                         style={{
-                          width: "10px",
-                          height: "10px",
-                          borderRadius: "50%",
-                          background: lineColors[index % lineColors.length],
+                          width: "28px",
+                          height: "3px",
+                          background: driver.color,
                           display: "inline-block",
                         }}
                       />

@@ -405,7 +405,13 @@ export default async function DriverDetailPage({
                     borderBottom: "1px solid #2b347a",
                   }}
                 >
-                  <strong>{positionLabel(result?.position, result?.status)}</strong>
+                  <strong>
+                    {result?.status?.toLowerCase() === "dnf"
+                      ? "DNF"
+                      : result?.position
+                      ? positionLabel(result.position, result.status)
+                      : "-"}
+                  </strong>
 
                   <div>
                     <div style={{ fontWeight: "bold" }}>{race.raceName}</div>

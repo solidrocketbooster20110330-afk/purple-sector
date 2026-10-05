@@ -76,7 +76,7 @@ export default function ChampionshipConstructorsPage() {
   useEffect(() => {
     Promise.all([
       fetch("https://api.jolpi.ca/ergast/f1/2026/constructorstandings.json").then((r) => r.json()),
-      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000").then((r) => r.json()),
+      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=2000").then((r) => r.json()),
     ])
       .then(([standingsData, racesData]) => {
         setConstructors(
@@ -86,6 +86,19 @@ export default function ChampionshipConstructorsPage() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  const teamColors: Record<string, string> = {
+  red_bull: "#3671C6",
+  ferrari: "#E80020",
+  mercedes: "#00D2BE",
+  mclaren: "#FF8000",
+  aston_martin: "#229971",
+  alpine: "#0093CC",
+  williams: "#64C4FF",
+  haas: "#B6BABD",
+  rb: "#6692FF",
+  sauber: "#52E252",
+};
 
   const chartTeams = useMemo(
     () =>
@@ -214,7 +227,7 @@ export default function ChampionshipConstructorsPage() {
             <p style={{ color: "#a9adff" }}>Chart data가 없습니다.</p>
           ) : (
             (() => {
-              const width = Math.max(720, races.length * 58);
+              const width = Math.max(720, races.length * 42);
               const height = 300;
               const pad = { top: 20, right: 18, bottom: 44, left: 42 };
               const innerW = width - pad.left - pad.right;
@@ -286,7 +299,7 @@ export default function ChampionshipConstructorsPage() {
                             <polyline
                               points={line}
                               fill="none"
-                              stroke={lineColors[teamIndex % lineColors.length]}
+                              stroke={team.color}
                               strokeWidth="3.5"
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -342,7 +355,7 @@ export default function ChampionshipConstructorsPage() {
                           style={{
                             width: "28px",
                             height: "3px",
-                            background: lineColors[index % lineColors.length],
+                            background: team.color,
                             display: "inline-block",
                           }}
                         />

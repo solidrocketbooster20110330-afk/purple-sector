@@ -54,6 +54,12 @@ function positionLabel(position: string) {
   return `P${position}`;
 }
 
+const teamColors: Record<string, string> = {"red_bull":"#3671C6","ferrari":"#E80020","mercedes":"#00D2BE","mclaren":"#FF8000","aston_martin":"#229971","alpine":"#0093CC","williams":"#64C4FF","rb":"#6692FF","sauber":"#52E252","haas":"#B6BABD"};
+
+function getTeamColor(id: string) {
+  return teamColors[id] ?? "#a9adff";
+}
+
 const lineColors = [
   "#a855f7",
   "#5b8cff",
@@ -227,12 +233,12 @@ export default function ChampionshipConstructorsPage() {
             <p style={{ color: "#a9adff" }}>Chart data가 없습니다.</p>
           ) : (
             (() => {
-              const width = Math.max(720, races.length * 42);
+              const width = Math.max(720, races.length * 48);
               const height = 300;
               const pad = { top: 20, right: 18, bottom: 44, left: 42 };
               const innerW = width - pad.left - pad.right;
               const innerH = height - pad.top - pad.bottom;
-              const maxRank = Math.max(1, Math.min(10, constructors.length));
+              const maxRank = Math.max(1, constructors.length);
               const maxPoints = Math.max(
                 1,
                 ...chartTeams.flatMap((team) => team.points.map((p) => p.points))
@@ -310,7 +316,7 @@ export default function ChampionshipConstructorsPage() {
                                 cx={getX(index)}
                                 cy={getY(rankView ? point.rank : point.points)}
                                 r="3"
-                                fill={lineColors[teamIndex % lineColors.length]}
+                                fill={team.color}
                               />
                             ))}
                           </g>

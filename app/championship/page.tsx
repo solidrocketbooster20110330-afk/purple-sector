@@ -128,11 +128,11 @@ export default function ChampionshipDriversPage() {
     let cancelled = false;
 
     Promise.all([
-      fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json").then((res) => {
+      fetch("/api/standings", { cache: "no-store" }).then((res) => {
         if (!res.ok) throw new Error("Failed to load driver standings");
         return res.json();
       }),
-      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000").then((res) => {
+      fetch("/api/results", { cache: "no-store" }).then((res) => {
         if (!res.ok) throw new Error("Failed to load race results");
         return res.json();
       }),
@@ -142,7 +142,7 @@ export default function ChampionshipDriversPage() {
         setData({
           drivers:
             standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],
-          races: racesData?.MRData?.RaceTable?.Races ?? [],
+          races: racesData?.races ?? [],
         });
       })
       .catch(() => {

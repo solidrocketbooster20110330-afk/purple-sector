@@ -316,7 +316,7 @@ export default function ChampionshipDriversPage() {
                 ).map((tick) => {
                   const y = getY(tick);
                   return (
-                    <g key={f}>
+                    <g key={tick}>
                       <line
                         x1={pad.left}
                         x2={width - pad.right}

@@ -117,24 +117,38 @@ function teamBadge(name: string) {
   } as const;
 }
 
-export default async function ChampionshipDriversPage() {
-  const [standingsRes, racesRes] = await Promise.all([
-    fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json", {
-      next: { revalidate: 3600 },
-    }),
-    fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000", {
-      next: { revalidate: 3600 },
-    }),
-  ]);
+export default function ChampionshipDriversPage() {
+  const [data, setData] = useState<{ drivers: DriverStanding[]; races: RaceResult[] } | null>(null);
+  const [rankView, setRankView] = useState(false);
 
-  const standingsData = await standingsRes.json();
-  const racesData = await racesRes.json();
+  // Data is loaded client-side because the graph has an interactive points/ranking toggle.
+  useEffect(() => {
+    Promise.all([
+      fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json").then((res) => res.json()),
+      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000").then((res) => res.json()),
+    ])
+      .then(([standingsData, racesData]) => {
+        setData({
+          drivers:
+            standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],
+          races: racesData?.MRData?.RaceTable?.Races ?? [],
+        });
+      })
+      .catch(() => setData({ drivers: [], races: [] }));
+  }, []);
 
-  const drivers: DriverStanding[] =
-    standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
+  if (!data) {
+    return (
+      <main style={pageStyle}>
+        <h1 style={{ marginTop: 0 }}>🏆 Championship</h1>
+        <p style={{ color: muted }}>Loading...</p>
+        <BottomNav />
+      </main>
+    );
+  }
 
-  const races: RaceResult[] = racesData?.MRData?.RaceTable?.Races ?? [];
-
+  const drivers = data.drivers;
+  const races = data.races;
   const chartDrivers = drivers.map((driver) => {
     let cumulative = 0;
 
@@ -160,7 +174,8 @@ export default async function ChampionshipDriversPage() {
   const pad = { top: 20, right: 18, bottom: 46, left: 44 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
-  const [rankView, setRankView] = useState(false);
+  // Keep this page as a client component so the graph toggle can use React state.
+
 
   const chartDriversWithRanks = useMemo(() => {
     return chartDrivers.map((driver) => ({

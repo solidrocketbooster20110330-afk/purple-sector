@@ -118,24 +118,110 @@ function teamBadge(name: string) {
 }
 
 export default function ChampionshipDriversPage() {
-  const [data, setData] = useState<{ drivers: DriverStanding[]; races: RaceResult[] } | null>(null);
+  const [data, setData] = useState<{
+    drivers: DriverStanding[];
+    races: Race[];
+  } | null>(null);
   const [rankView, setRankView] = useState(false);
 
-  // Data is loaded client-side because the graph has an interactive points/ranking toggle.
   useEffect(() => {
+    let cancelled = false;
+
     Promise.all([
-      fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json").then((res) => res.json()),
-      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000").then((res) => res.json()),
+      fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json").then((res) => {
+        if (!res.ok) throw new Error("Failed to load driver standings");
+        return res.json();
+      }),
+      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000").then((res) => {
+        if (!res.ok) throw new Error("Failed to load race results");
+        return res.json();
+      }),
     ])
       .then(([standingsData, racesData]) => {
+        if (cancelled) return;
         setData({
           drivers:
             standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],
           races: racesData?.MRData?.RaceTable?.Races ?? [],
         });
       })
-      .catch(() => setData({ drivers: [], races: [] }));
+      .catch(() => {
+        if (!cancelled) setData({ drivers: [], races: [] });
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const drivers = data?.drivers ?? [];
+  const races = data?.races ?? [];
+
+  const chartDrivers = useMemo(() => {
+    const base = drivers.map((driver) => {
+      let cumulative = 0;
+      const points = races.map((race) => {
+        cumulative += (race.Results ?? [])
+          .filter((result) => result.Driver?.driverId === driver.Driver.driverId)
+          .reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+
+        return { round: race.round, value: cumulative };
+      });
+
+      const teamName = driver.Constructors?.[0]?.name ?? "";
+
+      return {
+        id: driver.Driver.driverId,
+        name: `${driver.Driver.givenName} ${driver.Driver.familyName}`,
+        color: teamColors[teamName] ?? "#777",
+        points,
+      };
+    });
+
+    return base.map((driver) => ({
+      ...driver,
+      ranks: driver.points.map((point, index) => {
+        const ranked = base
+          .map((other) => ({
+            id: other.id,
+            value: other.points[index]?.value ?? 0,
+          }))
+          .sort((a, b) => b.value - a.value || a.id.localeCompare(b.id));
+
+        return {
+          round: point.round,
+          value: ranked.findIndex((item) => item.id === driver.id) + 1,
+        };
+      }),
+    }));
+  }, [drivers, races]);
+
+  const width = Math.max(720, races.length * 48);
+  const height = 300;
+  const pad = { top: 22, right: 18, bottom: 48, left: 50 };
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
+  const maxPoints = Math.max(
+    1,
+    ...chartDrivers.flatMap((driver) =>
+      driver.points.map((point) => point.value)
+    )
+  );
+  const maxRank = Math.max(1, chartDrivers.length);
+
+  const getX = (index: number) =>
+    pad.left + (index * innerW) / Math.max(1, races.length - 1);
+
+  const getY = (value: number) =>
+    rankView
+      ? pad.top + ((value - 1) / Math.max(1, maxRank - 1)) * innerH
+      : pad.top + innerH - (value / maxPoints) * innerH;
+
+  const majorDrivers = chartDrivers.slice(0, 8);
+
+  const ticks = rankView
+    ? Array.from({ length: maxRank }, (_, index) => index + 1)
+    : [0, 0.25, 0.5, 0.75, 1].map((fraction) => maxPoints * fraction);
 
   if (!data) {
     return (
@@ -147,68 +233,6 @@ export default function ChampionshipDriversPage() {
     );
   }
 
-  const drivers = data.drivers;
-  const races = data.races;
-  const chartDrivers = drivers.map((driver) => {
-    let cumulative = 0;
-
-    return {
-      id: driver.Driver.driverId,
-      name: `${driver.Driver.givenName} ${driver.Driver.familyName}`,
-      color: driver.Constructors?.[0]?.name
-        ? teamColors[driver.Constructors[0].name] ?? "#777"
-        : "#777",
-      points: races.map((race) => {
-        const racePoints = (race.Results ?? [])
-          .filter((result) => result.Driver?.driverId === driver.Driver.driverId)
-          .reduce((sum, result) => sum + Number(result.points ?? 0), 0);
-
-        cumulative += racePoints;
-        return { round: race.round, points: cumulative };
-      }),
-    };
-  });
-
-  const width = Math.max(720, races.length * 48);
-  const height = 280;
-  const pad = { top: 20, right: 18, bottom: 46, left: 44 };
-  const innerW = width - pad.left - pad.right;
-  const innerH = height - pad.top - pad.bottom;
-  // Keep this page as a client component so the graph toggle can use React state.
-
-
-  const chartDriversWithRanks = useMemo(() => {
-    return chartDrivers.map((driver) => ({
-      ...driver,
-      ranks: driver.points.map((point, index) => {
-        const ranked = chartDrivers
-          .map((other) => ({
-            id: other.id,
-            value: other.points[index]?.points ?? 0,
-          }))
-          .sort((a, b) => b.value - a.value || a.id.localeCompare(b.id));
-
-        return {
-          round: point.round,
-          value: ranked.findIndex((item) => item.id === driver.id) + 1,
-        };
-      }),
-    }));
-  }, [chartDrivers]);
-
-  const maxPoints = Math.max(
-    1,
-    ...chartDrivers.flatMap((d) => d.points.map((p) => p.points))
-  );
-  const getX = (i: number) =>
-    pad.left + (i * innerW) / Math.max(1, races.length - 1);
-  const maxRank = Math.max(1, chartDriversWithRanks.length);
-  const getY = (v: number) =>
-    rankView
-      ? pad.top + ((v - 1) / Math.max(1, maxRank - 1)) * innerH
-      : pad.top + innerH - (v / maxPoints) * innerH;
-  const majorDrivers = chartDriversWithRanks.slice(0, 8);
-
   return (
     <main style={pageStyle}>
       <h1 style={{ marginTop: 0 }}>🏆 Championship</h1>
@@ -216,7 +240,11 @@ export default function ChampionshipDriversPage() {
       <div style={tabsStyle}>
         <Link
           href="/championship"
-          style={{ ...tabStyle, background: "#211010", borderColor: red }}
+          style={{
+            ...tabStyle,
+            background: "#211010",
+            borderColor: red,
+          }}
         >
           👤 Drivers
         </Link>
@@ -231,28 +259,17 @@ export default function ChampionshipDriversPage() {
       <section style={{ ...cardStyle, marginBottom: "20px", overflow: "hidden" }}>
         <div
           style={{
-            color: red,
-            fontSize: "13px",
-            marginBottom: "8px",
-            letterSpacing: "1px",
-          }}
-        >
-          CHAMPIONSHIP PROGRESS
-        </div>
-
-        <div style={{ color: muted, fontSize: "12px", marginBottom: "10px" }}>
-          {rankView
-            ? "Driver championship ranking by round"
-            : "Cumulative driver points by round"}
-        </div>
-
-        <div
-          style={{
             display: "flex",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
             marginBottom: "10px",
           }}
         >
+          <div style={{ color: red, fontSize: "13px", letterSpacing: "1px" }}>
+            CHAMPIONSHIP PROGRESS
+          </div>
+
           <button
             type="button"
             onClick={() => setRankView((value) => !value)}
@@ -265,6 +282,8 @@ export default function ChampionshipDriversPage() {
               border: 0,
               padding: 0,
               cursor: "pointer",
+              fontSize: "14px",
+              whiteSpace: "nowrap",
             }}
           >
             순위로 보기
@@ -288,14 +307,20 @@ export default function ChampionshipDriversPage() {
                   height: "22px",
                   borderRadius: "50%",
                   background: rankView ? "#f2e6e8" : "#7b5a60",
-                  transition: "left .2s ease",
+                  transition: "left 220ms ease",
                 }}
               />
             </span>
           </button>
         </div>
 
-        {races.length < 2 ? (
+        <div style={{ color: muted, fontSize: "12px", marginBottom: "10px" }}>
+          {rankView
+            ? "Driver championship ranking by round"
+            : "Cumulative driver points by round"}
+        </div>
+
+        {races.length < 2 || chartDrivers.length === 0 ? (
           <p style={{ color: muted }}>Chart data가 충분하지 않습니다.</p>
         ) : (
           <>
@@ -305,18 +330,18 @@ export default function ChampionshipDriversPage() {
                 width={width}
                 height={height}
                 role="img"
-                aria-label="Driver championship points progress graph"
+                aria-label={
+                  rankView
+                    ? "Driver championship ranking progress graph"
+                    : "Driver championship points progress graph"
+                }
                 style={{ display: "block" }}
               >
-                {(rankView
-                  ? Array.from({ length: maxRank }, (_, index) => index + 1)
-                  : [0, 0.25, 0.5, 0.75, 1].map(
-                      (fraction) => maxPoints * fraction
-                    )
-                ).map((tick) => {
+                {ticks.map((tick) => {
                   const y = getY(tick);
+
                   return (
-                    <g key={tick}>
+                    <g key={`${rankView ? "rank" : "points"}-${tick}`}>
                       <line
                         x1={pad.left}
                         x2={width - pad.right}
@@ -324,6 +349,9 @@ export default function ChampionshipDriversPage() {
                         y2={y}
                         stroke={grid}
                         strokeWidth="1"
+                        style={{
+                          transition: "y1 500ms ease, y2 500ms ease",
+                        }}
                       />
                       <text
                         x={pad.left - 8}
@@ -339,6 +367,7 @@ export default function ChampionshipDriversPage() {
                 })}
 
                 {majorDrivers.map((driver, index) => {
+                  const series = rankView ? driver.ranks : driver.points;
                   const stroke =
                     index === 0
                       ? red
@@ -346,8 +375,11 @@ export default function ChampionshipDriversPage() {
                         ? purple
                         : driver.color;
 
-                  const line = (rankView ? driver.ranks : driver.points)
-                    .map((p, i) => `${getX(i)},${getY(rankView ? p.value : p.points)}`)
+                  const line = series
+                    .map(
+                      (point, pointIndex) =>
+                        `${getX(pointIndex)},${getY(point.value)}`
+                    )
                     .join(" ");
 
                   return (
@@ -365,12 +397,13 @@ export default function ChampionshipDriversPage() {
                             "all 500ms cubic-bezier(0.22, 1, 0.36, 1)",
                         }}
                       />
-{index < 2 &&
-                        (rankView ? driver.ranks : driver.points).map((p, i) => (
+
+                      {index < 2 &&
+                        series.map((point, pointIndex) => (
                           <circle
-                            key={`${driver.id}-${i}`}
-                            cx={getX(i)}
-                            cy={getY(rankView ? p.value : p.points)}
+                            key={`${driver.id}-${pointIndex}`}
+                            cx={getX(pointIndex)}
+                            cy={getY(point.value)}
                             r="3.2"
                             fill={stroke}
                             style={{
@@ -383,10 +416,10 @@ export default function ChampionshipDriversPage() {
                   );
                 })}
 
-                {races.map((race, i) => (
+                {races.map((race, index) => (
                   <text
                     key={race.round}
-                    x={getX(i)}
+                    x={getX(index)}
                     y={height - 20}
                     textAnchor="middle"
                     fill={muted}
@@ -442,7 +475,8 @@ export default function ChampionshipDriversPage() {
           <p style={{ color: muted }}>Driver 데이터가 없습니다.</p>
         ) : (
           drivers.map((driver, index) => {
-            const teamName = driver.Constructors?.[0]?.name ?? "Unknown Team";
+            const teamName =
+              driver.Constructors?.[0]?.name ?? "Unknown Team";
 
             return (
               <Link

@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
+import { useMemo, useState } from "react";
 
 type DriverStanding = {
   position: string;
@@ -157,15 +160,39 @@ export default async function ChampionshipDriversPage() {
   const pad = { top: 20, right: 18, bottom: 46, left: 44 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
+  const [rankView, setRankView] = useState(false);
+
+  const chartDriversWithRanks = useMemo(() => {
+    return chartDrivers.map((driver) => ({
+      ...driver,
+      ranks: driver.points.map((point, index) => {
+        const ranked = chartDrivers
+          .map((other) => ({
+            id: other.id,
+            value: other.points[index]?.points ?? 0,
+          }))
+          .sort((a, b) => b.value - a.value || a.id.localeCompare(b.id));
+
+        return {
+          round: point.round,
+          value: ranked.findIndex((item) => item.id === driver.id) + 1,
+        };
+      }),
+    }));
+  }, [chartDrivers]);
+
   const maxPoints = Math.max(
     1,
     ...chartDrivers.flatMap((d) => d.points.map((p) => p.points))
   );
   const getX = (i: number) =>
     pad.left + (i * innerW) / Math.max(1, races.length - 1);
+  const maxRank = Math.max(1, chartDriversWithRanks.length);
   const getY = (v: number) =>
-    pad.top + innerH - (v / maxPoints) * innerH;
-  const majorDrivers = chartDrivers.slice(0, 8);
+    rankView
+      ? pad.top + ((v - 1) / Math.max(1, maxRank - 1)) * innerH
+      : pad.top + innerH - (v / maxPoints) * innerH;
+  const majorDrivers = chartDriversWithRanks.slice(0, 8);
 
   return (
     <main style={pageStyle}>
@@ -199,7 +226,58 @@ export default async function ChampionshipDriversPage() {
         </div>
 
         <div style={{ color: muted, fontSize: "12px", marginBottom: "10px" }}>
-          Cumulative driver points by round
+          {rankView
+            ? "Driver championship ranking by round"
+            : "Cumulative driver points by round"}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: "10px",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setRankView((value) => !value)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              color: muted,
+              background: "transparent",
+              border: 0,
+              padding: 0,
+              cursor: "pointer",
+            }}
+          >
+            순위로 보기
+            <span
+              style={{
+                width: "54px",
+                height: "30px",
+                borderRadius: "16px",
+                background: rankView ? purple : "#151515",
+                border: `1px solid ${grid}`,
+                position: "relative",
+                display: "inline-block",
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: "3px",
+                  left: rankView ? "29px" : "3px",
+                  width: "22px",
+                  height: "22px",
+                  borderRadius: "50%",
+                  background: rankView ? "#f2e6e8" : "#7b5a60",
+                  transition: "left .2s ease",
+                }}
+              />
+            </span>
+          </button>
         </div>
 
         {races.length < 2 ? (
@@ -234,7 +312,7 @@ export default async function ChampionshipDriversPage() {
                         fill={muted}
                         fontSize="10"
                       >
-                        {Math.round(maxPoints * f)}
+                        {rankView ? `P${Math.round(1 + (maxRank - 1) * f)}` : Math.round(maxPoints * f)}
                       </text>
                     </g>
                   );
@@ -248,8 +326,8 @@ export default async function ChampionshipDriversPage() {
                         ? purple
                         : driver.color;
 
-                  const line = driver.points
-                    .map((p, i) => `${getX(i)},${getY(p.points)}`)
+                  const line = (rankView ? driver.ranks : driver.points)
+                    .map((p, i) => `${getX(i)},${getY(rankView ? p.value : p.points)}`)
                     .join(" ");
 
                   return (

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type DriverStanding = {
   position: string;
@@ -360,6 +360,10 @@ export default function ChampionshipDriversPage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         opacity={index < 2 ? "1" : "0.7"}
+                        style={{
+                          transition:
+                            "all 500ms cubic-bezier(0.22, 1, 0.36, 1)",
+                        }}
                       />
 {index < 2 &&
                         (rankView ? driver.ranks : driver.points).map((p, i) => (
@@ -369,6 +373,10 @@ export default function ChampionshipDriversPage() {
                             cy={getY(rankView ? p.value : p.points)}
                             r="3.2"
                             fill={stroke}
+                            style={{
+                              transition:
+                                "cx 500ms cubic-bezier(0.22, 1, 0.36, 1), cy 500ms cubic-bezier(0.22, 1, 0.36, 1)",
+                            }}
                           />
                         ))}
                     </g>

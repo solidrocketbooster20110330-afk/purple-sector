@@ -368,12 +368,7 @@ export default function ChampionshipDriversPage() {
 
                 {majorDrivers.map((driver, index) => {
                   const series = rankView ? driver.ranks : driver.points;
-                  const stroke =
-                    index === 0
-                      ? red
-                      : index === 1
-                        ? purple
-                        : driver.color;
+                  const stroke = driver.color;
 
                   const line = series
                     .map(
@@ -453,12 +448,7 @@ export default function ChampionshipDriversPage() {
                     style={{
                       width: "28px",
                       height: "3px",
-                      background:
-                        index === 0
-                          ? red
-                          : index === 1
-                            ? purple
-                            : driver.color,
+                      background: driver.color,
                       display: "inline-block",
                     }}
                   />

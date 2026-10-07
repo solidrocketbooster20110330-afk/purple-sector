@@ -18,19 +18,16 @@ type Race = {
   }[];
 };
 
-type ChartPoint = {
+type ChartModePoint = {
   round: string;
-  points: number;
+  value: number;
 };
 
 type ChartTeam = {
   id: string;
   name: string;
-  points: ChartPoint[];
-};
-
-type RankedTeam = ChartTeam & {
-  ranks: { round: string; rank: number }[];
+  points: ChartModePoint[];
+  ranks: ChartModePoint[];
 };
 
 const red = "#ef233c";
@@ -55,7 +52,11 @@ const cardStyle = {
   padding: "20px",
 };
 
-const tabsStyle = { display: "flex", gap: "12px", margin: "24px 0 20px" };
+const tabsStyle = {
+  display: "flex",
+  gap: "12px",
+  margin: "24px 0 20px",
+};
 
 const tabStyle = {
   flex: 1,
@@ -72,26 +73,7 @@ function positionLabel(position: string) {
   if (position === "1") return "🥇";
   if (position === "2") return "🥈";
   if (position === "3") return "🥉";
-  return `P${position}`;
-}
-
-function buildRankedTeams(chartTeams: ChartTeam[]): RankedTeam[] {
-  return chartTeams.map((team) => ({
-    ...team,
-    ranks: team.points.map((point, index) => {
-      const order = chartTeams
-        .map((other) => ({
-          id: other.id,
-          points: other.points[index]?.points ?? 0,
-        }))
-        .sort((a, b) => b.points - a.points || a.id.localeCompare(b.id));
-
-      return {
-        round: point.round,
-        rank: order.findIndex((item) => item.id === team.id) + 1,
-      };
-    }),
-  }));
+  return \`P\${position}\`;
 }
 
 export default function ChampionshipConstructorsPage() {
@@ -101,65 +83,93 @@ export default function ChampionshipConstructorsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     Promise.all([
-      fetch("https://api.jolpi.ca/ergast/f1/2026/constructorstandings.json").then((r) => r.json()),
-      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=2000").then((r) => r.json()),
+      fetch("/api/constructors").then((res) => {
+        if (!res.ok) throw new Error("Failed to load constructors");
+        return res.json();
+      }),
+      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=2000").then(
+        (res) => {
+          if (!res.ok) throw new Error("Failed to load race results");
+          return res.json();
+        }
+      ),
     ])
       .then(([standingsData, racesData]) => {
+        if (cancelled) return;
+
         setConstructors(
-          standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? []
+          Array.isArray(standingsData) ? standingsData : []
         );
         setRaces(racesData?.MRData?.RaceTable?.Races ?? []);
       })
       .catch(() => {
+        if (cancelled) return;
         setConstructors([]);
         setRaces([]);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const chartTeams = useMemo<ChartTeam[]>(
-    () =>
-      constructors.map((constructor) => {
-        let cumulative = 0;
+  const chartTeams = useMemo<ChartTeam[]>(() => {
+    const totals = new Map<string, number>();
+
+    return constructors.map((constructor) => {
+      const id = constructor.Constructor.constructorId;
+      let cumulative = 0;
+
+      const points = races.map((race) => {
+        const earned = (race.Results ?? [])
+          .filter((result) => result.Constructor?.constructorId === id)
+          .reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+
+        cumulative += earned;
+        return { round: race.round, value: cumulative };
+      });
+
+      totals.set(id, cumulative);
+
+      return {
+        id,
+        name: constructor.Constructor.name,
+        points,
+        ranks: [],
+      };
+    }).map((team, _, allTeams) => ({
+      ...team,
+      ranks: team.points.map((point, index) => {
+        const order = allTeams
+          .map((other) => ({
+            id: other.id,
+            value: other.points[index]?.value ?? 0,
+          }))
+          .sort((a, b) => b.value - a.value || a.id.localeCompare(b.id));
 
         return {
-          id: constructor.Constructor.constructorId,
-          name: constructor.Constructor.name,
-          points: races.map((race) => {
-            const earned = (race.Results ?? [])
-              .filter(
-                (result) =>
-                  result.Constructor?.constructorId ===
-                  constructor.Constructor.constructorId
-              )
-              .reduce((sum, result) => sum + Number(result.points ?? 0), 0);
-
-            cumulative += earned;
-
-            return {
-              round: race.round,
-              points: cumulative,
-            };
-          }),
+          round: point.round,
+          value: order.findIndex((item) => item.id === team.id) + 1,
         };
       }),
-    [constructors, races]
-  );
-
-  const rankedTeams = useMemo<RankedTeam[]>(
-    () => buildRankedTeams(chartTeams),
-    [chartTeams]
-  );
+    }));
+  }, [constructors, races]);
 
   const width = Math.max(720, races.length * 48);
   const height = 300;
   const pad = { top: 20, right: 18, bottom: 44, left: 46 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
+
   const maxPoints = Math.max(
     1,
-    ...chartTeams.flatMap((team) => team.points.map((p) => p.points))
+    ...chartTeams.flatMap((team) => team.points.map((point) => point.value))
   );
   const maxRank = Math.max(1, constructors.length);
 
@@ -172,16 +182,15 @@ export default function ChampionshipConstructorsPage() {
   const getRankY = (rank: number) =>
     pad.top + ((rank - 1) / Math.max(1, maxRank - 1)) * innerH;
 
-  const visibleTeams: ChartTeam[] | RankedTeam[] = rankView
-    ? rankedTeams
-    : chartTeams;
-
   return (
     <main style={pageStyle}>
       <h1 style={{ marginTop: 0 }}>🏆 Championship</h1>
 
       <div style={tabsStyle}>
-        <Link href="/championship" style={{ ...tabStyle, background: "#101010" }}>
+        <Link
+          href="/championship"
+          style={{ ...tabStyle, background: "#101010" }}
+        >
           👤 Drivers
         </Link>
         <Link
@@ -256,22 +265,29 @@ export default function ChampionshipConstructorsPage() {
 
           {loading ? (
             <p style={{ color: muted }}>Loading...</p>
-          ) : races.length < 2 ? (
+          ) : races.length < 2 || chartTeams.length === 0 ? (
             <p style={{ color: muted }}>Chart data가 충분하지 않습니다.</p>
           ) : (
             <>
-              <div style={{ overflowX: "auto" }}>
+              <div
+                style={{
+                  overflowX: "auto",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
                 <svg
-                  viewBox={`0 0 ${width} ${height}`}
-                  width="100%"
+                  viewBox={\`0 0 \${width} \${height}\`}
+                  width={width}
                   height={height}
                   role="img"
                   aria-label="Constructor championship graph"
-                  style={{ display: "block", minWidth: `${width}px` }}
+                  style={{ display: "block" }}
                 >
                   {(rankView
                     ? Array.from({ length: maxRank }, (_, index) => index + 1)
-                    : [0, 0.25, 0.5, 0.75, 1].map((fraction) => maxPoints * fraction)
+                    : [0, 0.25, 0.5, 0.75, 1].map(
+                        (fraction) => maxPoints * fraction
+                      )
                   ).map((tick) => {
                     const y = rankView ? getRankY(tick) : getPointsY(tick);
 
@@ -292,13 +308,13 @@ export default function ChampionshipConstructorsPage() {
                           fill={muted}
                           fontSize="10"
                         >
-                          {rankView ? `P${tick}` : Math.round(tick)}
+                          {rankView ? \`P\${tick}\` : Math.round(tick)}
                         </text>
                       </g>
                     );
                   })}
 
-                  {visibleTeams.map((team, teamIndex) => {
+                  {chartTeams.map((team, teamIndex) => {
                     const values = rankView ? team.ranks : team.points;
                     const stroke =
                       teamIndex === 0
@@ -308,13 +324,10 @@ export default function ChampionshipConstructorsPage() {
                         : dimLine;
 
                     const line = values
-                      .map((point, index) => {
-                        const value = rankView
-                          ? (point as RankedTeam["ranks"][number]).rank
-                          : (point as ChartPoint).points;
-
-                        return `${getX(index)},${rankView ? getRankY(value) : getPointsY(value)}`;
-                      })
+                      .map(
+                        (point, index) =>
+                          \`\${getX(index)},\${rankView ? getRankY(point.value) : getPointsY(point.value)}\`
+                      )
                       .join(" ");
 
                     return (
@@ -330,21 +343,19 @@ export default function ChampionshipConstructorsPage() {
                         />
 
                         {teamIndex < 2 &&
-                          values.map((point, index) => {
-                            const value = rankView
-                              ? (point as RankedTeam["ranks"][number]).rank
-                              : (point as ChartPoint).points;
-
-                            return (
-                              <circle
-                                key={`${team.id}-${index}`}
-                                cx={getX(index)}
-                                cy={rankView ? getRankY(value) : getPointsY(value)}
-                                r="3.2"
-                                fill={stroke}
-                              />
-                            );
-                          })}
+                          values.map((point, index) => (
+                            <circle
+                              key={\`\${team.id}-\${index}\`}
+                              cx={getX(index)}
+                              cy={
+                                rankView
+                                  ? getRankY(point.value)
+                                  : getPointsY(point.value)
+                              }
+                              r="3.2"
+                              fill={stroke}
+                            />
+                          ))}
                       </g>
                     );
                   })}
@@ -372,7 +383,7 @@ export default function ChampionshipConstructorsPage() {
                   marginTop: "8px",
                 }}
               >
-                {visibleTeams.map((team, index) => (
+                {chartTeams.map((team, index) => (
                   <div
                     key={team.id}
                     style={{
@@ -407,7 +418,7 @@ export default function ChampionshipConstructorsPage() {
           constructors.map((constructor, index) => (
             <Link
               key={constructor.Constructor.constructorId}
-              href={`/championship/constructors/${constructor.Constructor.constructorId}`}
+              href={\`/championship/constructors/\${constructor.Constructor.constructorId}\`}
               style={{
                 display: "grid",
                 gridTemplateColumns: "50px 1fr auto",
@@ -417,7 +428,7 @@ export default function ChampionshipConstructorsPage() {
                 borderBottom:
                   index === constructors.length - 1
                     ? "none"
-                    : `1px solid ${grid}`,
+                    : \`1px solid \${grid}\`,
                 color: "white",
                 textDecoration: "none",
               }}

@@ -33,12 +33,16 @@ const teamColors: Record<string, string> = {
   McLaren: "#ff8000",
   Ferrari: "#e80020",
   "Red Bull Racing": "#3671c6",
+  "Red Bull": "#3671c6",
+  "Red Bull Racing F1 Team": "#3671c6",
   Mercedes: "#00d2be",
   "Aston Martin": "#00665e",
   "Alpine F1 Team": "#ff87bc",
   Alpine: "#ff87bc",
   Williams: "#64c4ff",
   "Racing Bulls": "#6692ff",
+  "Visa Cash App RB": "#6692ff",
+  "RB F1 Team": "#6692ff",
   RB: "#6692ff",
   "Haas F1 Team": "#e6002b",
   Haas: "#e6002b",
@@ -132,7 +136,7 @@ export default function ChampionshipDriversPage() {
         if (!res.ok) throw new Error("Failed to load driver standings");
         return res.json();
       }),
-      fetch("/api/results", { cache: "no-store" }).then((res) => {
+      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000").then((res) => {
         if (!res.ok) throw new Error("Failed to load race results");
         return res.json();
       }),
@@ -142,7 +146,7 @@ export default function ChampionshipDriversPage() {
         setData({
           drivers:
             standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],
-          races: racesData?.races ?? [],
+          races: racesData?.MRData?.RaceTable?.Races ?? [],
         });
       })
       .catch(() => {
@@ -196,7 +200,7 @@ export default function ChampionshipDriversPage() {
     }));
   }, [drivers, races]);
 
-  const width = Math.max(1200, races.length * 48);
+  const width = Math.max(480, Math.min(960, races.length * 32));
   const height = 300;
   const pad = { top: 22, right: 18, bottom: 48, left: 50 };
   const innerW = width - pad.left - pad.right;

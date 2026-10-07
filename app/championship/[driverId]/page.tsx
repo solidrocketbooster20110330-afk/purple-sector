@@ -18,13 +18,8 @@ type RaceResult = {
   position: string;
   points: string;
   status: string;
-  Driver: {
-    givenName: string;
-    familyName: string;
-  };
-  Constructor: {
-    name: string;
-  };
+  Driver: { givenName: string; familyName: string };
+  Constructor: { name: string };
 };
 
 type Race = {
@@ -34,9 +29,31 @@ type Race = {
   Results?: RaceResult[];
 };
 
+const red = "#ef233c";
+const purple = "#7c3aed";
+const muted = "#aaa1a4";
+const grid = "#35191e";
+
+const teamColors: Record<string, string> = {
+  McLaren: "#ff8000",
+  Ferrari: "#e80020",
+  "Red Bull Racing": "#3671c6",
+  Mercedes: "#27f4d2",
+  "Aston Martin": "#00665e",
+  "Alpine F1 Team": "#ff87bc",
+  Alpine: "#ff87bc",
+  Williams: "#64c4ff",
+  "Racing Bulls": "#6692ff",
+  RB: "#6692ff",
+  "Haas F1 Team": "#e6002b",
+  Haas: "#e6002b",
+  Audi: "#f50537",
+  Cadillac: "#c9c9c9",
+};
+
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  background: "linear-gradient(180deg,#050505 0%,#140707 100%)",
   color: "white",
   padding: "24px",
   paddingBottom: "100px",
@@ -44,8 +61,8 @@ const pageStyle = {
 };
 
 const cardStyle = {
-  background: "#131942",
-  border: "1px solid #2b347a",
+  background: "#101010",
+  border: `1px solid ${grid}`,
   borderRadius: "20px",
   padding: "20px",
   marginBottom: "20px",
@@ -59,10 +76,7 @@ function positionLabel(position?: string, status?: string) {
   return position ? `P${position}` : "-";
 }
 
-type ChartPoint = {
-  round: string;
-  points: number;
-};
+type ChartPoint = { round: string; points: number };
 
 function buildChart(races: Race[]): ChartPoint[] {
   let total = 0;
@@ -75,7 +89,7 @@ function buildChart(races: Race[]): ChartPoint[] {
 function PointsChart({ points }: { points: ChartPoint[] }) {
   if (points.length < 2) return null;
 
-  const width = 720;
+  const width = Math.max(720, points.length * 48);
   const height = 260;
   const pad = { top: 20, right: 18, bottom: 42, left: 42 };
   const max = Math.max(1, ...points.map((p) => p.points));
@@ -92,27 +106,19 @@ function PointsChart({ points }: { points: ChartPoint[] }) {
   const area = `${pad.left},${height - pad.bottom} ${line} ${coords[coords.length - 1].x},${height - pad.bottom}`;
 
   return (
-    <section
-      style={{
-        background: "#131942",
-        border: "1px solid #2b347a",
-        borderRadius: "20px",
-        padding: "20px",
-        marginBottom: "20px",
-        overflowX: "auto",
-      }}
-    >
+    <section style={{ ...cardStyle, overflowX: "auto" }}>
       <h2 style={{ marginTop: 0 }}>Championship Progress</h2>
-      <div style={{ color: "#a9adff", fontSize: "12px", marginBottom: "8px" }}>
+      <div style={{ color: muted, fontSize: "12px", marginBottom: "8px" }}>
         Cumulative points by race
       </div>
 
       <svg
-        viewBox="0 0 720 260"
-        width="100%"
+        viewBox={`0 0 ${width} ${height}`}
+        width={width}
+        height={height}
         role="img"
         aria-label="Championship points progress graph"
-        style={{ display: "block", minWidth: "520px" }}
+        style={{ display: "block" }}
       >
         {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
           const y = pad.top + innerH * (1 - fraction);
@@ -123,28 +129,21 @@ function PointsChart({ points }: { points: ChartPoint[] }) {
                 x2={width - pad.right}
                 y1={y}
                 y2={y}
-                stroke="#2b347a"
+                stroke={grid}
                 strokeWidth="1"
               />
-              <text
-                x={pad.left - 8}
-                y={y + 4}
-                textAnchor="end"
-                fill="#a9adff"
-                fontSize="10"
-              >
+              <text x={pad.left - 8} y={y + 4} textAnchor="end" fill={muted} fontSize="10">
                 {Math.round(max * fraction)}
               </text>
             </g>
           );
         })}
 
-        <polygon points={area} fill="rgba(124,58,237,0.16)" />
-
+        <polygon points={area} fill="rgba(239,35,60,0.10)" />
         <polyline
           points={line}
           fill="none"
-          stroke="#a855f7"
+          stroke={red}
           strokeWidth="4"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -152,27 +151,13 @@ function PointsChart({ points }: { points: ChartPoint[] }) {
 
         {coords.map((p, i) => (
           <g key={p.round}>
-            <circle cx={p.x} cy={p.y} r="4" fill="#a9adff" />
-            {(i === 0 ||
-              i === coords.length - 1 ||
-              i % Math.ceil(coords.length / 6) === 0) && (
+            <circle cx={p.x} cy={p.y} r="4" fill={red} />
+            {(i === 0 || i === coords.length - 1 || i % Math.ceil(coords.length / 6) === 0) && (
               <>
-                <text
-                  x={p.x}
-                  y={height - 20}
-                  textAnchor="middle"
-                  fill="#a9adff"
-                  fontSize="10"
-                >
+                <text x={p.x} y={height - 20} textAnchor="middle" fill={muted} fontSize="10">
                   R{p.round}
                 </text>
-                <text
-                  x={p.x}
-                  y={p.y - 9}
-                  textAnchor="middle"
-                  fill="white"
-                  fontSize="10"
-                >
+                <text x={p.x} y={p.y - 9} textAnchor="middle" fill="white" fontSize="10">
                   {p.points}
                 </text>
               </>
@@ -192,30 +177,22 @@ export default async function DriverDetailPage({
   const { driverId } = await params;
 
   const [standingRes, resultsRes] = await Promise.all([
-    fetch(
-      "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
-      { next: { revalidate: 3600 } }
-    ),
-    fetch(
-      `https://api.jolpi.ca/ergast/f1/current/drivers/${driverId}/results.json?limit=100`,
-      { next: { revalidate: 3600 } }
-    ),
+    fetch("https://api.jolpi.ca/ergast/f1/current/driverstandings.json", {
+      next: { revalidate: 3600 },
+    }),
+    fetch(`https://api.jolpi.ca/ergast/f1/current/drivers/${driverId}/results.json?limit=100`, {
+      next: { revalidate: 3600 },
+    }),
   ]);
 
   const standingData = await standingRes.json();
   const resultsData = await resultsRes.json();
 
   const standings: DriverStanding[] =
-    standingData?.MRData?.StandingsTable?.StandingsLists?.[0]
-      ?.DriverStandings ?? [];
+    standingData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
 
-  const driver = standings.find(
-    (item) => item.Driver.driverId === driverId
-  );
-
-  const races: Race[] =
-    resultsData?.MRData?.RaceTable?.Races ?? [];
-
+  const driver = standings.find((item) => item.Driver.driverId === driverId);
+  const races: Race[] = resultsData?.MRData?.RaceTable?.Races ?? [];
   const resultDriver = races[0]?.Results?.[0];
 
   const name = driver
@@ -228,14 +205,12 @@ export default async function DriverDetailPage({
   const points = driver?.points ?? "0";
   const team = driver?.Constructors?.[0]?.name ?? resultDriver?.Constructor?.name ?? "Unknown Team";
   const number = driver?.Driver.permanentNumber ?? "-";
+  const teamColor = teamColors[team] ?? red;
 
-  const wins = races.filter(
-    (race) => race.Results?.[0]?.position === "1"
-  ).length;
-
+  const wins = races.filter((race) => race.Results?.[0]?.position === "1").length;
   const podiums = races.filter((race) => {
-    const position = Number(race.Results?.[0]?.position);
-    return Number.isFinite(position) && position >= 1 && position <= 3;
+    const p = Number(race.Results?.[0]?.position);
+    return Number.isFinite(p) && p >= 1 && p <= 3;
   }).length;
 
   const recentRaces = races.slice(-5).reverse();
@@ -243,10 +218,7 @@ export default async function DriverDetailPage({
 
   return (
     <main style={pageStyle}>
-      <Link
-        href="/championship"
-        style={{ color: "#a9adff", textDecoration: "none" }}
-      >
+      <Link href="/championship" style={{ color: red, textDecoration: "none", fontWeight: "bold" }}>
         ← Championship
       </Link>
 
@@ -254,78 +226,39 @@ export default async function DriverDetailPage({
         style={{
           ...cardStyle,
           marginTop: "20px",
-          background:
-            "linear-gradient(135deg,#171d57 0%,#131942 100%)",
+          borderColor: teamColor,
+          background: "linear-gradient(135deg,#161010 0%,#101010 100%)",
         }}
       >
-        <div style={{ color: "#a9adff", fontSize: "14px" }}>
-          2026 DRIVER
-        </div>
-
+        <div style={{ color: teamColor, fontSize: "14px", fontWeight: "bold" }}>2026 DRIVER</div>
         <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>
           #{number} {name}
         </h1>
+        <div style={{ color: teamColor, fontWeight: "bold" }}>{team}</div>
 
-        <div style={{ color: "#c7cbff" }}>{team}</div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2,minmax(0,1fr))",
-            gap: "12px",
-            marginTop: "20px",
-          }}
-        >
-          <div style={{ background: "#0d1232", borderRadius: "14px", padding: "14px" }}>
-            <div style={{ color: "#a9adff", fontSize: "12px" }}>
-              CHAMPIONSHIP
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "12px", marginTop: "20px" }}>
+          {[
+            ["CHAMPIONSHIP", positionLabel(position)],
+            ["POINTS", points],
+          ].map(([label, value]) => (
+            <div key={label} style={{ background: "#151010", border: `1px solid ${grid}`, borderRadius: "14px", padding: "14px" }}>
+              <div style={{ color: muted, fontSize: "12px" }}>{label}</div>
+              <strong style={{ fontSize: "24px" }}>{value}</strong>
             </div>
-            <strong style={{ fontSize: "24px" }}>
-              {positionLabel(position)}
-            </strong>
-          </div>
-
-          <div style={{ background: "#0d1232", borderRadius: "14px", padding: "14px" }}>
-            <div style={{ color: "#a9adff", fontSize: "12px" }}>
-              POINTS
-            </div>
-            <strong style={{ fontSize: "24px" }}>{points}</strong>
-          </div>
+          ))}
         </div>
       </section>
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Season Stats</h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3,minmax(0,1fr))",
-            gap: "12px",
-          }}
-        >
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: "12px" }}>
           {[
             ["WINS", String(wins)],
             ["PODIUMS", String(podiums)],
             ["RACES", String(races.length)],
           ].map(([label, value]) => (
-            <div
-              key={label}
-              style={{
-                background: "#0d1232",
-                borderRadius: "14px",
-                padding: "14px",
-              }}
-            >
-              <div
-                style={{
-                  color: "#a9adff",
-                  fontSize: "12px",
-                  marginBottom: "5px",
-                }}
-              >
-                {label}
-              </div>
+            <div key={label} style={{ background: "#151010", borderRadius: "14px", padding: "14px" }}>
+              <div style={{ color: muted, fontSize: "12px", marginBottom: "5px" }}>{label}</div>
               <strong style={{ fontSize: "22px" }}>{value}</strong>
             </div>
           ))}
@@ -336,44 +269,19 @@ export default async function DriverDetailPage({
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Recent Form</h2>
-
         {recentRaces.length === 0 ? (
-          <p style={{ color: "#a9adff" }}>최근 레이스 데이터가 없습니다.</p>
+          <p style={{ color: muted }}>최근 레이스 데이터가 없습니다.</p>
         ) : (
           <div style={{ display: "grid", gap: "10px" }}>
             {recentRaces.map((race) => {
               const result = race.Results?.[0];
               return (
-                <div
-                  key={race.round}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "12px 0",
-                    borderBottom: "1px solid #2b347a",
-                  }}
-                >
+                <div key={race.round} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "12px 0", borderBottom: `1px solid ${grid}` }}>
                   <div>
                     <div style={{ fontWeight: "bold" }}>{race.raceName}</div>
-                    <div
-                      style={{
-                        color: "#a9adff",
-                        fontSize: "12px",
-                        marginTop: "3px",
-                      }}
-                    >
-                      Round {race.round}
-                    </div>
+                    <div style={{ color: muted, fontSize: "12px", marginTop: "3px" }}>Round {race.round}</div>
                   </div>
-                  <strong>
-                    {result?.status?.toLowerCase() === "dnf"
-                      ? "DNF"
-                      : result?.position
-                      ? positionLabel(result.position, result.status)
-                      : "-"}
-                  </strong>
+                  <strong>{result?.status?.toLowerCase() === "dnf" ? "DNF" : result?.position ? positionLabel(result.position, result.status) : "-"}</strong>
                 </div>
               );
             })}
@@ -383,47 +291,22 @@ export default async function DriverDetailPage({
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Race Results</h2>
-
         {races.length === 0 ? (
-          <p style={{ color: "#a9adff" }}>Race data가 없습니다.</p>
+          <p style={{ color: muted }}>Race data가 없습니다.</p>
         ) : (
-          races
-            .slice()
-            .reverse()
-            .map((race) => {
-              const result = race.Results?.[0];
-
-              return (
-                <div
-                  key={race.round}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "52px 1fr auto",
-                    gap: "12px",
-                    alignItems: "center",
-                    padding: "14px 0",
-                    borderBottom: "1px solid #2b347a",
-                  }}
-                >
-                  <strong>
-                    {result?.status?.toLowerCase() === "dnf"
-                      ? "DNF"
-                      : result?.position
-                      ? positionLabel(result.position, result.status)
-                      : "-"}
-                  </strong>
-
-                  <div>
-                    <div style={{ fontWeight: "bold" }}>{race.raceName}</div>
-                    <div style={{ color: "#a9adff", marginTop: "4px", fontSize: "13px" }}>
-                      Round {race.round}
-                    </div>
-                  </div>
-
-                  <strong>{result?.points ?? "0"} pts</strong>
+          races.slice().reverse().map((race) => {
+            const result = race.Results?.[0];
+            return (
+              <div key={race.round} style={{ display: "grid", gridTemplateColumns: "52px 1fr auto", gap: "12px", alignItems: "center", padding: "14px 0", borderBottom: `1px solid ${grid}` }}>
+                <strong>{result?.status?.toLowerCase() === "dnf" ? "DNF" : result?.position ? positionLabel(result.position, result.status) : "-"}</strong>
+                <div>
+                  <div style={{ fontWeight: "bold" }}>{race.raceName}</div>
+                  <div style={{ color: muted, marginTop: "4px", fontSize: "13px" }}>Round {race.round}</div>
                 </div>
-              );
-            })
+                <strong>{result?.points ?? "0"} pts</strong>
+              </div>
+            );
+          })
         )}
       </section>
 

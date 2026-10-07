@@ -17,7 +17,7 @@ async function getNews(): Promise<NewsItem[]> {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  background: "linear-gradient(180deg,#050505 0%,#0d090a 100%)",
   color: "white",
   padding: "24px",
   paddingBottom: "100px",
@@ -35,7 +35,8 @@ export default async function NewsPage() {
           display: "inline-block",
           color: "white",
           textDecoration: "none",
-          background: "#1a2157",
+          background: "#171717",
+          border: "1px solid #3a171b",
           padding: "10px 18px",
           borderRadius: "10px",
           marginBottom: "25px",
@@ -44,7 +45,16 @@ export default async function NewsPage() {
         ← Home
       </a>
 
-      <h1>📰 Latest F1 News</h1>
+      <h1 style={{ marginBottom: "8px" }}>📰 Latest F1 News</h1>
+      <div
+        style={{
+          width: "54px",
+          height: "4px",
+          background: "#ef233c",
+          borderRadius: "999px",
+          marginBottom: "20px",
+        }}
+      />
 
       <div
         style={{
@@ -63,25 +73,29 @@ export default async function NewsPage() {
           >
             <article
               style={{
-                background: "#131942",
-                border: "1px solid #2b347a",
+                background: "#111111",
+                border: "1px solid #3a171b",
                 borderRadius: "20px",
                 padding: "20px",
               }}
             >
-              <h2>{item.title}</h2>
-              <p style={{ color: "#a9adff" }}>
+              <h2 style={{ marginTop: 0 }}>{item.title}</h2>
+              <p style={{ color: "#b66b72" }}>
                 {item.pubDate || "Formula1.com"}
               </p>
-              <p>Read Article →</p>
+              <p style={{ color: "#ef233c", fontWeight: "bold" }}>
+                Read Article →
+              </p>
             </article>
           </a>
         ))}
 
         {news.length === 0 && (
-          <p style={{ color: "#a9adff" }}>뉴스 데이터를 불러오지 못했습니다.</p>
+          <p style={{ color: "#b66b72" }}>뉴스 데이터를 불러오지 못했습니다.</p>
         )}
       </div>
+
+      <BottomNav />
     </main>
   );
 }

@@ -16,7 +16,7 @@ type DriverStanding = {
   Constructors?: { name: string }[];
 };
 
-type RaceResult = {
+type Race = {
   round: string;
   Results?: {
     Driver?: { driverId?: string };

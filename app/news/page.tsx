@@ -1,3 +1,5 @@
+import BottomNav from "../components/BottomNav";
+
 type NewsItem = {
   title: string;
   link: string;

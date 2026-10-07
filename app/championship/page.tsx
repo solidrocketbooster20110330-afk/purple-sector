@@ -138,7 +138,7 @@ export default function ChampionshipDriversPage() {
         if (!res.ok) throw new Error("Failed to load driver standings");
         return res.json();
       }),
-      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000").then((res) => {
+      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=100").then((res) => {
         if (!res.ok) throw new Error("Failed to load race results");
         return res.json();
       }),

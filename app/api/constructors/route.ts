@@ -1,9 +1,16 @@
+const API = "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json";
+
 export async function GET() {
-  return Response.json([
-    { position: 1, team: "McLaren", points: 658 },
-    { position: 2, team: "Red Bull Racing", points: 602 },
-    { position: 3, team: "Mercedes", points: 519 },
-    { position: 4, team: "Ferrari", points: 487 },
-    { position: 5, team: "Aston Martin", points: 211 }
-  ]);
+  try {
+    const res = await fetch(API, { next: { revalidate: 900 } });
+    if (!res.ok) {
+      return Response.json({ error: "Failed to load constructor standings" }, { status: 502 });
+    }
+    const data = await res.json();
+    const standings = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
+    return Response.json(standings);
+  } catch (error) {
+    console.error("Constructors API error:", error);
+    return Response.json({ error: "Failed to load constructor standings" }, { status: 500 });
+  }
 }

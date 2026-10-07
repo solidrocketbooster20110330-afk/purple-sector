@@ -163,6 +163,8 @@ export default function ChampionshipDriversPage() {
   const drivers = data?.drivers ?? [];
   const races = data?.races ?? [];
 
+  const visibleRaces = races.slice(0, 10);
+
   const chartDrivers = useMemo(() => {
     const base = drivers.map((driver) => {
       let cumulative = 0;
@@ -200,9 +202,7 @@ export default function ChampionshipDriversPage() {
         };
       }),
     }));
-  }, [drivers, races]);
-
-  const visibleRaces = races.slice(0, 10);
+  }, [drivers, visibleRaces]);
   const width = Math.max(360, visibleRaces.length * 36);
   const height = 300;
   const pad = { top: 22, right: 18, bottom: 48, left: 50 };
@@ -217,7 +217,7 @@ export default function ChampionshipDriversPage() {
   const maxRank = Math.max(1, chartDrivers.length);
 
   const getX = (index: number) =>
-    pad.left + (index * innerW) / Math.max(1, races.length - 1);
+    pad.left + (index * innerW) / Math.max(1, visibleRaces.length - 1);
 
   const getY = (value: number) =>
     rankView

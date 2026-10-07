@@ -33,7 +33,7 @@ const teamColors: Record<string, string> = {
   McLaren: "#ff8000",
   Ferrari: "#e80020",
   "Red Bull Racing": "#3671c6",
-  Mercedes: "#27f4d2",
+  Mercedes: "#00d2be",
   "Aston Martin": "#00665e",
   "Alpine F1 Team": "#ff87bc",
   Alpine: "#ff87bc",

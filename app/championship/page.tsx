@@ -163,7 +163,7 @@ export default function ChampionshipDriversPage() {
   const drivers = data?.drivers ?? [];
   const races = data?.races ?? [];
 
-  const visibleRaces = races.slice(0, 10);
+  const visibleRaces = races.filter((race) => Number(race.round) <= 10);
 
   const chartDrivers = useMemo(() => {
     const base = drivers.map((driver) => {
@@ -327,7 +327,7 @@ export default function ChampionshipDriversPage() {
             : "Cumulative driver points by round"}
         </div>
 
-        {races.length < 2 || chartDrivers.length === 0 ? (
+        {visibleRaces.length < 2 || chartDrivers.length === 0 ? (
           <p style={{ color: muted }}>Chart data가 충분하지 않습니다.</p>
         ) : (
           <>

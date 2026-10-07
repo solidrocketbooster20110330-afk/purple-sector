@@ -1,9 +1,16 @@
+const API = "https://api.jolpi.ca/ergast/f1/current/driverstandings.json";
+
 export async function GET() {
-  return Response.json([
-    { position: 1, number: 1, name: "Max Verstappen", points: 412 },
-    { position: 2, number: 4, name: "Lando Norris", points: 387 },
-    { position: 3, number: 63, name: "George Russell", points: 301 },
-    { position: 4, number: 16, name: "Charles Leclerc", points: 287 },
-    { position: 5, number: 81, name: "Oscar Piastri", points: 271 }
-  ]);
+  try {
+    const res = await fetch(API, { next: { revalidate: 900 } });
+    if (!res.ok) {
+      return Response.json({ error: "Failed to load driver standings" }, { status: 502 });
+    }
+    const data = await res.json();
+    const standings = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
+    return Response.json(standings);
+  } catch (error) {
+    console.error("Standings API error:", error);
+    return Response.json({ error: "Failed to load driver standings" }, { status: 500 });
+  }
 }

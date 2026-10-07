@@ -138,22 +138,24 @@ export default function ChampionshipDriversPage() {
         const standingsResponse = await fetch(
           "https://api.jolpi.ca/ergast/f1/2026/driverstandings.json"
         );
+        if (!standingsResponse.ok) throw new Error("Failed to load driver standings");
         const standingsData = await standingsResponse.json();
 
-        const allRaces: Race[] = [];
-        for (let round = 1; round <= 10; round += 1) {
+        const results: Race[] = [];
+        let round = 1;
+
+        while (round <= 24) {
           const response = await fetch(
             `https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`
           );
 
-          if (!response.ok) continue;
-
-          const page = await response.json();
-          const race = page?.MRData?.RaceTable?.Races?.[0];
-
-          if (race) {
-            allRaces.push(race);
+          if (response.ok) {
+            const page = await response.json();
+            const race = page?.MRData?.RaceTable?.Races?.[0];
+            if (race) results.push(race);
           }
+
+          round += 1;
         }
 
         if (cancelled) return;
@@ -162,7 +164,7 @@ export default function ChampionshipDriversPage() {
           drivers:
             standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]
               ?.DriverStandings ?? [],
-          races: allRaces,
+          races: results.sort((a, b) => Number(a.round) - Number(b.round)),
         });
       } catch {
         if (!cancelled) setData({ drivers: [], races: [] });

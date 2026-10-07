@@ -196,7 +196,7 @@ export default function ChampionshipDriversPage() {
     }));
   }, [drivers, races]);
 
-  const width = Math.max(720, races.length * 48);
+  const width = Math.max(1200, races.length * 48);
   const height = 300;
   const pad = { top: 22, right: 18, bottom: 48, left: 50 };
   const innerW = width - pad.left - pad.right;

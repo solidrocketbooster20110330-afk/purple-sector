@@ -293,8 +293,13 @@ export default async function ChampionshipDriversPage() {
                 aria-label="Driver championship points progress graph"
                 style={{ display: "block" }}
               >
-                {[0, 0.25, 0.5, 0.75, 1].map((f) => {
-                  const y = getY(maxPoints * f);
+                {(rankView
+                  ? Array.from({ length: maxRank }, (_, index) => index + 1)
+                  : [0, 0.25, 0.5, 0.75, 1].map(
+                      (fraction) => maxPoints * fraction
+                    )
+                ).map((tick) => {
+                  const y = getY(tick);
                   return (
                     <g key={f}>
                       <line
@@ -312,7 +317,7 @@ export default async function ChampionshipDriversPage() {
                         fill={muted}
                         fontSize="10"
                       >
-                        {rankView ? `P${Math.round(1 + (maxRank - 1) * f)}` : Math.round(maxPoints * f)}
+                        {rankView ? `P${tick}` : Math.round(tick)}
                       </text>
                     </g>
                   );
@@ -341,12 +346,12 @@ export default async function ChampionshipDriversPage() {
                         strokeLinejoin="round"
                         opacity={index < 2 ? "1" : "0.7"}
                       />
-                      {index < 2 &&
-                        driver.points.map((p, i) => (
+{index < 2 &&
+                        (rankView ? driver.ranks : driver.points).map((p, i) => (
                           <circle
                             key={`${driver.id}-${i}`}
                             cx={getX(i)}
-                            cy={getY(p.points)}
+                            cy={getY(rankView ? p.value : p.points)}
                             r="3.2"
                             fill={stroke}
                           />

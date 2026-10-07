@@ -133,27 +133,58 @@ export default function ChampionshipDriversPage() {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.all([
-      fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json").then((res) => {
-        if (!res.ok) throw new Error("Failed to load driver standings");
-        return res.json();
-      }),
-      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=100").then((res) => {
-        if (!res.ok) throw new Error("Failed to load race results");
-        return res.json();
-      }),
-    ])
-      .then(([standingsData, racesData]) => {
+    async function loadData() {
+      try {
+        const standingsResponse = await fetch(
+          "https://api.jolpi.ca/ergast/f1/2026/driverstandings.json"
+        );
+        const standingsData = await standingsResponse.json();
+
+        const allRaces: Race[] = [];
+        let offset = 0;
+        const limit = 100;
+
+        while (true) {
+          const response = await fetch(
+            `https://api.jolpi.ca/ergast/f1/2026/results.json?limit=${limit}&offset=${offset}`
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to load race results");
+          }
+
+          const page = await response.json();
+          const racesPage: Race[] =
+            page?.MRData?.RaceTable?.Races ?? [];
+
+          allRaces.push(...racesPage);
+
+          const total = Number(page?.MRData?.total ?? allRaces.length);
+          offset += limit;
+
+          if (
+            racesPage.length === 0 ||
+            allRaces.length >= total ||
+            racesPage.length < limit
+          ) {
+            break;
+          }
+        }
+
         if (cancelled) return;
+
         setData({
           drivers:
-            standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],
-          races: racesData?.MRData?.RaceTable?.Races ?? [],
+            standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]
+              ?.DriverStandings ?? [],
+          races: allRaces,
         });
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setData({ drivers: [], races: [] });
-      });
+      }
+    }
+
+    loadData();
 
     return () => {
       cancelled = true;

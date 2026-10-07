@@ -137,7 +137,7 @@ export default function ChampionshipDriversPage() {
     let cancelled = false;
 
     Promise.all([
-      fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json".then((res) => {
+      fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json").then((res) => {
         if (!res.ok) throw new Error("Failed to load driver standings");
         return res.json();
       }),

@@ -35,7 +35,7 @@ type GrandPrixWithCircuit = GrandPrix & {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  background: "linear-gradient(180deg,#050505 0%,#0d090a 100%)",
   color: "white",
   padding: "20px",
   paddingBottom: "90px",
@@ -43,8 +43,8 @@ const pageStyle = {
 };
 
 const cardStyle = {
-  background: "#131942",
-  border: "1px solid #2b347a",
+  background: "#111111",
+  border: "1px solid #3a171b",
   borderRadius: "20px",
   padding: "20px",
   overflowX: "auto" as const,
@@ -73,20 +73,20 @@ function getStatusText(result: RaceResult) {
 }
 
 const teamColors: Record<string, string> = {
-  "McLaren": "#FF8000",
-  "Ferrari": "#E80020",
+  McLaren: "#FF8000",
+  Ferrari: "#E80020",
   "Red Bull Racing": "#3671C6",
-  "Mercedes": "#27F4D2",
+  Mercedes: "#27F4D2",
   "Aston Martin": "#00665E",
   "Alpine F1 Team": "#FF87BC",
-  "Alpine": "#FF87BC",
-  "Williams": "#64C4FF",
+  Alpine: "#FF87BC",
+  Williams: "#64C4FF",
   "Racing Bulls": "#6692FF",
-  "RB": "#6692FF",
+  RB: "#6692FF",
   "Haas F1 Team": "#E6002B",
-  "Haas": "#E6002B",
-  "Audi": "#F50537",
-  "Cadillac": "#111111",
+  Haas: "#E6002B",
+  Audi: "#F50537",
+  Cadillac: "#111111",
 };
 
 function teamInitials(name: string) {
@@ -112,8 +112,8 @@ function teamBadge(name: string) {
     height: "30px",
     marginRight: "8px",
     borderRadius: "50%",
-    background: teamColors[name] ?? "#5c63a8",
-    color: "#05071f",
+    background: teamColors[name] ?? "#5c5c5c",
+    color: "#050505",
     fontSize: "11px",
     fontWeight: "900",
     flexShrink: 0,
@@ -150,18 +150,21 @@ function countryFlag(country?: string) {
 }
 
 function getFastestLap(results: RaceResult[]) {
-  return results
-    .filter((result) => result.FastestLap?.Time?.time)
-    .sort(
-      (a, b) =>
-        Number(a.FastestLap?.rank ?? "999") -
-        Number(b.FastestLap?.rank ?? "999")
-    )[0] ?? null;
+  return (
+    results
+      .filter((result) => result.FastestLap?.Time?.time)
+      .sort(
+        (a, b) =>
+          Number(a.FastestLap?.rank ?? "999") -
+          Number(b.FastestLap?.rank ?? "999")
+      )[0] ?? null
+  );
 }
 
 export default function ResultsPage() {
   const [races, setRaces] = useState<GrandPrix[]>([]);
-  const [selectedRace, setSelectedRace] = useState<GrandPrixWithCircuit | null>(null);
+  const [selectedRace, setSelectedRace] =
+    useState<GrandPrixWithCircuit | null>(null);
   const [results, setResults] = useState<RaceResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -170,7 +173,9 @@ export default function ResultsPage() {
     fetchGrandPrix()
       .then((items) => {
         setRaces(items);
-        const queryRound = new URLSearchParams(window.location.search).get("round");
+        const queryRound = new URLSearchParams(window.location.search).get(
+          "round"
+        );
         const selected =
           getGrandPrixByRound(items, queryRound) ??
           getRelevantGrandPrix(items) ??
@@ -217,7 +222,7 @@ export default function ResultsPage() {
             padding: 0,
             border: 0,
             background: "transparent",
-            color: "#a9adff",
+            color: "#ef233c",
             fontSize: "18px",
             fontWeight: "bold",
             cursor: "pointer",
@@ -230,6 +235,7 @@ export default function ResultsPage() {
           <span
             style={{
               fontSize: "12px",
+              color: "#b66b72",
               transform: open ? "rotate(180deg)" : "none",
               transition: "transform 0.15s ease",
             }}
@@ -246,43 +252,47 @@ export default function ResultsPage() {
               left: 0,
               right: 0,
               zIndex: 20,
-              background: "#131942",
-              border: "1px solid #2b347a",
+              background: "#111111",
+              border: "1px solid #3a171b",
               borderRadius: "14px",
               padding: "8px",
               maxHeight: "320px",
               overflowY: "auto",
-              boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+              boxShadow: "0 12px 30px rgba(0,0,0,0.5)",
             }}
           >
-            {races.slice().reverse().map((race) => {
-              const active = selectedRace?.round === race.round;
-              return (
-                <button
-                  key={`${race.season}-${race.round}`}
-                  type="button"
-                  onClick={() => {
-                    storeGrandPrix(race.round);
-                    window.location.href = `/results?round=${race.round}`;
-                  }}
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    textAlign: "left",
-                    padding: "10px 12px",
-                    marginBottom: "4px",
-                    border: 0,
-                    borderRadius: "10px",
-                    background: active ? "#7c3aed" : "transparent",
-                    color: "white",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
-                >
-                  {countryFlag(race.Circuit?.Location?.country)} {race.raceName}
-                </button>
-              );
-            })}
+            {races
+              .slice()
+              .reverse()
+              .map((race) => {
+                const active = selectedRace?.round === race.round;
+                return (
+                  <button
+                    key={`${race.season}-${race.round}`}
+                    type="button"
+                    onClick={() => {
+                      storeGrandPrix(race.round);
+                      window.location.href = `/results?round=${race.round}`;
+                    }}
+                    style={{
+                      width: "100%",
+                      display: "block",
+                      textAlign: "left",
+                      padding: "10px 12px",
+                      marginBottom: "4px",
+                      border: 0,
+                      borderRadius: "10px",
+                      background: active ? "#c4162a" : "transparent",
+                      color: "white",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {countryFlag(race.Circuit?.Location?.country)}{" "}
+                    {race.raceName}
+                  </button>
+                );
+              })}
           </div>
         )}
       </div>
@@ -304,7 +314,7 @@ export default function ResultsPage() {
           <div>
             <div
               style={{
-                color: "#a9adff",
+                color: "#ef233c",
                 fontSize: "12px",
                 fontWeight: "bold",
                 letterSpacing: "0.08em",
@@ -312,10 +322,12 @@ export default function ResultsPage() {
             >
               ⚡ FASTEST LAP
             </div>
-            <div style={{ fontSize: "20px", fontWeight: "bold", marginTop: "5px" }}>
+            <div
+              style={{ fontSize: "20px", fontWeight: "bold", marginTop: "5px" }}
+            >
               {fastestLap.Driver.givenName} {fastestLap.Driver.familyName}
             </div>
-            <div style={{ color: "#a9adff", marginTop: "4px" }}>
+            <div style={{ color: "#b66b72", marginTop: "4px" }}>
               Lap {fastestLap.FastestLap?.lap ?? "-"}
             </div>
           </div>
@@ -325,7 +337,13 @@ export default function ResultsPage() {
               {fastestLap.FastestLap?.Time?.time}
             </div>
             {fastestLap.FastestLap?.AverageSpeed && (
-              <div style={{ color: "#a9adff", marginTop: "4px", fontSize: "13px" }}>
+              <div
+                style={{
+                  color: "#b66b72",
+                  marginTop: "4px",
+                  fontSize: "13px",
+                }}
+              >
                 {fastestLap.FastestLap.AverageSpeed.speed}{" "}
                 {fastestLap.FastestLap.AverageSpeed.units}
               </div>
@@ -363,8 +381,8 @@ export default function ResultsPage() {
                     key={header}
                     style={{
                       padding: "12px 8px",
-                      color: "#a9adff",
-                      borderBottom: "2px solid #2b347a",
+                      color: "#ef233c",
+                      borderBottom: "2px solid #3a171b",
                       whiteSpace: "nowrap",
                       textAlign:
                         header === "DRIVER" || header === "TEAM"
@@ -384,32 +402,87 @@ export default function ResultsPage() {
 
                 return (
                   <tr key={driver.position}>
-                    <td style={{ padding: "11px 7px", textAlign: "center", fontWeight: "bold", borderBottom: "1px solid #2b347a" }}>
+                    <td
+                      style={{
+                        padding: "11px 7px",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        borderBottom: "1px solid #3a171b",
+                      }}
+                    >
                       {positionLabel(driver.position)}
                     </td>
-                    <td style={{ padding: "14px 8px", textAlign: "center", fontWeight: "bold", borderBottom: "1px solid #2b347a" }}>
+                    <td
+                      style={{
+                        padding: "14px 8px",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        borderBottom: "1px solid #3a171b",
+                      }}
+                    >
                       #{driver.number}
                     </td>
-                    <td style={{ padding: "14px 8px", borderBottom: "1px solid #2b347a", whiteSpace: "nowrap" }}>
+                    <td
+                      style={{
+                        padding: "14px 8px",
+                        borderBottom: "1px solid #3a171b",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {driver.Driver.givenName} {driver.Driver.familyName}
                     </td>
-                    <td style={{ padding: "14px 8px", borderBottom: "1px solid #2b347a", whiteSpace: "normal" }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", maxWidth: "100%" }}>
+                    <td
+                      style={{
+                        padding: "14px 8px",
+                        borderBottom: "1px solid #3a171b",
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          maxWidth: "100%",
+                        }}
+                      >
                         <span style={teamBadge(driver.Constructor.name)}>
                           {teamInitials(driver.Constructor.name)}
                         </span>
-                        <span style={{ color: "#a9adff" }}>
+                        <span style={{ color: "#bdb6b8" }}>
                           {driver.Constructor.name}
                         </span>
                       </span>
                     </td>
-                    <td style={{ padding: "14px 8px", textAlign: "center", borderBottom: "1px solid #2b347a" }}>
+                    <td
+                      style={{
+                        padding: "14px 8px",
+                        textAlign: "center",
+                        borderBottom: "1px solid #3a171b",
+                      }}
+                    >
                       P{driver.grid}
                     </td>
-                    <td style={{ padding: "14px 8px", textAlign: "center", borderBottom: "1px solid #2b347a", color: statusText === "DNF" ? "#ff7a7a" : "white", fontWeight: statusText === "DNF" ? "bold" : "normal", whiteSpace: "nowrap" }}>
+                    <td
+                      style={{
+                        padding: "14px 8px",
+                        textAlign: "center",
+                        borderBottom: "1px solid #3a171b",
+                        color:
+                          statusText === "DNF" ? "#ff6b78" : "white",
+                        fontWeight: statusText === "DNF" ? "bold" : "normal",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {statusText}
                     </td>
-                    <td style={{ padding: "14px 8px", textAlign: "center", fontWeight: "bold", borderBottom: "1px solid #2b347a" }}>
+                    <td
+                      style={{
+                        padding: "14px 8px",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        borderBottom: "1px solid #3a171b",
+                      }}
+                    >
                       {driver.points}
                     </td>
                   </tr>

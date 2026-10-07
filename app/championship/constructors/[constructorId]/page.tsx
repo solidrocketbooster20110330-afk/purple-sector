@@ -4,23 +4,14 @@ import BottomNav from "../../../components/BottomNav";
 type ConstructorStanding = {
   position: string;
   points: string;
-  Constructor: {
-    constructorId: string;
-    name: string;
-  };
+  Constructor: { constructorId: string; name: string };
 };
 
 type RaceResult = {
   position: string;
   points: string;
-  Driver: {
-    driverId?: string;
-    givenName: string;
-    familyName: string;
-  };
-  Constructor: {
-    name: string;
-  };
+  Driver: { driverId?: string; givenName: string; familyName: string };
+  Constructor: { name: string };
 };
 
 type Race = {
@@ -29,9 +20,30 @@ type Race = {
   Results?: RaceResult[];
 };
 
+const red = "#ef233c";
+const muted = "#aaa1a4";
+const grid = "#35191e";
+
+const teamColors: Record<string, string> = {
+  McLaren: "#ff8000",
+  Ferrari: "#e80020",
+  "Red Bull Racing": "#3671c6",
+  Mercedes: "#27f4d2",
+  "Aston Martin": "#00665e",
+  "Alpine F1 Team": "#ff87bc",
+  Alpine: "#ff87bc",
+  Williams: "#64c4ff",
+  "Racing Bulls": "#6692ff",
+  RB: "#6692ff",
+  "Haas F1 Team": "#e6002b",
+  Haas: "#e6002b",
+  Audi: "#f50537",
+  Cadillac: "#c9c9c9",
+};
+
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  background: "linear-gradient(180deg,#050505 0%,#140707 100%)",
   color: "white",
   padding: "24px",
   paddingBottom: "100px",
@@ -39,8 +51,8 @@ const pageStyle = {
 };
 
 const cardStyle = {
-  background: "#131942",
-  border: "1px solid #2b347a",
+  background: "#101010",
+  border: `1px solid ${grid}`,
   borderRadius: "20px",
   padding: "20px",
   marginBottom: "20px",
@@ -53,31 +65,20 @@ function positionLabel(position?: string) {
   return position ? `P${position}` : "-";
 }
 
-type ChartPoint = {
-  round: string;
-  points: number;
-};
+type ChartPoint = { round: string; points: number };
 
 function buildConstructorChart(races: Race[]): ChartPoint[] {
   let total = 0;
-
   return races.map((race) => {
-    total += (race.Results ?? []).reduce(
-      (sum, result) => sum + Number(result.points ?? 0),
-      0
-    );
-
-    return {
-      round: race.round,
-      points: total,
-    };
+    total += (race.Results ?? []).reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+    return { round: race.round, points: total };
   });
 }
 
-function PointsChart({ points }: { points: ChartPoint[] }) {
+function PointsChart({ points, teamColor }: { points: ChartPoint[]; teamColor: string }) {
   if (points.length < 2) return null;
 
-  const width = 720;
+  const width = Math.max(720, points.length * 48);
   const height = 260;
   const pad = { top: 20, right: 18, bottom: 42, left: 42 };
   const max = Math.max(1, ...points.map((p) => p.points));
@@ -94,91 +95,30 @@ function PointsChart({ points }: { points: ChartPoint[] }) {
   const area = `${pad.left},${height - pad.bottom} ${line} ${coords[coords.length - 1].x},${height - pad.bottom}`;
 
   return (
-    <section
-      style={{
-        background: "#131942",
-        border: "1px solid #2b347a",
-        borderRadius: "20px",
-        padding: "20px",
-        marginBottom: "20px",
-        overflowX: "auto",
-      }}
-    >
+    <section style={{ ...cardStyle, overflowX: "auto" }}>
       <h2 style={{ marginTop: 0 }}>Championship Progress</h2>
-      <div style={{ color: "#a9adff", fontSize: "12px", marginBottom: "8px" }}>
+      <div style={{ color: muted, fontSize: "12px", marginBottom: "8px" }}>
         Cumulative constructor points by race
       </div>
-
-      <svg
-        viewBox="0 0 720 260"
-        width="100%"
-        role="img"
-        aria-label="Constructor championship points progress graph"
-        style={{ display: "block", minWidth: "520px" }}
-      >
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label="Constructor championship points progress graph" style={{ display: "block" }}>
         {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
           const y = pad.top + innerH * (1 - fraction);
-
           return (
             <g key={fraction}>
-              <line
-                x1={pad.left}
-                x2={width - pad.right}
-                y1={y}
-                y2={y}
-                stroke="#2b347a"
-                strokeWidth="1"
-              />
-              <text
-                x={pad.left - 8}
-                y={y + 4}
-                textAnchor="end"
-                fill="#a9adff"
-                fontSize="10"
-              >
-                {Math.round(max * fraction)}
-              </text>
+              <line x1={pad.left} x2={width - pad.right} y1={y} y2={y} stroke={grid} strokeWidth="1" />
+              <text x={pad.left - 8} y={y + 4} textAnchor="end" fill={muted} fontSize="10">{Math.round(max * fraction)}</text>
             </g>
           );
         })}
-
-        <polygon points={area} fill="rgba(124,58,237,0.16)" />
-
-        <polyline
-          points={line}
-          fill="none"
-          stroke="#a855f7"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
+        <polygon points={area} fill="rgba(239,35,60,0.10)" />
+        <polyline points={line} fill="none" stroke={teamColor} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
         {coords.map((p, i) => (
           <g key={p.round}>
-            <circle cx={p.x} cy={p.y} r="4" fill="#a9adff" />
-
-            {(i === 0 ||
-              i === coords.length - 1 ||
-              i % Math.ceil(coords.length / 6) === 0) && (
+            <circle cx={p.x} cy={p.y} r="4" fill={teamColor} />
+            {(i === 0 || i === coords.length - 1 || i % Math.ceil(coords.length / 6) === 0) && (
               <>
-                <text
-                  x={p.x}
-                  y={height - 20}
-                  textAnchor="middle"
-                  fill="#a9adff"
-                  fontSize="10"
-                >
-                  R{p.round}
-                </text>
-                <text
-                  x={p.x}
-                  y={p.y - 9}
-                  textAnchor="middle"
-                  fill="white"
-                  fontSize="10"
-                >
-                  {p.points}
-                </text>
+                <text x={p.x} y={height - 20} textAnchor="middle" fill={muted} fontSize="10">R{p.round}</text>
+                <text x={p.x} y={p.y - 9} textAnchor="middle" fill="white" fontSize="10">{p.points}</text>
               </>
             )}
           </g>
@@ -196,37 +136,29 @@ export default async function ConstructorDetailPage({
   const { constructorId } = await params;
 
   const [standingRes, resultsRes] = await Promise.all([
-    fetch(
-      "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
-      { next: { revalidate: 3600 } }
-    ),
-    fetch(
-      `https://api.jolpi.ca/ergast/f1/current/constructors/${constructorId}/results.json?limit=100`,
-      { next: { revalidate: 3600 } }
-    ),
+    fetch("https://api.jolpi.ca/ergast/f1/current/constructorstandings.json", {
+      next: { revalidate: 3600 },
+    }),
+    fetch(`https://api.jolpi.ca/ergast/f1/current/constructors/${constructorId}/results.json?limit=100`, {
+      next: { revalidate: 3600 },
+    }),
   ]);
 
   const standingData = await standingRes.json();
   const resultsData = await resultsRes.json();
 
   const standings: ConstructorStanding[] =
-    standingData?.MRData?.StandingsTable?.StandingsLists?.[0]
-      ?.ConstructorStandings ?? [];
+    standingData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
 
-  const constructor = standings.find(
-    (item) => item.Constructor.constructorId === constructorId
-  );
-
-  const races: Race[] =
-    resultsData?.MRData?.RaceTable?.Races ?? [];
+  const constructor = standings.find((item) => item.Constructor.constructorId === constructorId);
+  const races: Race[] = resultsData?.MRData?.RaceTable?.Races ?? [];
 
   const drivers = Array.from(
     new Map(
       races
         .flatMap((race) => race.Results ?? [])
         .map((result) => [
-          result.Driver.driverId ??
-            `${result.Driver.givenName}-${result.Driver.familyName}`,
+          result.Driver.driverId ?? `${result.Driver.givenName}-${result.Driver.familyName}`,
           `${result.Driver.givenName} ${result.Driver.familyName}`,
         ])
     ).values()
@@ -235,133 +167,65 @@ export default async function ConstructorDetailPage({
   const name = constructor?.Constructor.name ?? constructorId;
   const position = constructor?.position ?? "-";
   const points = constructor?.points ?? "0";
+  const teamColor = teamColors[name] ?? red;
 
-  const wins = races.reduce(
-    (sum, race) =>
-      sum +
-      (race.Results?.filter((result) => result.position === "1").length ?? 0),
-    0
-  );
-
-  const podiums = races.reduce(
-    (sum, race) =>
-      sum +
-      (race.Results?.filter((result) => {
-        const position = Number(result.position);
-        return Number.isFinite(position) && position >= 1 && position <= 3;
-      }).length ?? 0),
-    0
-  );
+  const wins = races.reduce((sum, race) => sum + (race.Results?.filter((result) => result.position === "1").length ?? 0), 0);
+  const podiums = races.reduce((sum, race) => sum + (race.Results?.filter((result) => {
+    const p = Number(result.position);
+    return Number.isFinite(p) && p >= 1 && p <= 3;
+  }).length ?? 0), 0);
 
   const recentRaces = races.slice(-5).reverse();
   const chartPoints = buildConstructorChart(races);
 
   return (
     <main style={pageStyle}>
-      <Link
-        href="/championship/constructors"
-        style={{ color: "#a9adff", textDecoration: "none" }}
-      >
+      <Link href="/championship/constructors" style={{ color: red, textDecoration: "none", fontWeight: "bold" }}>
         ← Constructors
       </Link>
 
-      <section
-        style={{
-          ...cardStyle,
-          marginTop: "20px",
-          background:
-            "linear-gradient(135deg,#171d57 0%,#131942 100%)",
-        }}
-      >
-        <div style={{ color: "#a9adff", fontSize: "14px" }}>
-          2026 CONSTRUCTOR
-        </div>
+      <section style={{ ...cardStyle, marginTop: "20px", borderColor: teamColor, background: "linear-gradient(135deg,#161010 0%,#101010 100%)" }}>
+        <div style={{ color: teamColor, fontSize: "14px", fontWeight: "bold" }}>2026 CONSTRUCTOR</div>
+        <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>{name}</h1>
 
-        <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>
-          {name}
-        </h1>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2,minmax(0,1fr))",
-            gap: "12px",
-            marginTop: "20px",
-          }}
-        >
-          <div style={{ background: "#0d1232", borderRadius: "14px", padding: "14px" }}>
-            <div style={{ color: "#a9adff", fontSize: "12px" }}>
-              CHAMPIONSHIP
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "12px", marginTop: "20px" }}>
+          {[
+            ["CHAMPIONSHIP", positionLabel(position)],
+            ["POINTS", points],
+          ].map(([label, value]) => (
+            <div key={label} style={{ background: "#151010", border: `1px solid ${grid}`, borderRadius: "14px", padding: "14px" }}>
+              <div style={{ color: muted, fontSize: "12px" }}>{label}</div>
+              <strong style={{ fontSize: "24px" }}>{value}</strong>
             </div>
-            <strong style={{ fontSize: "24px" }}>
-              {positionLabel(position)}
-            </strong>
-          </div>
-
-          <div style={{ background: "#0d1232", borderRadius: "14px", padding: "14px" }}>
-            <div style={{ color: "#a9adff", fontSize: "12px" }}>
-              POINTS
-            </div>
-            <strong style={{ fontSize: "24px" }}>{points}</strong>
-          </div>
+          ))}
         </div>
       </section>
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Season Stats</h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3,minmax(0,1fr))",
-            gap: "12px",
-          }}
-        >
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: "12px" }}>
           {[
             ["WINS", String(wins)],
             ["PODIUMS", String(podiums)],
             ["RACES", String(races.length)],
           ].map(([label, value]) => (
-            <div
-              key={label}
-              style={{
-                background: "#0d1232",
-                borderRadius: "14px",
-                padding: "14px",
-              }}
-            >
-              <div
-                style={{
-                  color: "#a9adff",
-                  fontSize: "12px",
-                  marginBottom: "5px",
-                }}
-              >
-                {label}
-              </div>
+            <div key={label} style={{ background: "#151010", borderRadius: "14px", padding: "14px" }}>
+              <div style={{ color: muted, fontSize: "12px", marginBottom: "5px" }}>{label}</div>
               <strong style={{ fontSize: "22px" }}>{value}</strong>
             </div>
           ))}
         </div>
       </section>
 
-      <PointsChart points={chartPoints} />
+      <PointsChart points={chartPoints} teamColor={teamColor} />
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Drivers</h2>
-
         {drivers.length === 0 ? (
-          <p style={{ color: "#a9adff" }}>Driver data가 없습니다.</p>
+          <p style={{ color: muted }}>Driver data가 없습니다.</p>
         ) : (
           drivers.map((driver, index) => (
-            <div
-              key={driver}
-              style={{
-                padding: "12px 0",
-                borderBottom:
-                  index === drivers.length - 1 ? "none" : "1px solid #2b347a",
-              }}
-            >
+            <div key={driver} style={{ padding: "12px 0", borderBottom: index === drivers.length - 1 ? "none" : `1px solid ${grid}` }}>
               {driver}
             </div>
           ))
@@ -370,64 +234,25 @@ export default async function ConstructorDetailPage({
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Recent Form</h2>
-
         {recentRaces.length === 0 ? (
-          <p style={{ color: "#a9adff" }}>최근 레이스 데이터가 없습니다.</p>
+          <p style={{ color: muted }}>최근 레이스 데이터가 없습니다.</p>
         ) : (
           <div style={{ display: "grid", gap: "10px" }}>
             {recentRaces.map((race) => {
               const resultsForRace = race.Results ?? [];
-              const positions = resultsForRace
-                .map((result) => Number(result.position))
-                .filter(Number.isFinite);
-
-              const bestPosition = positions.length
-                ? Math.min(...positions)
-                : null;
-
-              const racePoints = resultsForRace.reduce(
-                (sum, result) => sum + Number(result.points ?? 0),
-                0
-              );
+              const positions = resultsForRace.map((result) => Number(result.position)).filter(Number.isFinite);
+              const bestPosition = positions.length ? Math.min(...positions) : null;
+              const racePoints = resultsForRace.reduce((sum, result) => sum + Number(result.points ?? 0), 0);
 
               return (
-                <div
-                  key={race.round}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "12px 0",
-                    borderBottom: "1px solid #2b347a",
-                  }}
-                >
+                <div key={race.round} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "12px 0", borderBottom: `1px solid ${grid}` }}>
                   <div>
                     <div style={{ fontWeight: "bold" }}>{race.raceName}</div>
-                    <div
-                      style={{
-                        color: "#a9adff",
-                        fontSize: "12px",
-                        marginTop: "3px",
-                      }}
-                    >
-                      Round {race.round}
-                    </div>
+                    <div style={{ color: muted, fontSize: "12px", marginTop: "3px" }}>Round {race.round}</div>
                   </div>
-
                   <div style={{ textAlign: "right" }}>
-                    <strong>
-                      {bestPosition ? `P${bestPosition}` : "-"}
-                    </strong>
-                    <div
-                      style={{
-                        color: "#a9adff",
-                        fontSize: "12px",
-                        marginTop: "3px",
-                      }}
-                    >
-                      {racePoints} pts
-                    </div>
+                    <strong>{bestPosition ? `P${bestPosition}` : "-"}</strong>
+                    <div style={{ color: muted, fontSize: "12px", marginTop: "3px" }}>{racePoints} pts</div>
                   </div>
                 </div>
               );
@@ -438,54 +263,24 @@ export default async function ConstructorDetailPage({
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Race Results</h2>
-
         {races.length === 0 ? (
-          <p style={{ color: "#a9adff" }}>Race data가 없습니다.</p>
+          <p style={{ color: muted }}>Race data가 없습니다.</p>
         ) : (
-          races
-            .slice()
-            .reverse()
-            .map((race) => {
-              const totalPoints =
-                race.Results?.reduce(
-                  (sum, result) => sum + Number(result.points ?? 0),
-                  0
-                ) ?? 0;
+          races.slice().reverse().map((race) => {
+            const totalPoints = race.Results?.reduce((sum, result) => sum + Number(result.points ?? 0), 0) ?? 0;
+            const positions = race.Results?.map((result) => Number(result.position)).filter(Number.isFinite) ?? [];
 
-              const positions =
-                race.Results
-                  ?.map((result) => Number(result.position))
-                  .filter(Number.isFinite) ?? [];
-
-              return (
-                <div
-                  key={race.round}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "60px 1fr auto",
-                    gap: "12px",
-                    alignItems: "center",
-                    padding: "14px 0",
-                    borderBottom: "1px solid #2b347a",
-                  }}
-                >
-                  <strong>
-                    {positions.length
-                      ? `P${Math.min(...positions)}`
-                      : "-"}
-                  </strong>
-
-                  <div>
-                    <div style={{ fontWeight: "bold" }}>{race.raceName}</div>
-                    <div style={{ color: "#a9adff", marginTop: "4px", fontSize: "13px" }}>
-                      Round {race.round}
-                    </div>
-                  </div>
-
-                  <strong>{totalPoints} pts</strong>
+            return (
+              <div key={race.round} style={{ display: "grid", gridTemplateColumns: "60px 1fr auto", gap: "12px", alignItems: "center", padding: "14px 0", borderBottom: `1px solid ${grid}` }}>
+                <strong>{positions.length ? `P${Math.min(...positions)}` : "-"}</strong>
+                <div>
+                  <div style={{ fontWeight: "bold" }}>{race.raceName}</div>
+                  <div style={{ color: muted, marginTop: "4px", fontSize: "13px" }}>Round {race.round}</div>
                 </div>
-              );
-            })
+                <strong>{totalPoints} pts</strong>
+              </div>
+            );
+          })
         )}
       </section>
 

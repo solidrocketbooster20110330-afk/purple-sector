@@ -141,33 +141,18 @@ export default function ChampionshipDriversPage() {
         const standingsData = await standingsResponse.json();
 
         const allRaces: Race[] = [];
-        let offset = 0;
-        const limit = 100;
-
-        while (true) {
+        for (let round = 1; round <= 10; round += 1) {
           const response = await fetch(
-            `https://api.jolpi.ca/ergast/f1/2026/results.json?limit=${limit}&offset=${offset}`
+            `https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`
           );
 
-          if (!response.ok) {
-            throw new Error("Failed to load race results");
-          }
+          if (!response.ok) continue;
 
           const page = await response.json();
-          const racesPage: Race[] =
-            page?.MRData?.RaceTable?.Races ?? [];
+          const race = page?.MRData?.RaceTable?.Races?.[0];
 
-          allRaces.push(...racesPage);
-
-          const total = Number(page?.MRData?.total ?? allRaces.length);
-          offset += limit;
-
-          if (
-            racesPage.length === 0 ||
-            allRaces.length >= total ||
-            racesPage.length < limit
-          ) {
-            break;
+          if (race) {
+            allRaces.push(race);
           }
         }
 

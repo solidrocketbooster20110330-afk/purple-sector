@@ -148,27 +148,31 @@ export default function ChampionshipDriversPage() {
 
         const standingsData = await standingsResponse.json();
         const scheduleData = await scheduleResponse.json();
+
         const scheduledRaces: Race[] =
           scheduleData?.MRData?.RaceTable?.Races ?? [];
 
-        const completedRounds = scheduledRaces
-          .filter((race) => Number(race.round) <= 10)
-          .map((race) => Number(race.round));
+        const availableRounds = scheduledRaces
+          .map((race) => Number(race.round))
+          .filter(Number.isFinite);
 
-        const raceResponses = await Promise.all(
-          completedRounds.map((round) =>
+        const resultResponses = await Promise.all(
+          availableRounds.map((round) =>
             fetch(
-              `https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`
+              `https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`,
+              { cache: "no-store" }
             )
           )
         );
 
         const races: Race[] = [];
 
-        for (const response of raceResponses) {
+        for (const response of resultResponses) {
           if (!response.ok) continue;
+
           const page = await response.json();
           const race = page?.MRData?.RaceTable?.Races?.[0];
+
           if (race) races.push(race);
         }
 

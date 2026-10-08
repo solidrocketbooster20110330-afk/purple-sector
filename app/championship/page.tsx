@@ -135,28 +135,42 @@ export default function ChampionshipDriversPage() {
 
     async function loadData() {
       try {
-        const standingsResponse = await fetch(
-          "https://api.jolpi.ca/ergast/f1/2026/driverstandings.json"
-        );
-        if (!standingsResponse.ok) throw new Error("Failed to load driver standings");
-        const standingsData = await standingsResponse.json();
+        const [standingsResponse, scheduleResponse, resultsResponse] =
+          await Promise.all([
+            fetch(
+              "https://api.jolpi.ca/ergast/f1/2026/driverstandings.json"
+            ),
+            fetch("https://api.jolpi.ca/ergast/f1/2026.json"),
+            fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=1000"),
+          ]);
 
-        const results: Race[] = [];
-        let round = 1;
-
-        while (round <= 24) {
-          const response = await fetch(
-            `https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`
-          );
-
-          if (response.ok) {
-            const page = await response.json();
-            const race = page?.MRData?.RaceTable?.Races?.[0];
-            if (race) results.push(race);
-          }
-
-          round += 1;
+        if (
+          !standingsResponse.ok ||
+          !scheduleResponse.ok ||
+          !resultsResponse.ok
+        ) {
+          throw new Error("Failed to load championship data");
         }
+
+        const [standingsData, scheduleData, resultsData] = await Promise.all([
+          standingsResponse.json(),
+          scheduleResponse.json(),
+          resultsResponse.json(),
+        ]);
+
+        const scheduleRaces: Race[] =
+          scheduleData?.MRData?.RaceTable?.Races ?? [];
+        const resultRaces: Race[] =
+          resultsData?.MRData?.RaceTable?.Races ?? [];
+
+        const resultByRound = new Map(
+          resultRaces.map((race) => [String(race.round), race])
+        );
+
+        const races = scheduleRaces
+          .filter((race) => resultByRound.has(String(race.round)))
+          .map((race) => resultByRound.get(String(race.round))!)
+          .sort((a, b) => Number(a.round) - Number(b.round));
 
         if (cancelled) return;
 
@@ -164,7 +178,7 @@ export default function ChampionshipDriversPage() {
           drivers:
             standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]
               ?.DriverStandings ?? [],
-          races: results.sort((a, b) => Number(a.round) - Number(b.round)),
+          races,
         });
       } catch {
         if (!cancelled) setData({ drivers: [], races: [] });

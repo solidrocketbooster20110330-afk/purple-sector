@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type DriverStanding = {
   position: string;
@@ -147,6 +147,7 @@ export default function ChampionshipDriversPage() {
     races: Race[];
   } | null>(null);
   const [rankView, setRankView] = useState(false);
+  const previousLines = useRef<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -270,6 +271,22 @@ export default function ChampionshipDriversPage() {
       : pad.top + innerH - (value / maxPoints) * innerH;
 
   const majorDrivers = chartDrivers;
+
+  const linePointsByDriver = useMemo(() => Object.fromEntries(majorDrivers.map((driver) => {
+    const series = rankView ? driver.ranks : driver.points;
+    const line = series.map((point, index) => {
+      const x = pad.left + (index * innerW) / Math.max(1, visibleRaces.length - 1);
+      const y = rankView
+        ? pad.top + ((point.value - 1) / Math.max(1, maxRank - 1)) * innerH
+        : pad.top + innerH - (point.value / maxPoints) * innerH;
+      return String(x) + "," + String(y);
+    }).join(" ");
+    return [driver.id, line];
+  })), [majorDrivers, rankView, innerW, innerH, maxRank, maxPoints, visibleRaces.length]);
+
+  useEffect(() => {
+    previousLines.current = linePointsByDriver;
+  }, [linePointsByDriver]);
 
   const ticks = rankView
     ? Array.from({ length: maxRank }, (_, index) => index + 1)
@@ -423,7 +440,7 @@ export default function ChampionshipDriversPage() {
                   const stroke = driver.color;
                   const dashArray = driverDashArray(driver.id, driver.name);
 
-                  const line = series
+                  const line = linePointsByDriver[driver.id] ?? series
                     .map(
                       (point, pointIndex) =>
                         `${getX(pointIndex)},${getY(point.value)}`
@@ -441,11 +458,19 @@ export default function ChampionshipDriversPage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         opacity="0.95"
-                        style={{
-                          transition:
-                            "all 500ms cubic-bezier(0.22, 1, 0.36, 1)",
-                        }}
-                      />
+                      >
+                        <animate
+                          key={rankView ? "rank" : "points"}
+                          attributeName="points"
+                          from={previousLines.current[driver.id] ?? line}
+                          to={line}
+                          dur="500ms"
+                          calcMode="spline"
+                          keyTimes="0;1"
+                          keySplines="0.22 1 0.36 1"
+                          fill="freeze"
+                        />
+                      </polyline>
 
                       {series.map((point, pointIndex) => (
                         <circle

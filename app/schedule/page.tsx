@@ -35,7 +35,7 @@ function getRaceDateTime(race: Race) {
 }
 
 function formatRaceDateKst(race: Race) {
-  const dateTime = getRaceDateTime(race);
+  const dateTime = new Date(`${race.date}T${race.time ? (/(?:Z|[+-]\\d{2}:\\d{2})$/.test(race.time) ? race.time : `${race.time}Z`) : "00:00:00Z"}`);
   const dateLabel = dateTime.toLocaleDateString("ko-KR", {
     timeZone: "Asia/Seoul",
     year: "numeric",

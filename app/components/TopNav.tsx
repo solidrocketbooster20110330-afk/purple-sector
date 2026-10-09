@@ -7,7 +7,7 @@ const navItems = [
   { href: "/", label: "Home", match: (path: string) => path === "/" },
   { href: "/schedule", label: "Schedule", match: (path: string) => path.startsWith("/schedule") },
   { href: "/results", label: "Results", match: (path: string) => path.startsWith("/results") },
-  { href: "/championship", label: "Standings", match: (path: string) => path.startsWith("/championship") },
+  { href: "/championship", label: "Standings", match: (path: string) => path === "/championship" },
   { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || /^\/championship\/[^/]+$/.test(path) },
   { href: "/teams", label: "Teams", match: (path: string) => path.startsWith("/teams") || path.startsWith("/championship/constructors") },
 ];

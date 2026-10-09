@@ -25,15 +25,15 @@ type QualifyingResult = {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  background: "linear-gradient(180deg,#050505 0%,#140707 100%)",
   color: "white",
   padding: "20px",
   paddingBottom: "90px",
   fontFamily: "Arial, sans-serif",
 };
 const cardStyle = {
-  background: "#131942",
-  border: "1px solid #2b347a",
+  background: "#101010",
+  border: "1px solid #3a1217",
   borderRadius: "20px",
   padding: "20px",
   overflowX: "auto" as const,
@@ -78,17 +78,17 @@ export default function QualifyingPage() {
     <main style={pageStyle}>
       <h1 style={{marginBottom:"6px"}}>⚡ Qualifying Results</h1>
       <div style={{position:"relative",marginBottom:"20px"}}>
-        <button type="button" onClick={() => setOpen(v => !v)} style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:0,border:0,background:"transparent",color:"#a9adff",fontSize:"18px",fontWeight:"bold",cursor:"pointer"}}>
+        <button type="button" onClick={() => setOpen(v => !v)} style={{display:"inline-flex",alignItems:"center",gap:"8px",padding:0,border:0,background:"transparent",color:"#ef233c",fontSize:"18px",fontWeight:"bold",cursor:"pointer"}}>
           <span>{selectedRace?.raceName ?? (loading ? "Loading..." : "Grand Prix")}</span>
           <span style={{fontSize:"12px"}}>{open ? "▲" : "▼"}</span>
         </button>
         {open && (
-          <div style={{position:"absolute",top:"32px",left:0,right:0,zIndex:20,background:"#131942",border:"1px solid #2b347a",borderRadius:"14px",padding:"8px",maxHeight:"320px",overflowY:"auto",boxShadow:"0 12px 30px rgba(0,0,0,.35)"}}>
+          <div style={{position:"absolute",top:"32px",left:0,right:0,zIndex:20,background:"#101010",border:"1px solid #3a1217",borderRadius:"14px",padding:"8px",maxHeight:"320px",overflowY:"auto",boxShadow:"0 12px 30px rgba(0,0,0,.35)"}}>
             {races.slice().reverse().map(race => (
               <button key={`${race.season}-${race.round}`} type="button" onClick={() => {
                   storeGrandPrix(race.round);
                   window.location.href = `/results/qualifying?round=${race.round}`;
-                }} style={{width:"100%",display:"block",textAlign:"left",padding:"10px 12px",marginBottom:"4px",border:0,borderRadius:"10px",background:selectedRace?.round===race.round ? "#7c3aed" : "transparent",color:"white",cursor:"pointer",fontSize:"14px"}}>
+                }} style={{width:"100%",display:"block",textAlign:"left",padding:"10px 12px",marginBottom:"4px",border:0,borderRadius:"10px",background:selectedRace?.round===race.round ? "#c4162a" : "transparent",color:"white",cursor:"pointer",fontSize:"14px"}}>
                 {race.raceName}
               </button>
             ))}
@@ -107,17 +107,17 @@ export default function QualifyingPage() {
               <col style={{width:"60px"}}/><col style={{width:"60px"}}/><col style={{width:"190px"}}/><col style={{width:"150px"}}/><col style={{width:"110px"}}/><col style={{width:"110px"}}/><col style={{width:"110px"}}/>
             </colgroup>
             <thead><tr>{headers.map(h => (
-              <th key={h} style={{padding:"11px 7px",color:"#a9adff",borderBottom:"2px solid #2b347a",fontSize:"12px",whiteSpace:"nowrap",textAlign:h==="DRIVER"||h==="TEAM"?"left":"center"}}>{h}</th>
+              <th key={h} style={{padding:"11px 7px",color:"#ef233c",borderBottom:"2px solid #3a1217",fontSize:"12px",whiteSpace:"nowrap",textAlign:h==="DRIVER"||h==="TEAM"?"left":"center"}}>{h}</th>
             ))}</tr></thead>
             <tbody>{results.map(d => (
               <tr key={d.position}>
-                <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>{d.position==="1"?"🥇":d.position==="2"?"🥈":d.position==="3"?"🥉":`P${d.position}`}</td>
-                <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #222a66"}}>#{d.number}</td>
-                <td style={{padding:"11px 7px",borderBottom:"1px solid #222a66",whiteSpace:"nowrap"}}>{d.Driver.givenName} {d.Driver.familyName}</td>
-                <td style={{padding:"11px 7px",borderBottom:"1px solid #222a66",color:"#a9adff",whiteSpace:"normal"}}>{d.Constructor.name}</td>
-                <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{d.Q1 ?? "-"}</td>
-                <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{d.Q2 ?? "-"}</td>
-                <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #222a66"}}>{d.Q3 ?? "-"}</td>
+                <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #35191e"}}>{d.position==="1"?"🥇":d.position==="2"?"🥈":d.position==="3"?"🥉":`P${d.position}`}</td>
+                <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #35191e"}}>#{d.number}</td>
+                <td style={{padding:"11px 7px",borderBottom:"1px solid #35191e",whiteSpace:"nowrap"}}>{d.Driver.givenName} {d.Driver.familyName}</td>
+                <td style={{padding:"11px 7px",borderBottom:"1px solid #35191e",color:"#ef233c",whiteSpace:"normal"}}>{d.Constructor.name}</td>
+                <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #35191e"}}>{d.Q1 ?? "-"}</td>
+                <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #35191e"}}>{d.Q2 ?? "-"}</td>
+                <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #35191e"}}>{d.Q3 ?? "-"}</td>
               </tr>
             ))}</tbody>
           </table>

@@ -135,46 +135,39 @@ export default function ChampionshipDriversPage() {
 
     async function loadData() {
       try {
-        const standingsResponse = await fetch(
-          "https://api.jolpi.ca/ergast/f1/2026/driverstandings.json"
-        );
-        const scheduleResponse = await fetch(
-          "https://api.jolpi.ca/ergast/f1/2026.json"
-        );
+        const [standingsResponse, scheduleResponse] = await Promise.all([
+          fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json"),
+          fetch("https://api.jolpi.ca/ergast/f1/2026.json"),
+        ]);
 
         if (!standingsResponse.ok || !scheduleResponse.ok) {
           throw new Error("Failed to load championship data");
         }
 
-        const standingsData = await standingsResponse.json();
-        const scheduleData = await scheduleResponse.json();
+        const [standingsData, scheduleData] = await Promise.all([
+          standingsResponse.json(),
+          scheduleResponse.json(),
+        ]);
 
         const scheduledRaces: Race[] =
           scheduleData?.MRData?.RaceTable?.Races ?? [];
 
-        const availableRounds = scheduledRaces
-          .map((race) => Number(race.round))
-          .filter(Number.isFinite);
+        const results = await Promise.all(
+          scheduledRaces.map(async (scheduledRace) => {
+            try {
+              const response = await fetch(
+                `https://api.jolpi.ca/ergast/f1/2026/${scheduledRace.round}/results.json`
+              );
+              if (!response.ok) return null;
 
-        const resultResponses = await Promise.all(
-          availableRounds.map((round) =>
-            fetch(
-              `https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`,
-              { cache: "no-store" }
-            )
-          )
+              const page = await response.json();
+              const race = page?.MRData?.RaceTable?.Races?.[0];
+              return race && (race.Results?.length ?? 0) > 0 ? race : null;
+            } catch {
+              return null;
+            }
+          })
         );
-
-        const races: Race[] = [];
-
-        for (const response of resultResponses) {
-          if (!response.ok) continue;
-
-          const page = await response.json();
-          const race = page?.MRData?.RaceTable?.Races?.[0];
-
-          if (race) races.push(race);
-        }
 
         if (cancelled) return;
 
@@ -182,9 +175,9 @@ export default function ChampionshipDriversPage() {
           drivers:
             standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]
               ?.DriverStandings ?? [],
-          races: races.sort(
-            (a, b) => Number(a.round) - Number(b.round)
-          ),
+          races: results
+            .filter((race): race is Race => race !== null)
+            .sort((a, b) => Number(a.round) - Number(b.round)),
         });
       } catch {
         if (!cancelled) setData({ drivers: [], races: [] });

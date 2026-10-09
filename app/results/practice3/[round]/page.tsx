@@ -147,7 +147,7 @@ export default function PracticePage() {
 
     Promise.all([
       fetchGrandPrix(),
-      fetch("https://api.openf1.org/v1/sessions?year=2026").then((res) =>
+      fetch("https://api.openf1.org/v1/sessions").then((res) =>
         res.ok ? res.json() : []
       ),
     ])

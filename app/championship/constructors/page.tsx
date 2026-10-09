@@ -147,12 +147,37 @@ export default function ChampionshipConstructorsPage() {
 
         if (cancelled) return;
 
-        setConstructors(Array.isArray(standingsData) ? standingsData : []);
-        setRaces(
-          raceResponses
-            .filter((race): race is Race => race !== null)
-            .sort((a, b) => Number(a.round) - Number(b.round))
-        );
+        const completedRaces = raceResponses
+          .filter((race): race is Race => race !== null)
+          .sort((a, b) => Number(a.round) - Number(b.round));
+        const rawConstructors: ConstructorStanding[] = Array.isArray(standingsData)
+          ? standingsData
+          : [];
+        const totals = new Map<string, number>();
+
+        for (const race of completedRaces) {
+          for (const result of race.Results ?? []) {
+            const id = result.Constructor?.constructorId;
+            if (!id) continue;
+            totals.set(id, (totals.get(id) ?? 0) + Number(result.points ?? 0));
+          }
+        }
+
+        const sortedConstructors = rawConstructors
+          .map((constructor) => ({
+            ...constructor,
+            points: String(
+              totals.get(constructor.Constructor.constructorId) ?? 0
+            ),
+          }))
+          .sort((a, b) => Number(b.points) - Number(a.points))
+          .map((constructor, index) => ({
+            ...constructor,
+            position: String(index + 1),
+          }));
+
+        setConstructors(sortedConstructors);
+        setRaces(completedRaces);
       } catch {
         if (cancelled) return;
         setConstructors([]);

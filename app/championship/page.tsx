@@ -278,7 +278,7 @@ export default function ChampionshipDriversPage() {
       ? pad.top + ((value - 1) / Math.max(1, maxRank - 1)) * innerH
       : pad.top + innerH - (value / maxPoints) * innerH;
 
-  const majorDrivers = chartDrivers.slice(0, 8);
+  const majorDrivers = chartDrivers;
 
   const ticks = rankView
     ? Array.from({ length: maxRank }, (_, index) => index + 1)

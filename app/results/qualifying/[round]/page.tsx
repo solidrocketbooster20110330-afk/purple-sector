@@ -1,5 +1,6 @@
 import BottomNav from "../../../components/BottomNav";
 import ResultsTabs from "../../ResultsTabs";
+import { getSessionTargetTime, type GrandPrix } from "../../../../lib/grandPrix";
 
 type SessionResult = {
   position: number;
@@ -43,30 +44,47 @@ export default async function QualifyingPage({
 
   try {
     const sessionRes = await fetch(
-      "https://api.openf1.org/v1/sessions?year=2026",
+      "https://api.openf1.org/v1/sessions",
       {
         next: { revalidate: 3600 },
       }
     );
 
-    const sessions = await sessionRes.json();
+    const sessionData = await sessionRes.json();
+    const sessions = Array.isArray(sessionData) ? sessionData : [];
+    const targetTime = getSessionTargetTime(
+      race as GrandPrix | null,
+      "Qualifying"
+    );
 
-    const qualifyingSession =
-      sessions.find(
-        (session: {
-          session_name?: string;
-          session_type?: string;
-        }) =>
-          session.session_name
-            ?.toLowerCase()
-            .includes("qualifying") ||
-          session.session_type
-            ?.toLowerCase()
-            .includes("qualifying")
-      );
+    const qualifyingSession = Number.isFinite(targetTime)
+      ? sessions
+          .filter(
+            (session: {
+              session_key?: number;
+              session_name?: string;
+              date_start?: string;
+              is_cancelled?: boolean;
+            }) => {
+              const sessionTime = new Date(session.date_start ?? "").getTime();
 
-    const sessionKey =
-      qualifyingSession?.session_key;
+              return (
+                session.session_name === "Qualifying" &&
+                !session.is_cancelled &&
+                Number.isFinite(sessionTime) &&
+                sessionTime <= Date.now() &&
+                Math.abs(sessionTime - targetTime) <= 6 * 60 * 60 * 1000
+              );
+            }
+          )
+          .sort(
+            (a: { date_start?: string }, b: { date_start?: string }) =>
+              Math.abs(new Date(a.date_start ?? "").getTime() - targetTime) -
+              Math.abs(new Date(b.date_start ?? "").getTime() - targetTime)
+          )[0] ?? null
+      : null;
+
+    const sessionKey = qualifyingSession?.session_key;
 
     if (sessionKey) {
       const [resultsRes, driversRes] =

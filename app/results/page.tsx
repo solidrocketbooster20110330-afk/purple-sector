@@ -26,7 +26,7 @@ type RaceResult = {
     Time?: { time: string };
     AverageSpeed?: { units: string; speed: string };
   };
-  Driver: { givenName: string; familyName: string };
+  Driver: { driverId?: string; givenName: string; familyName: string };
   Constructor: { name: string; constructorId?: string };
 };
 
@@ -437,7 +437,7 @@ export default function ResultsPage() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      <Link href={`/championship/${(driver as RaceResult & { Driver: { driverId?: string } }).Driver.driverId ?? ""}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</Link>
+                      <Link href={`/championship/${driver.Driver.driverId ?? ""}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</Link>
                     </td>
                     <td
                       style={{

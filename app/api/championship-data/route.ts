@@ -11,9 +11,9 @@ async function jsonOrNull(response: Response) {
 export async function GET() {
   try {
     const [standingsResponse, scheduleResponse, constructorResponse] = await Promise.all([
-      fetch(`${API}/${SEASON}/driverstandings.json`),
-      fetch(`${API}/${SEASON}.json`),
-      fetch(`${API}/${SEASON}/constructorstandings.json`),
+      fetch(`${API}/${SEASON}/driverstandings.json`, { next: { revalidate: 900 } }),
+      fetch(`${API}/${SEASON}.json`, { next: { revalidate: 3600 } }),
+      fetch(`${API}/${SEASON}/constructorstandings.json`, { next: { revalidate: 900 } }),
     ]);
     const [standingsData, scheduleData, constructorData] = await Promise.all([
       jsonOrNull(standingsResponse), jsonOrNull(scheduleResponse), jsonOrNull(constructorResponse),
@@ -30,8 +30,8 @@ export async function GET() {
         const round = scheduledRace.round;
         try {
           const [raceResponse, sprintResponse] = await Promise.all([
-            fetch(`${API}/${SEASON}/${round}/results.json`),
-            fetch(`${API}/${SEASON}/${round}/sprint.json`),
+            fetch(`${API}/${SEASON}/${round}/results.json`, { next: { revalidate: 900 } }),
+            fetch(`${API}/${SEASON}/${round}/sprint.json`, { next: { revalidate: 900 } }),
           ]);
           const [racePage, sprintPage] = await Promise.all([jsonOrNull(raceResponse), jsonOrNull(sprintResponse)]);
           const race = racePage?.MRData?.RaceTable?.Races?.[0];

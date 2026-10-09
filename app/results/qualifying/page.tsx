@@ -17,7 +17,7 @@ import {
 type QualifyingResult = {
   position: string;
   number: string;
-  Driver: { givenName: string; familyName: string };
+  Driver: { driverId?: string; givenName: string; familyName: string };
   Constructor: { name: string; constructorId?: string };
   Q1?: string;
   Q2?: string;
@@ -114,7 +114,7 @@ export default function QualifyingPage() {
               <tr key={d.position}>
                 <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #35191e"}}>{d.position==="1"?"🥇":d.position==="2"?"🥈":d.position==="3"?"🥉":`P${d.position}`}</td>
                 <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #35191e"}}>#{d.number}</td>
-                <td style={{padding:"11px 7px",borderBottom:"1px solid #35191e",whiteSpace:"nowrap"}}><Link href={`/championship/${(d as QualifyingResult & { Driver: { driverId?: string } }).Driver.driverId ?? ""}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{d.Driver.givenName} {d.Driver.familyName}</Link></td>
+                <td style={{padding:"11px 7px",borderBottom:"1px solid #35191e",whiteSpace:"nowrap"}}><Link href={`/championship/${d.Driver.driverId ?? ""}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{d.Driver.givenName} {d.Driver.familyName}</Link></td>
                 <td style={{padding:"11px 7px",borderBottom:"1px solid #35191e",color:"#ef233c",whiteSpace:"normal"}}><Link href={`/championship/constructors/${d.Constructor.constructorId ?? ""}`} style={{ color: "#ef233c", textDecoration: "none" }}>{d.Constructor.name}</Link></td>
                 <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #35191e"}}>{d.Q1 ?? "-"}</td>
                 <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #35191e"}}>{d.Q2 ?? "-"}</td>

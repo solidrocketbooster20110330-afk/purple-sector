@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BottomNav from "../../components/BottomNav";
 
 type ConstructorStanding = {
@@ -107,6 +107,8 @@ export default function ChampionshipConstructorsPage() {
   const [constructors, setConstructors] = useState<ConstructorStanding[]>([]);
   const [races, setRaces] = useState<Race[]>([]);
   const [rankView, setRankView] = useState(false);
+  const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
+  const animatedLinePointsRef = useRef<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -227,6 +229,79 @@ export default function ChampionshipConstructorsPage() {
     rankView
       ? pad.top + ((value - 1) / Math.max(1, maxRank - 1)) * innerH
       : pad.top + innerH - (value / maxPoints) * innerH;
+
+  const linePointsByTeam = useMemo(() => Object.fromEntries(chartTeams.map((team) => {
+    const points = rankView ? team.ranks : team.points;
+    const line = points.map((point, index) => {
+      const x = pad.left + (index * innerW) / Math.max(1, races.length - 1);
+      const y = rankView
+        ? pad.top + ((point.value - 1) / Math.max(1, maxRank - 1)) * innerH
+        : pad.top + innerH - (point.value / maxPoints) * innerH;
+      return String(x) + "," + String(y);
+    }).join(" ");
+    return [team.id, line];
+  })), [chartTeams, rankView, innerW, innerH, maxRank, maxPoints, races.length]);
+
+  useEffect(() => {
+    const targetLines = linePointsByTeam;
+    const previous = animatedLinePointsRef.current;
+    const previousIds = Object.keys(previous);
+
+    if (previousIds.length === 0) {
+      animatedLinePointsRef.current = targetLines;
+      setAnimatedLinePoints(targetLines);
+      return;
+    }
+
+    const parsePoints = (value: string) =>
+      value.trim().split(/\s+/).map((pair) => pair.split(",").map(Number) as [number, number]);
+
+    const pairs = Object.fromEntries(
+      Object.entries(targetLines).map(([id, target]) => {
+        const fromPoints = parsePoints(previous[id] ?? target);
+        const toPoints = parsePoints(target);
+        return [id, fromPoints.length === toPoints.length ? { fromPoints, toPoints } : null];
+      })
+    );
+
+    const startTime = performance.now();
+    const duration = 500;
+    let frame = 0;
+
+    const animate = (now: number) => {
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const nextLines: Record<string, string> = {};
+
+      for (const [id, target] of Object.entries(targetLines)) {
+        const pair = pairs[id];
+        if (!pair) {
+          nextLines[id] = target;
+          continue;
+        }
+        const { fromPoints, toPoints } = pair as {
+          fromPoints: [number, number][];
+          toPoints: [number, number][];
+        };
+        nextLines[id] = toPoints.map(([x, y], index) => {
+          const [fromX, fromY] = fromPoints[index];
+          return `${fromX + (x - fromX) * eased},${fromY + (y - fromY) * eased}`;
+        }).join(" ");
+      }
+
+      animatedLinePointsRef.current = nextLines;
+      setAnimatedLinePoints(nextLines);
+
+      if (progress < 1) frame = requestAnimationFrame(animate);
+      else {
+        animatedLinePointsRef.current = targetLines;
+        setAnimatedLinePoints(targetLines);
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [linePointsByTeam]);
 
   return (
     <main style={pageStyle}>
@@ -357,7 +432,7 @@ export default function ChampionshipConstructorsPage() {
                       teamColors[team.name] ??
                       (teamIndex === 0 ? red : teamIndex === 1 ? purple : dimLine);
 
-                    const line = points
+                    const line = animatedLinePoints[team.id] ?? linePointsByTeam[team.id] ?? points
                       .map((point, index) => `${getX(index)},${getY(point.value)}`)
                       .join(" ");
 

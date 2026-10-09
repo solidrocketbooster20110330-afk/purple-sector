@@ -171,14 +171,31 @@ export default function ChampionshipDriversPage() {
 
         if (cancelled) return;
 
-        setData({
-          drivers:
-            standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]
-              ?.DriverStandings ?? [],
-          races: resultRaces
-            .filter((race): race is Race => race !== null)
-            .sort((a, b) => Number(a.round) - Number(b.round)),
-        });
+        const races = resultRaces
+          .filter((race): race is Race => race !== null)
+          .sort((a, b) => Number(a.round) - Number(b.round));
+        const rawDrivers: DriverStanding[] =
+          standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]
+            ?.DriverStandings ?? [];
+        const totals = new Map<string, number>();
+
+        for (const race of races) {
+          for (const result of race.Results ?? []) {
+            const id = result.Driver?.driverId;
+            if (!id) continue;
+            totals.set(id, (totals.get(id) ?? 0) + Number(result.points ?? 0));
+          }
+        }
+
+        const drivers = rawDrivers
+          .map((driver) => ({
+            ...driver,
+            points: String(totals.get(driver.Driver.driverId) ?? 0),
+          }))
+          .sort((a, b) => Number(b.points) - Number(a.points))
+          .map((driver, index) => ({ ...driver, position: String(index + 1) }));
+
+        setData({ drivers, races });
       } catch {
         if (!cancelled) setData({ drivers: [], races: [] });
       }

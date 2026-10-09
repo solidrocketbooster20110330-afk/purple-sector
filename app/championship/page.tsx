@@ -52,7 +52,7 @@ const teamColors: Record<string, string> = {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#050505 0%,#140707 100%)",
+  background: "linear-gradient(180deg, #050505 0%, #08070d 28%, #120c1d 58%, #1b1230 100%)",
   color: "white",
   padding: "24px",
   paddingBottom: "100px",

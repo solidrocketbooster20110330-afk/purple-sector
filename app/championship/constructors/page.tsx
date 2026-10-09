@@ -162,7 +162,7 @@ export default function ChampionshipConstructorsPage() {
     ...chartTeams.flatMap((team) => team.points.map((point) => point.value))
   );
   const maxRank = Math.max(1, chartTeams.length);
-  const width = Math.max(720, races.length * 48);
+  const width = Math.max(360, Math.min(720, races.length * 36));
   const height = 300;
   const pad = { top: 20, right: 18, bottom: 44, left: 46 };
   const innerW = width - pad.left - pad.right;

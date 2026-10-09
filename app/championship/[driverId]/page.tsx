@@ -212,6 +212,7 @@ export default async function DriverDetailPage({
   const points = driver?.points ?? "0";
   const team = driver?.Constructors?.[0]?.name ?? resultDriver?.Constructor?.name ?? "Unknown Team";
   const constructorId = driver?.Constructors?.[0]?.constructorId;
+  const constructorId = driver?.Constructors?.[0]?.constructorId;
   const number = driver?.Driver.permanentNumber ?? "-";
   const teamColor = teamColors[team] ?? red;
 

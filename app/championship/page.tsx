@@ -83,6 +83,25 @@ const tabStyle = {
   color: "white",
 };
 
+const dashedDriverIds = new Set([
+  "russell", "george_russell", "leclerc", "charles_leclerc",
+  "piastri", "oscar_piastri", "hadjar", "isack_hadjar",
+  "lawson", "liam_lawson", "stroll", "lance_stroll",
+  "ocon", "esteban_ocon", "bottas", "valtteri_bottas",
+  "bortoleto", "gabriel_bortoleto", "colapinto", "franco_colapinto",
+  "albon", "alex_albon",
+]);
+const dashedDriverNames = new Set([
+  "george russell", "charles leclerc", "oscar piastri", "isack hadjar",
+  "liam lawson", "lance stroll", "esteban ocon", "valtteri bottas",
+  "gabriel bortoleto", "franco colapinto", "alex albon",
+]);
+function driverDashArray(id: string, name: string): string | undefined {
+  const normalizedName = name.toLowerCase().replace(/\\s+/g, " ").trim();
+  if (normalizedName.includes("yuki tsunoda")) return "1 5";
+  return dashedDriverIds.has(id) || dashedDriverNames.has(normalizedName) ? "8 6" : undefined;
+}
+
 function positionLabel(position: string) {
   if (position === "1") return "🥇";
   if (position === "2") return "🥈";
@@ -134,44 +153,18 @@ export default function ChampionshipDriversPage() {
     async function loadData() {
       try {
         const [standingsResponse, scheduleResponse] = await Promise.all([
-          fetch("https://api.jolpi.ca/ergast/f1/2026/driverstandings.json"),
-          fetch("https://api.jolpi.ca/ergast/f1/2026.json"),
+          fetch("/api/championship-data", { cache: "no-store" }),
+          fetch("/api/championship-data", { cache: "no-store" }),
         ]);
         if (!standingsResponse.ok || !scheduleResponse.ok) {
           throw new Error("Failed to load championship data");
         }
 
-        const [standingsData, scheduleData] = await Promise.all([
-          standingsResponse.json(),
-          scheduleResponse.json(),
-        ]);
-        const scheduledRaces: Race[] =
-          scheduleData?.MRData?.RaceTable?.Races ?? [];
-
-        const roundData = await Promise.all(
-          scheduledRaces.map(async (scheduledRace) => {
-            const round = scheduledRace.round;
-            try {
-              const [raceResponse, sprintResponse] = await Promise.all([
-                fetch(`https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`),
-                fetch(`https://api.jolpi.ca/ergast/f1/2026/${round}/sprint.json`),
-              ]);
-              const [racePage, sprintPage] = await Promise.all([
-                raceResponse.ok ? raceResponse.json() : null,
-                sprintResponse.ok ? sprintResponse.json() : null,
-              ]);
-              const race = racePage?.MRData?.RaceTable?.Races?.[0];
-              const sprintRace = sprintPage?.MRData?.RaceTable?.Races?.[0];
-              const Results = race?.Results ?? [];
-              const SprintResults = sprintRace?.SprintResults ?? [];
-              return Results.length || SprintResults.length
-                ? { ...(race ?? scheduledRace), Results, SprintResults }
-                : null;
-            } catch {
-              return null;
-            }
-          })
-        );
+        const sharedData = await standingsResponse.json();
+        const standingsData = sharedData?.standingsData;
+        const scheduleData = sharedData?.scheduleData;
+        const scheduledRaces: Race[] = scheduleData?.MRData?.RaceTable?.Races ?? [];
+        const roundData: (Race | null)[] = sharedData?.roundData ?? [];
 
         if (cancelled) return;
 
@@ -223,10 +216,10 @@ export default function ChampionshipDriversPage() {
     const base = drivers.map((driver) => {
       let cumulative = 0;
       const points = visibleRaces.map((race) => {
-        cumulative += [...(race.Results ?? []), ...(race.SprintResults ?? [])]
-          .filter((result) => result.Driver?.driverId === driver.Driver.driverId)
-          .reduce((sum, result) => sum + Number(result.points ?? 0), 0);
-
+        const id = driver.Driver.driverId;
+        const earned = [...(race.Results ?? []), ...(race.SprintResults ?? [])]
+          .reduce((sum, result) => sum + (result.Driver?.driverId === id ? Number(result.points ?? 0) : 0), 0);
+        cumulative += earned;
         return { round: race.round, value: cumulative };
       });
 
@@ -430,49 +423,7 @@ export default function ChampionshipDriversPage() {
                 {majorDrivers.map((driver) => {
                   const series = rankView ? driver.ranks : driver.points;
                   const stroke = driver.color;
-                  // Jolpica uses short IDs (e.g. "leclerc", "piastri"),
-                  // so match both IDs and full names to avoid silently missing styles.
-                  const dashedDriverIds = new Set([
-                    "russell",
-                    "george_russell",
-                    "leclerc",
-                    "charles_leclerc",
-                    "piastri",
-                    "oscar_piastri",
-                    "hadjar",
-                    "isack_hadjar",
-                    "lawson",
-                    "liam_lawson",
-                    "stroll",
-                    "lance_stroll",
-                    "ocon",
-                    "esteban_ocon",
-                    "bottas",
-                    "valtteri_bottas",
-                    "bortoleto",
-                    "gabriel_bortoleto",
-                    "colapinto",
-                    "franco_colapinto",
-                    "albon",
-                    "alex_albon",
-                  ]);
-                  const normalizedName = driver.name.toLowerCase().replace(/\\s+/g, " ").trim();
-                  const dashedDriverNames = new Set([
-                    "george russell",
-                    "charles leclerc",
-                    "oscar piastri",
-                    "isack hadjar",
-                    "liam lawson",
-                    "lance stroll",
-                    "esteban ocon",
-                    "valtteri bottas",
-                    "gabriel bortoleto",
-                    "franco colapinto",
-                    "alex albon",
-                  ]);
-                  const isYuki = normalizedName.includes("yuki tsunoda");
-                  const isDashed = dashedDriverIds.has(driver.id) || dashedDriverNames.has(normalizedName);
-                  const dashArray = isYuki ? "1 5" : isDashed ? "8 6" : undefined;
+                  const dashArray = driverDashArray(driver.id, driver.name);
 
                   const line = series
                     .map(
@@ -539,29 +490,7 @@ export default function ChampionshipDriversPage() {
               }}
             >
               {majorDrivers.map((driver) => {
-                const dashedDriverIds = new Set([
-                  "russell", "george_russell",
-                  "leclerc", "charles_leclerc",
-                  "piastri", "oscar_piastri",
-                  "hadjar", "isack_hadjar",
-                  "lawson", "liam_lawson",
-                  "stroll", "lance_stroll",
-                  "ocon", "esteban_ocon",
-                  "bottas", "valtteri_bottas",
-                  "bortoleto", "gabriel_bortoleto",
-                  "colapinto", "franco_colapinto",
-                  "albon", "alex_albon",
-                ]);
-                const normalizedName = driver.name.toLowerCase().replace(/\\s+/g, " ").trim();
-                const dashedDriverNames = new Set([
-                  "george russell", "charles leclerc", "oscar piastri",
-                  "isack hadjar", "liam lawson", "lance stroll",
-                  "esteban ocon", "valtteri bottas", "gabriel bortoleto",
-                  "franco colapinto", "alex albon",
-                ]);
-                const isYuki = normalizedName.includes("yuki tsunoda");
-                const isDashed = dashedDriverIds.has(driver.id) || dashedDriverNames.has(normalizedName);
-                const dashArray = isYuki ? "1 5" : isDashed ? "8 6" : undefined;
+                const dashArray = driverDashArray(driver.id, driver.name);
 
                 return (
                   <div

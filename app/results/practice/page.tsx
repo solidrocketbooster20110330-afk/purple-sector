@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function PracticePage() {
-  redirect("/results/practice/1");
+  redirect("/results/practice/latest");
 }

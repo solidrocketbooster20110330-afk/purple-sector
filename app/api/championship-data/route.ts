@@ -1,48 +1,70 @@
 type DriverStanding = { Driver: { driverId: string; givenName: string; familyName: string; permanentNumber?: string }; position: string; points: string; Constructors?: { name: string }[] };
 type ConstructorStanding = { Constructor: { constructorId: string; name: string }; position: string; points: string };
 type RaceResult = { Driver?: { driverId?: string }; Constructor?: { constructorId?: string }; points?: string };
-type Race = { round: string; Results?: RaceResult[]; SprintResults?: RaceResult[]; [key: string]: unknown };
+type Race = { round: string; Results?: RaceResult[]; SprintResults?: RaceResult[]; [key: string]: any };
+
 const SEASON = "2026";
 const API = "https://api.jolpi.ca/ergast/f1";
+const PAGE_SIZE = 100;
+
 async function jsonOrNull(response: Response) {
   if (!response.ok) return null;
   try { return await response.json(); } catch { return null; }
 }
+
+async function fetchJson(url: string) {
+  return jsonOrNull(await fetch(url, { next: { revalidate: 900 } }));
+}
+
+async function fetchAllRacePages(resource: "results" | "sprint", firstPage: any) {
+  const total = Number(firstPage?.MRData?.total ?? 0);
+  const pageCount = Math.ceil(total / PAGE_SIZE);
+  const rest = await Promise.all(
+    Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) =>
+      fetchJson(`${API}/${SEASON}/${resource}.json?limit=${PAGE_SIZE}&offset=${(index + 1) * PAGE_SIZE}`)
+    )
+  );
+  const byRound = new Map<string, Race>();
+  for (const page of [firstPage, ...rest]) {
+    const races: Race[] = page?.MRData?.RaceTable?.Races ?? [];
+    for (const race of races) {
+      const round = String(race.round);
+      const current = byRound.get(round) ?? { ...race, Results: [], SprintResults: [] };
+      if (resource === "results") current.Results = [...(current.Results ?? []), ...(race.Results ?? [])];
+      else current.SprintResults = [...(current.SprintResults ?? []), ...(race.SprintResults ?? [])];
+      byRound.set(round, current);
+    }
+  }
+  return byRound;
+}
+
 export async function GET() {
   try {
-    const [standingsResponse, scheduleResponse, constructorResponse] = await Promise.all([
-      fetch(`${API}/${SEASON}/driverstandings.json`, { next: { revalidate: 900 } }),
-      fetch(`${API}/${SEASON}.json`, { next: { revalidate: 3600 } }),
-      fetch(`${API}/${SEASON}/constructorstandings.json`, { next: { revalidate: 900 } }),
+    // Fetch the season result tables in pages instead of requesting each round separately.
+    const [standingsData, scheduleData, constructorData, firstResultsPage, firstSprintPage] = await Promise.all([
+      fetchJson(`${API}/${SEASON}/driverstandings.json`),
+      fetchJson(`${API}/${SEASON}.json`),
+      fetchJson(`${API}/${SEASON}/constructorstandings.json`),
+      fetchJson(`${API}/${SEASON}/results.json?limit=${PAGE_SIZE}&offset=0`),
+      fetchJson(`${API}/${SEASON}/sprint.json?limit=${PAGE_SIZE}&offset=0`),
     ]);
-    const [standingsData, scheduleData, constructorData] = await Promise.all([
-      jsonOrNull(standingsResponse), jsonOrNull(scheduleResponse), jsonOrNull(constructorResponse),
-    ]);
-    if (!standingsData || !scheduleData || !constructorData) {
+    if (!standingsData || !scheduleData || !constructorData || !firstResultsPage || !firstSprintPage) {
       return Response.json({ error: "Championship data is temporarily unavailable" }, { status: 502 });
     }
+
+    const [raceResultsByRound, sprintResultsByRound] = await Promise.all([
+      fetchAllRacePages("results", firstResultsPage),
+      fetchAllRacePages("sprint", firstSprintPage),
+    ]);
     const scheduledRaces: Race[] = scheduleData?.MRData?.RaceTable?.Races ?? [];
-    const roundData: (Race | null)[] = new Array(scheduledRaces.length).fill(null);
-    const batchSize = 4;
-    for (let start = 0; start < scheduledRaces.length; start += batchSize) {
-      const batch = scheduledRaces.slice(start, start + batchSize);
-      const items = await Promise.all(batch.map(async (scheduledRace) => {
-        const round = scheduledRace.round;
-        try {
-          const [raceResponse, sprintResponse] = await Promise.all([
-            fetch(`${API}/${SEASON}/${round}/results.json`, { next: { revalidate: 900 } }),
-            fetch(`${API}/${SEASON}/${round}/sprint.json`, { next: { revalidate: 900 } }),
-          ]);
-          const [racePage, sprintPage] = await Promise.all([jsonOrNull(raceResponse), jsonOrNull(sprintResponse)]);
-          const race = racePage?.MRData?.RaceTable?.Races?.[0];
-          const sprintRace = sprintPage?.MRData?.RaceTable?.Races?.[0];
-          const Results = race?.Results ?? [];
-          const SprintResults = sprintRace?.SprintResults ?? [];
-          return Results.length || SprintResults.length ? { ...(race ?? scheduledRace), Results, SprintResults } : null;
-        } catch { return null; }
-      }));
-      items.forEach((item, index) => { roundData[start + index] = item; });
-    }
+    const roundData: (Race | null)[] = scheduledRaces.map((scheduledRace) => {
+      const round = String(scheduledRace.round);
+      const Results = raceResultsByRound.get(round)?.Results ?? [];
+      const SprintResults = sprintResultsByRound.get(round)?.SprintResults ?? [];
+      if (Results.length === 0 && SprintResults.length === 0) return null;
+      return { ...scheduledRace, Results, SprintResults };
+    });
+
     return Response.json({
       standingsData, scheduleData, roundData,
       drivers: standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],

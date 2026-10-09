@@ -111,43 +111,18 @@ export default function ChampionshipConstructorsPage() {
       try {
         const [standingsResponse, scheduleResponse] = await Promise.all([
           fetch("/api/constructors", { cache: "no-store" }),
-          fetch("https://api.jolpi.ca/ergast/f1/2026.json"),
+          fetch("/api/championship-data", { cache: "no-store" }),
         ]);
         if (!standingsResponse.ok || !scheduleResponse.ok) {
           throw new Error("Failed to load constructor championship data");
         }
 
-        const [standingsData, scheduleData] = await Promise.all([
+        const [standingsData, sharedData] = await Promise.all([
           standingsResponse.json(),
           scheduleResponse.json(),
         ]);
-        const scheduledRaces: Race[] =
-          scheduleData?.MRData?.RaceTable?.Races ?? [];
-
-        const roundData = await Promise.all(
-          scheduledRaces.map(async (scheduledRace) => {
-            const round = scheduledRace.round;
-            try {
-              const [raceResponse, sprintResponse] = await Promise.all([
-                fetch(`https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`),
-                fetch(`https://api.jolpi.ca/ergast/f1/2026/${round}/sprint.json`),
-              ]);
-              const [racePage, sprintPage] = await Promise.all([
-                raceResponse.ok ? raceResponse.json() : null,
-                sprintResponse.ok ? sprintResponse.json() : null,
-              ]);
-              const race = racePage?.MRData?.RaceTable?.Races?.[0];
-              const sprintRace = sprintPage?.MRData?.RaceTable?.Races?.[0];
-              const Results = race?.Results ?? [];
-              const SprintResults = sprintRace?.SprintResults ?? [];
-              return Results.length || SprintResults.length
-                ? { ...(race ?? scheduledRace), Results, SprintResults }
-                : null;
-            } catch {
-              return null;
-            }
-          })
-        );
+        const scheduledRaces: Race[] = sharedData?.scheduleData?.MRData?.RaceTable?.Races ?? [];
+        const roundData: (Race | null)[] = sharedData?.roundData ?? [];
 
         if (cancelled) return;
 
@@ -205,8 +180,7 @@ export default function ChampionshipConstructorsPage() {
 
       const points = races.map((race) => {
         const earned = [...(race.Results ?? []), ...(race.SprintResults ?? [])]
-          .filter((result) => result.Constructor?.constructorId === id)
-          .reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+          .reduce((sum, result) => sum + (result.Constructor?.constructorId === id ? Number(result.points ?? 0) : 0), 0);
 
         cumulative += earned;
         return { round: race.round, value: cumulative };

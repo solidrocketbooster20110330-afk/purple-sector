@@ -27,7 +27,7 @@ const cardStyle = {
 
 function getRaceDateTime(race: Race) {
   const time = race.time ?? "23:59:59Z";
-  const normalizedTime = /(?:Z|[+-]\\d{2}:\\d{2})$/.test(time)
+  const normalizedTime = /(?:Z|[+-]\d{2}:\d{2})$/.test(time)
     ? time
     : `${time}Z`;
 
@@ -35,7 +35,12 @@ function getRaceDateTime(race: Race) {
 }
 
 function formatRaceDateKst(race: Race) {
-  const dateTime = new Date(`${race.date}T${race.time ? (/(?:Z|[+-]\\d{2}:\\d{2})$/.test(race.time) ? race.time : `${race.time}Z`) : "00:00:00Z"}`);
+  const time = race.time
+    ? /(?:Z|[+-]\d{2}:\d{2})$/.test(race.time)
+      ? race.time
+      : `${race.time}Z`
+    : "00:00:00Z";
+  const dateTime = new Date(`${race.date}T${time}`);
   const dateLabel = dateTime.toLocaleDateString("ko-KR", {
     timeZone: "Asia/Seoul",
     year: "numeric",

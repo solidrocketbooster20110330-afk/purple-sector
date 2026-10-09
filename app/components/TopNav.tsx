@@ -29,11 +29,11 @@ export default function TopNav() {
         </Link>
       </div>
 
-      <nav aria-label="메인 내비게이션" style={{ display: "flex", alignItems: "stretch", gap: "clamp(20px, 5.5vw, 30px)", minHeight: "48px", padding: "0 18px", overflowX: "auto", overflowY: "hidden", whiteSpace: "nowrap", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
+      <nav aria-label="메인 내비게이션" style={{ display: "flex", alignItems: "stretch", gap: "clamp(14px, 3.8vw, 22px)", minHeight: "48px", padding: "0 12px", overflowX: "auto", overflowY: "hidden", whiteSpace: "nowrap", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
         {navItems.map((item) => {
           const active = item.match(pathname);
           return (
-            <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "48px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "15px", fontWeight: active ? 800 : 600, WebkitTapHighlightColor: "transparent" }}>
+            <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "48px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "14px", fontWeight: active ? 800 : 600, WebkitTapHighlightColor: "transparent" }}>
               {item.label}
               {active && <span aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "3px", borderRadius: "3px 3px 0 0", background: "#7c3aed" }} />}
             </Link>

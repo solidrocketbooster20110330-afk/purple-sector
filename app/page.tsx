@@ -40,7 +40,7 @@ const API = {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#050505 0%,#140707 100%)",
+  background: "linear-gradient(180deg, #050505 0%, #08070d 42%, #171025 100%)",
   color: "white",
   padding: "20px",
   paddingBottom: "90px",

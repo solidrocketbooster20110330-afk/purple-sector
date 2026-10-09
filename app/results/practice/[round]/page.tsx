@@ -122,9 +122,11 @@ export default function PracticePage() {
 
         const storedRound = getStoredGrandPrixRound();
         const selectedGp =
-          getGrandPrixByRound(gpList, routeRound) ??
-          getGrandPrixByRound(gpList, storedRound) ??
-          getLatestGrandPrix(gpList);
+          routeRound === "latest"
+            ? getLatestGrandPrix(gpList)
+            : getGrandPrixByRound(gpList, routeRound) ??
+              getGrandPrixByRound(gpList, storedRound) ??
+              getLatestGrandPrix(gpList);
 
         setRaces(gpList);
         setSelectedRace(selectedGp);
@@ -148,17 +150,19 @@ export default function PracticePage() {
           return;
         }
 
-        const raceTime = selectedGp.date
-          ? new Date(selectedGp.date).getTime()
-          : Number.NaN;
+        const targetTime = getSessionTargetTime(selectedGp, SESSION_NAME);
 
-        const matchingSession = Number.isFinite(raceTime)
+        const matchingSession = Number.isFinite(targetTime)
           ? allSessions
-              .filter((session) => new Date(session.date_start).getTime() <= raceTime)
+              .filter(
+                (session) =>
+                  Math.abs(new Date(session.date_start).getTime() - targetTime) <=
+                  6 * 60 * 60 * 1000
+              )
               .sort(
                 (a: OpenF1Session, b: OpenF1Session) =>
-                  Math.abs(new Date(a.date_start).getTime() - raceTime) -
-                  Math.abs(new Date(b.date_start).getTime() - raceTime)
+                  Math.abs(new Date(a.date_start).getTime() - targetTime) -
+                  Math.abs(new Date(b.date_start).getTime() - targetTime)
               )[0] ?? null
           : null;
 

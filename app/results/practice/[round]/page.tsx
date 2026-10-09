@@ -50,7 +50,7 @@ const SESSION_NAME = "Practice 1";
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  background: "linear-gradient(180deg,#050505 0%,#140707 100%)",
   color: "white",
   padding: "24px",
   paddingBottom: "100px",
@@ -58,8 +58,8 @@ const pageStyle = {
 };
 
 const cardStyle = {
-  background: "#131942",
-  border: "1px solid #2b347a",
+  background: "#101010",
+  border: "1px solid #3a1217",
   borderRadius: "20px",
   padding: "20px",
   overflowX: "auto" as const,
@@ -222,7 +222,7 @@ export default function PracticePage() {
             padding: 0,
             border: 0,
             background: "transparent",
-            color: "#a9adff",
+            color: "#ef233c",
             fontSize: "18px",
             fontWeight: "bold",
             cursor: "pointer",
@@ -240,8 +240,8 @@ export default function PracticePage() {
               left: 0,
               right: 0,
               zIndex: 20,
-              background: "#131942",
-              border: "1px solid #2b347a",
+              background: "#101010",
+              border: "1px solid #3a1217",
               borderRadius: "14px",
               padding: "8px",
               maxHeight: "320px",
@@ -266,7 +266,7 @@ export default function PracticePage() {
                   marginBottom: "4px",
                   border: 0,
                   borderRadius: "10px",
-                  background: selectedRace?.round === race.round ? "#7c3aed" : "transparent",
+                  background: selectedRace?.round === race.round ? "#c4162a" : "transparent",
                   color: "white",
                   cursor: "pointer",
                   fontSize: "14px",
@@ -294,9 +294,9 @@ export default function PracticePage() {
                     style={{
                       textAlign: header === "DRIVER" || header === "TEAM" ? "left" : "center",
                       padding: "11px 7px",
-                      color: "#a9adff",
+                      color: "#ef233c",
                       fontSize: "12px",
-                      borderBottom: "1px solid #2b347a",
+                      borderBottom: "1px solid #3a1217",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -311,7 +311,7 @@ export default function PracticePage() {
                   <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>P{row.position}</td>
                   <td style={{ ...cellStyle, textAlign: "center", fontWeight: "bold" }}>#{row.driver_number}</td>
                   <td style={cellStyle}>{row.full_name}</td>
-                  <td style={{ ...cellStyle, color: "#a9adff" }}>{row.team_name}</td>
+                  <td style={{ ...cellStyle, color: "#ef233c" }}>{row.team_name}</td>
                   <td style={{ ...cellStyle, textAlign: "center" }}>{statusText(row)}</td>
                   <td style={{ ...cellStyle, textAlign: "center" }}>
                     {row.dnf || row.dns || row.dsq ? "-" : formatGap(row.gap_to_leader)}
@@ -331,6 +331,6 @@ export default function PracticePage() {
 
 const cellStyle = {
   padding: "11px 7px",
-  borderBottom: "1px solid #222a66",
+  borderBottom: "1px solid #35191e",
   whiteSpace: "nowrap" as const,
 };

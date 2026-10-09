@@ -443,7 +443,7 @@ export default function ChampionshipDriversPage() {
                     "franco_colapinto",
                     "alex_albon",
                   ]);
-                  const isYuki = driver.id.toLowerCase().includes("tsunoda");
+                  const isYuki = driver.name.toLowerCase().includes("yuki");
                   const isDashed = dashedDrivers.has(driver.id);
                   const dashArray = isYuki ? "2 3" : isDashed ? "7 6" : undefined;
 

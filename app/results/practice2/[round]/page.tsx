@@ -133,10 +133,12 @@ export default function PracticePage() {
 
         const storedRound = getStoredGrandPrixRound();
         const selectedGp =
-          getGrandPrixByRound(gpList, routeRound) ??
-          getGrandPrixByRound(gpList, storedRound) ??
-          getRelevantGrandPrix(gpList) ??
-          getLatestGrandPrix(gpList);
+          routeRound === "latest"
+            ? getLatestGrandPrix(gpList)
+            : getGrandPrixByRound(gpList, routeRound) ??
+              getGrandPrixByRound(gpList, storedRound) ??
+              getRelevantGrandPrix(gpList) ??
+              getLatestGrandPrix(gpList);
 
         setRaces(gpList);
         setSelectedRace(selectedGp);

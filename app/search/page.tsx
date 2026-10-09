@@ -1,7 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import BottomNav from "../components/BottomNav";
+
+type DriverStanding = {
+  Driver: {
+    driverId: string;
+    givenName: string;
+    familyName: string;
+  };
+  Constructors?: { name: string }[];
+};
+
+type ConstructorStanding = {
+  Constructor: {
+    constructorId: string;
+    name: string;
+  };
+};
+
+type Race = {
+  round: string;
+  raceName: string;
+  Circuit?: {
+    Location?: {
+      country?: string;
+    };
+  };
+};
 
 type SearchItem = {
   type: "driver" | "team" | "race";
@@ -9,81 +36,13 @@ type SearchItem = {
   title: string;
   subtitle: string;
   href: string;
+  keywords?: string;
 };
-
-const drivers: SearchItem[] = [
-  ["max_verstappen", "Max Verstappen", "Red Bull Racing"],
-  ["lando_norris", "Lando Norris", "McLaren"],
-  ["oscar_piastri", "Oscar Piastri", "McLaren"],
-  ["charles_leclerc", "Charles Leclerc", "Ferrari"],
-  ["lewis_hamilton", "Lewis Hamilton", "Ferrari"],
-  ["george_russell", "George Russell", "Mercedes"],
-].map(([id, title, subtitle]) => ({
-  type: "driver",
-  id,
-  title,
-  subtitle,
-  href: `/championship/${id}`,
-}));
-
-const teams: SearchItem[] = [
-  ["mclaren", "McLaren"],
-  ["ferrari", "Ferrari"],
-  ["red_bull", "Red Bull Racing"],
-  ["mercedes", "Mercedes"],
-  ["aston_martin", "Aston Martin"],
-  ["alpine", "Alpine"],
-  ["williams", "Williams"],
-  ["rb", "Racing Bulls"],
-  ["haas", "Haas"],
-  ["audi", "Audi"],
-  ["cadillac", "Cadillac"],
-].map(([id, title]) => ({
-  type: "team",
-  id,
-  title,
-  subtitle: "Constructor",
-  href: `/championship/constructors/${id}`,
-}));
-
-const races: SearchItem[] = [
-  ["1", "Australian Grand Prix", "Round 1"],
-  ["2", "Chinese Grand Prix", "Round 2"],
-  ["3", "Japanese Grand Prix", "Round 3"],
-  ["4", "Bahrain Grand Prix", "Round 4"],
-  ["5", "Saudi Arabian Grand Prix", "Round 5"],
-  ["6", "Miami Grand Prix", "Round 6"],
-  ["7", "Emilia-Romagna Grand Prix", "Round 7"],
-  ["8", "Monaco Grand Prix", "Round 8"],
-  ["9", "Spanish Grand Prix", "Round 9"],
-  ["10", "Canadian Grand Prix", "Round 10"],
-  ["11", "Austrian Grand Prix", "Round 11"],
-  ["12", "British Grand Prix", "Round 12"],
-  ["13", "Belgian Grand Prix", "Round 13"],
-  ["14", "Hungarian Grand Prix", "Round 14"],
-  ["15", "Dutch Grand Prix", "Round 15"],
-  ["16", "Italian Grand Prix", "Round 16"],
-  ["17", "Azerbaijan Grand Prix", "Round 17"],
-  ["18", "Singapore Grand Prix", "Round 18"],
-  ["19", "United States Grand Prix", "Round 19"],
-  ["20", "Mexico City Grand Prix", "Round 20"],
-  ["21", "São Paulo Grand Prix", "Round 21"],
-  ["22", "Las Vegas Grand Prix", "Round 22"],
-  ["23", "Qatar Grand Prix", "Round 23"],
-  ["24", "Abu Dhabi Grand Prix", "Round 24"],
-].map(([id, title, subtitle]) => ({
-  type: "race",
-  id,
-  title,
-  subtitle,
-  href: `/results?round=${id}`,
-}));
-
-const allItems = [...drivers, ...teams, ...races];
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg, #050505 0%, #08070d 28%, #120c1d 58%, #1b1230 100%)",
+  background:
+    "linear-gradient(180deg, #050505 0%, #08070d 28%, #120c1d 58%, #1b1230 100%)",
   color: "white",
   padding: "24px",
   paddingBottom: "100px",
@@ -92,16 +51,121 @@ const pageStyle = {
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
+  const [items, setItems] = useState<SearchItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSearchData() {
+      try {
+        const responses = await Promise.all([
+          fetch("/api/standings", { cache: "no-store" }),
+          fetch("/api/constructors", { cache: "no-store" }),
+          fetch("/api/schedule", { cache: "no-store" }),
+        ]);
+
+        if (responses.some((response) => !response.ok)) {
+          throw new Error("Search data request failed");
+        }
+
+        const [driversData, constructorsData, racesData] = await Promise.all(
+          responses.map((response) => response.json())
+        );
+
+        if (
+          !Array.isArray(driversData) ||
+          !Array.isArray(constructorsData) ||
+          !Array.isArray(racesData)
+        ) {
+          throw new Error("Search data has an unexpected format");
+        }
+
+        const driverItems: SearchItem[] = (driversData as DriverStanding[])
+          .filter((driver) => driver?.Driver?.driverId)
+          .map((driver) => {
+            const id = driver.Driver.driverId;
+            const title = `${driver.Driver.givenName} ${driver.Driver.familyName}`;
+            const teamName = driver.Constructors?.[0]?.name ?? "Driver";
+
+            return {
+              type: "driver",
+              id,
+              title,
+              subtitle: teamName,
+              href: `/championship/${id}`,
+              keywords: id.replace(/_/g, " "),
+            };
+          });
+
+        const teamItems: SearchItem[] = (
+          constructorsData as ConstructorStanding[]
+        )
+          .filter((team) => team?.Constructor?.constructorId)
+          .map((team) => {
+            const id = team.Constructor.constructorId;
+            const title = team.Constructor.name;
+
+            return {
+              type: "team",
+              id,
+              title,
+              subtitle: "Constructor",
+              href: `/championship/constructors/${id}`,
+              keywords: id.replace(/_/g, " "),
+            };
+          });
+
+        const raceItems: SearchItem[] = (racesData as Race[])
+          .filter((race) => race?.round && race?.raceName)
+          .map((race) => ({
+            type: "race",
+            id: String(race.round),
+            title: race.raceName,
+            subtitle: `Round ${race.round}${
+              race.Circuit?.Location?.country
+                ? ` · ${race.Circuit.Location.country}`
+                : ""
+            }`,
+            href: `/results?round=${race.round}`,
+            keywords: `R${race.round} round ${race.round}`,
+          }));
+
+        if (!cancelled) {
+          setItems([...driverItems, ...teamItems, ...raceItems]);
+          setLoadError(false);
+        }
+      } catch (error) {
+        console.error("Search data error:", error);
+        if (!cancelled) {
+          setItems([]);
+          setLoadError(true);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadSearchData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return allItems
+
+    return items
       .filter((item) =>
-        `${item.title} ${item.subtitle}`.toLowerCase().includes(q)
+        `${item.title} ${item.subtitle} ${item.keywords ?? ""}`
+          .toLowerCase()
+          .includes(q)
       )
-      .slice(0, 12);
-  }, [query]);
+      .slice(0, 20);
+  }, [items, query]);
 
   return (
     <main style={pageStyle}>
@@ -133,7 +197,7 @@ export default function SearchPage() {
       >
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(event) => setQuery(event.target.value)}
           placeholder="Search driver, team, or GP..."
           aria-label="Search"
           style={{
@@ -159,7 +223,17 @@ export default function SearchPage() {
       >
         {!query.trim() ? (
           <div style={{ padding: "20px", color: "#b66b72" }}>
-            검색어를 입력해 주세요.
+            {loading
+              ? "검색 데이터를 불러오는 중..."
+              : "검색어를 입력해 주세요."}
+          </div>
+        ) : loading ? (
+          <div style={{ padding: "20px", color: "#b66b72" }}>
+            검색 데이터를 불러오는 중...
+          </div>
+        ) : loadError ? (
+          <div style={{ padding: "20px", color: "#b66b72" }}>
+            검색 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
           </div>
         ) : results.length === 0 ? (
           <div style={{ padding: "20px", color: "#b66b72" }}>
@@ -202,6 +276,8 @@ export default function SearchPage() {
           ))
         )}
       </div>
+
+      <BottomNav />
     </main>
   );
 }

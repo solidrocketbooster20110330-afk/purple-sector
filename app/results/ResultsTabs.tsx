@@ -25,9 +25,9 @@ const baseStyle = {
 
 export default function ResultsTabs() {
   const pathname = usePathname();
-  const practiceMatch = pathname.match(/^\/results\/practice(?:2|3)?\/(\d+)$/);
+  const practiceMatch = pathname.match(/^\/results\/practice(?:2|3)?\/(\d+|latest)$/);
   const [queryRound, setQueryRound] = useState<string | null>(null);
-  const currentRound = practiceMatch?.[1] ?? queryRound;
+  const currentRound = (practiceMatch?.[1] === "latest" ? null : practiceMatch?.[1]) ?? queryRound;
   const [race, setRace] = useState<GrandPrix | null>(null);
 
   useEffect(() => {
@@ -47,35 +47,32 @@ export default function ResultsTabs() {
       .catch(() => setRace(null));
   }, [currentRound]);
 
+  const effectiveRound = currentRound ?? race?.round;
   const sprint = hasSprintWeekend(race);
 
   const tabs = [
     {
-      href: currentRound ? `/results?round=${currentRound}` : "/results",
+      href: effectiveRound ? `/results?round=${effectiveRound}` : "/results",
       label: "🏁 Race",
       active: pathname === "/results",
     },
     {
-      href: currentRound ? `/results/qualifying?round=${currentRound}` : "/results/qualifying",
+      href: effectiveRound ? `/results/qualifying?round=${effectiveRound}` : "/results/qualifying",
       label: "⚡ Qualifying",
       active: pathname === "/results/qualifying",
     },
     {
-      href: currentRound ? `/results/practice/${currentRound}` : "/results/practice/1",
+      href: `/results/practice/${effectiveRound ?? "latest"}`,
       label: "🛠 FP1",
       active: pathname.startsWith("/results/practice/"),
     },
     {
-      href: currentRound
-        ? `/results/practice2/${currentRound}`
-        : "/results/practice2/1",
+      href: `/results/practice2/${effectiveRound ?? "latest"}`,
       label: sprint ? "🏎️ Sprint Qualifying" : "🛠 FP2",
       active: pathname.startsWith("/results/practice2/"),
     },
     {
-      href: currentRound
-        ? `/results/practice3/${currentRound}`
-        : "/results/practice3/1",
+      href: `/results/practice3/${effectiveRound ?? "latest"}`,
       label: sprint ? "🏁 Sprint" : "🛠 FP3",
       active: pathname.startsWith("/results/practice3/"),
     },

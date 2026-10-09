@@ -133,17 +133,6 @@ export default async function HomePage() {
 
   return (
     <main style={pageStyle}>
-      <h1 style={{ fontSize: "34px", margin: "0 0 5px" }}>
-        <span style={{ color: red }}>●</span> PurpleSector
-      </h1>
-
-      <p style={{ color: muted, margin: "0 0 16px" }}>Formula 1 Dashboard</p>
-
-      <a href="/search" style={{ display: "flex", alignItems: "center", gap: "10px", background: "#101010", border: "1px solid #3a1217", borderRadius: "16px", padding: "13px 15px", marginBottom: "14px", color: "#ddd4d6", textDecoration: "none", fontSize: "15px" }}>
-        <span style={{ fontSize: "19px" }}>🔎</span>
-        <span>Search drivers, teams, or Grands Prix</span>
-      </a>
-
       {nextSession && (
         <>
           <NextSessionCountdown label={`🏎️ ${nextSession.label}`} raceName={nextSession.raceName} targetTime={nextSession.targetTime} />

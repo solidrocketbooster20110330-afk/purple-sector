@@ -427,9 +427,25 @@ export default function ChampionshipDriversPage() {
                   );
                 })}
 
-                {majorDrivers.map((driver, index) => {
+                {majorDrivers.map((driver) => {
                   const series = rankView ? driver.ranks : driver.points;
                   const stroke = driver.color;
+                  const dashedDrivers = new Set([
+                    "george_russell",
+                    "charles_leclerc",
+                    "oscar_piastri",
+                    "isack_hadjar",
+                    "liam_lawson",
+                    "lance_stroll",
+                    "esteban_ocon",
+                    "valtteri_bottas",
+                    "gabriel_bortoleto",
+                    "franco_colapinto",
+                    "alex_albon",
+                  ]);
+                  const isYuki = driver.id.toLowerCase().includes("tsunoda");
+                  const isDashed = dashedDrivers.has(driver.id);
+                  const dashArray = isYuki ? "2 3" : isDashed ? "7 6" : undefined;
 
                   const line = series
                     .map(
@@ -444,30 +460,30 @@ export default function ChampionshipDriversPage() {
                         points={line}
                         fill="none"
                         stroke={stroke}
-                        strokeWidth={index < 2 ? "4" : "2.5"}
+                        strokeWidth="2.5"
+                        strokeDasharray={dashArray}
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        opacity={index < 2 ? "1" : "0.7"}
+                        opacity="0.95"
                         style={{
                           transition:
                             "all 500ms cubic-bezier(0.22, 1, 0.36, 1)",
                         }}
                       />
 
-                      {index < 2 &&
-                        series.map((point, pointIndex) => (
-                          <circle
-                            key={`${driver.id}-${pointIndex}`}
-                            cx={getX(pointIndex)}
-                            cy={getY(point.value)}
-                            r="3.2"
-                            fill={stroke}
-                            style={{
-                              transition:
-                                "cx 500ms cubic-bezier(0.22, 1, 0.36, 1), cy 500ms cubic-bezier(0.22, 1, 0.36, 1)",
-                            }}
-                          />
-                        ))}
+                      {series.map((point, pointIndex) => (
+                        <circle
+                          key={`${driver.id}-${pointIndex}`}
+                          cx={getX(pointIndex)}
+                          cy={getY(point.value)}
+                          r="2.4"
+                          fill={stroke}
+                          style={{
+                            transition:
+                              "cx 500ms cubic-bezier(0.22, 1, 0.36, 1), cy 500ms cubic-bezier(0.22, 1, 0.36, 1)",
+                          }}
+                        />
+                      ))}
                     </g>
                   );
                 })}

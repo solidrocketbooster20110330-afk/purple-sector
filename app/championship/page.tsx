@@ -97,7 +97,7 @@ const dashedDriverNames = new Set([
   "gabriel bortoleto", "franco colapinto", "alex albon",
 ]);
 function driverDashArray(id: string, name: string): string | undefined {
-  const normalizedName = name.toLowerCase().replace(/\\s+/g, " ").trim();
+  const normalizedName = name.toLowerCase().replace(/\s+/g, " ").trim();
   if (normalizedName.includes("yuki tsunoda")) return "1 5";
   return dashedDriverIds.has(id) || dashedDriverNames.has(normalizedName) ? "8 6" : undefined;
 }

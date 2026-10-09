@@ -48,7 +48,7 @@ type Row = Result & {
 
 const pageStyle = {
   minHeight: "100vh",
-  background: "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+  background: "linear-gradient(180deg,#050505 0%,#140707 100%)",
   color: "white",
   padding: "20px",
   paddingBottom: "90px",
@@ -56,8 +56,8 @@ const pageStyle = {
 };
 
 const cardStyle = {
-  background: "#131942",
-  border: "1px solid #2b347a",
+  background: "#101010",
+  border: "1px solid #3a1217",
   borderRadius: "20px",
   padding: "20px",
   overflowX: "auto" as const,
@@ -274,7 +274,7 @@ export default function PracticePage() {
             padding: 0,
             border: 0,
             background: "transparent",
-            color: "#a9adff",
+            color: "#ef233c",
             fontSize: "18px",
             fontWeight: "bold",
             cursor: "pointer",
@@ -299,8 +299,8 @@ export default function PracticePage() {
               left: 0,
               right: 0,
               zIndex: 20,
-              background: "#131942",
-              border: "1px solid #2b347a",
+              background: "#101010",
+              border: "1px solid #3a1217",
               borderRadius: "14px",
               padding: "8px",
               maxHeight: "320px",
@@ -326,7 +326,7 @@ export default function PracticePage() {
                   borderRadius: "10px",
                   background:
                     selectedRace?.round === race.round
-                      ? "#7c3aed"
+                      ? "#c4162a"
                       : "transparent",
                   color: "white",
                   cursor: "pointer",
@@ -386,9 +386,9 @@ export default function PracticePage() {
                           ? "left"
                           : "center",
                       padding: "11px 7px",
-                      color: "#a9adff",
+                      color: "#ef233c",
                       fontSize: "12px",
-                      borderBottom: "2px solid #2b347a",
+                      borderBottom: "2px solid #3a1217",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -420,7 +420,7 @@ export default function PracticePage() {
                     #{row.driver_number}
                   </td>
                   <td style={cellStyle}>{row.full_name}</td>
-                  <td style={{ ...cellStyle, color: "#a9adff" }}>
+                  <td style={{ ...cellStyle, color: "#ef233c" }}>
                     {row.team_name}
                   </td>
 
@@ -471,6 +471,6 @@ export default function PracticePage() {
 
 const cellStyle = {
   padding: "11px 7px",
-  borderBottom: "1px solid #222a66",
+  borderBottom: "1px solid #35191e",
   whiteSpace: "nowrap" as const,
 };

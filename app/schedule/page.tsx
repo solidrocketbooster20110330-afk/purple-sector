@@ -5,6 +5,7 @@ type Race = {
   round: string;
   raceName: string;
   date: string;
+  time?: string;
   Circuit: { circuitName: string };
 };
 
@@ -13,8 +14,9 @@ const pageStyle = {
   background: "linear-gradient(180deg, #050505 0%, #08070d 28%, #120c1d 58%, #1b1230 100%)",
   color: "white",
   padding: "24px",
-  paddingBottom: "100px",
+  paddingBottom: "calc(100px + env(safe-area-inset-bottom, 0px))",
   fontFamily: "Arial, sans-serif",
+  boxSizing: "border-box" as const,
 };
 
 const cardStyle = {
@@ -23,15 +25,47 @@ const cardStyle = {
   borderRadius: "20px",
 };
 
+function getRaceDateTime(race: Race) {
+  const time = race.time ?? "23:59:59Z";
+  const normalizedTime = /(?:Z|[+-]\\d{2}:\\d{2})$/.test(time)
+    ? time
+    : `${time}Z`;
+
+  return new Date(`${race.date}T${normalizedTime}`);
+}
+
+function formatRaceDateKst(race: Race) {
+  const dateTime = getRaceDateTime(race);
+  const dateLabel = dateTime.toLocaleDateString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  });
+
+  if (!race.time) return dateLabel;
+
+  const timeLabel = dateTime.toLocaleTimeString("ko-KR", {
+    timeZone: "Asia/Seoul",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `${dateLabel} · ${timeLabel} KST`;
+}
+
 export default async function SchedulePage() {
   const res = await fetch("https://api.jolpi.ca/ergast/f1/current.json", {
     next: { revalidate: 3600 },
   });
   const data = await res.json();
   const races: Race[] = data?.MRData?.RaceTable?.Races ?? [];
+  const now = Date.now();
 
   const nextRace =
-    races.find((race) => new Date(race.date) >= new Date()) ??
+    races.find((race) => getRaceDateTime(race).getTime() >= now) ??
     races[races.length - 1];
 
   if (!nextRace) {
@@ -46,7 +80,7 @@ export default async function SchedulePage() {
 
   return (
     <main style={pageStyle}>
-      <h1 style={{ fontSize: "36px", marginBottom: "20px" }}>
+      <h1 style={{ fontSize: "clamp(28px, 7vw, 36px)", margin: "0 0 20px" }}>
         📅 Schedule
       </h1>
 
@@ -55,24 +89,25 @@ export default async function SchedulePage() {
         style={{
           ...cardStyle,
           display: "block",
-          padding: "24px",
+          padding: "clamp(18px, 5vw, 24px)",
           marginBottom: "24px",
           textDecoration: "none",
           color: "white",
+          overflowWrap: "anywhere",
         }}
       >
         <div style={{ color: "#ef233c", marginBottom: "8px", fontSize: "13px", fontWeight: "bold" }}>
           NEXT RACE
         </div>
-        <div style={{ fontSize: "28px", fontWeight: "bold" }}>
+        <div style={{ fontSize: "clamp(22px, 6vw, 28px)", fontWeight: "bold", lineHeight: 1.2 }}>
           {nextRace.raceName}
         </div>
-        <div style={{ marginTop: "10px", color: "#c6b8ba" }}>
-          {nextRace.date} →
+        <div style={{ marginTop: "10px", color: "#c6b8ba", fontSize: "14px" }}>
+          {formatRaceDateKst(nextRace)}
         </div>
       </Link>
 
-      <h2 style={{ marginBottom: "15px", color: "#ef233c" }}>
+      <h2 style={{ marginBottom: "15px", color: "#ef233c", fontSize: "18px" }}>
         2026 SEASON
       </h2>
 
@@ -84,21 +119,27 @@ export default async function SchedulePage() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: "18px",
+            gap: "12px",
+            padding: "16px",
             marginBottom: "12px",
             ...cardStyle,
             borderRadius: "14px",
             textDecoration: "none",
             color: "white",
+            boxSizing: "border-box",
+            width: "100%",
           }}
         >
-          <div>
-            <div style={{ fontWeight: "bold" }}>{race.raceName}</div>
-            <div style={{ color: "#b66b72", fontSize: "14px" }}>
+          <div style={{ minWidth: 0, overflowWrap: "anywhere" }}>
+            <div style={{ fontWeight: "bold", lineHeight: 1.3 }}>{race.raceName}</div>
+            <div style={{ color: "#b66b72", fontSize: "13px", marginTop: "5px" }}>
               Round {race.round}
             </div>
+            <div style={{ color: "#c6b8ba", fontSize: "12px", marginTop: "5px" }}>
+              {formatRaceDateKst(race)}
+            </div>
           </div>
-          <div style={{ color: "#ef233c", fontWeight: "bold" }}>→</div>
+          <div aria-hidden="true" style={{ color: "#ef233c", fontWeight: "bold", flexShrink: 0 }}>→</div>
         </Link>
       ))}
 

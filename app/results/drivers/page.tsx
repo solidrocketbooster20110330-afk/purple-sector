@@ -27,8 +27,7 @@ export default async function DriversPage() {
     <main
       style={{
         minHeight: "100vh",
-        background:
-          "linear-gradient(180deg,#05071f 0%,#0c1037 100%)",
+        background: "linear-gradient(180deg, #050505 0%, #08070d 28%, #120c1d 58%, #1b1230 100%)",
         color: "white",
         padding: "24px",
         paddingBottom: "100px",

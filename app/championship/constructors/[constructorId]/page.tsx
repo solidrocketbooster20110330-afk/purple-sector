@@ -232,9 +232,9 @@ export default async function ConstructorDetailPage({
           <p style={{ color: muted }}>Driver data가 없습니다.</p>
         ) : (
           drivers.map((driver, index) => (
-            <div key={driver} style={{ padding: "12px 0", borderBottom: index === drivers.length - 1 ? "none" : `1px solid ${grid}` }}>
-              {driver}
-            </div>
+            <Link key={driver.id} href={`/championship/${driver.id}`} style={{ display: "block", padding: "12px 0", borderBottom: index === drivers.length - 1 ? "none" : `1px solid ${grid}`, color: "white", textDecoration: "none" }}>
+              {driver.name} →
+            </Link>
           ))
         )}
       </section>

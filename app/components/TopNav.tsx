@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/", label: "홈", match: (path: string) => path === "/" },
-  { href: "/schedule", label: "일정", match: (path: string) => path.startsWith("/schedule") },
-  { href: "/results", label: "결과", match: (path: string) => path.startsWith("/results") },
-  { href: "/championship", label: "순위", match: (path: string) => path.startsWith("/championship") },
-  { href: "/drivers", label: "드라이버", match: (path: string) => path.startsWith("/drivers") || /^\/championship\/[^/]+$/.test(path) },
-  { href: "/teams", label: "팀", match: (path: string) => path.startsWith("/teams") || path.startsWith("/championship/constructors") },
+  { href: "/", label: "Home", match: (path: string) => path === "/" },
+  { href: "/schedule", label: "Schedule", match: (path: string) => path.startsWith("/schedule") },
+  { href: "/results", label: "Results", match: (path: string) => path.startsWith("/results") },
+  { href: "/championship", label: "Standings", match: (path: string) => path.startsWith("/championship") },
+  { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || /^\/championship\/[^/]+$/.test(path) },
+  { href: "/teams", label: "Teams", match: (path: string) => path.startsWith("/teams") || path.startsWith("/championship/constructors") },
 ];
 
 export default function TopNav() {

@@ -194,7 +194,7 @@ export default function ChampionshipDriversPage() {
   const drivers = data?.drivers ?? [];
   const races = data?.races ?? [];
 
-  const visibleRaces = races.filter((race) => Number(race.round) <= 10);
+  const visibleRaces = races;
 
   const chartDrivers = useMemo(() => {
     const base = drivers.map((driver) => {
@@ -234,7 +234,7 @@ export default function ChampionshipDriversPage() {
       }),
     }));
   }, [drivers, visibleRaces]);
-  const width = Math.max(360, visibleRaces.length * 36);
+  const width = Math.max(360, Math.min(720, visibleRaces.length * 36));
   const height = 300;
   const pad = { top: 22, right: 18, bottom: 48, left: 50 };
   const innerW = width - pad.left - pad.right;

@@ -20,7 +20,7 @@ const baseStyle = {
   textDecoration: "none",
   fontWeight: "bold",
   color: "white",
-  border: "1px solid #2b347a",
+  border: "1px solid #3a1217",
 };
 
 export default function ResultsTabs() {
@@ -99,7 +99,7 @@ export default function ResultsTabs() {
           href={tab.href}
           style={{
             ...baseStyle,
-            background: tab.active ? "#7c3aed" : "#131942",
+            background: tab.active ? "#c4162a" : "#101010",
           }}
         >
           {tab.label}

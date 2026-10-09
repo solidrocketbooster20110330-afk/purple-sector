@@ -109,19 +109,12 @@ export default function ChampionshipConstructorsPage() {
 
     async function loadData() {
       try {
-        const [standingsResponse, scheduleResponse] = await Promise.all([
-          fetch("/api/constructors", { cache: "no-store" }),
-          fetch("/api/championship-data", { cache: "no-store" }),
-        ]);
-        if (!standingsResponse.ok || !scheduleResponse.ok) {
+        const response = await fetch("/api/championship-data", { cache: "no-store" });
+        if (!response.ok) {
           throw new Error("Failed to load constructor championship data");
         }
-
-        const [standingsData, sharedData] = await Promise.all([
-          standingsResponse.json(),
-          scheduleResponse.json(),
-        ]);
-        const scheduledRaces: Race[] = sharedData?.scheduleData?.MRData?.RaceTable?.Races ?? [];
+        const sharedData = await response.json();
+        const standingsData = sharedData?.constructors ?? [];
         const roundData: (Race | null)[] = sharedData?.roundData ?? [];
 
         if (cancelled) return;

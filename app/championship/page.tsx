@@ -297,7 +297,7 @@ export default function ChampionshipDriversPage() {
     }
 
     const parsePoints = (value: string) =>
-      value.trim().split(/\\s+/).map((pair) => pair.split(",").map(Number) as [number, number]);
+      value.trim().split(/\s+/).map((pair) => pair.split(",").map(Number) as [number, number]);
 
     const pairs = Object.fromEntries(
       Object.entries(targetLines).map(([id, target]) => {

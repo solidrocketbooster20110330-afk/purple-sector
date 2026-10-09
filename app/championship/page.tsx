@@ -430,22 +430,49 @@ export default function ChampionshipDriversPage() {
                 {majorDrivers.map((driver) => {
                   const series = rankView ? driver.ranks : driver.points;
                   const stroke = driver.color;
-                  const dashedDrivers = new Set([
+                  // Jolpica uses short IDs (e.g. "leclerc", "piastri"),
+                  // so match both IDs and full names to avoid silently missing styles.
+                  const dashedDriverIds = new Set([
+                    "russell",
                     "george_russell",
+                    "leclerc",
                     "charles_leclerc",
+                    "piastri",
                     "oscar_piastri",
+                    "hadjar",
                     "isack_hadjar",
+                    "lawson",
                     "liam_lawson",
+                    "stroll",
                     "lance_stroll",
+                    "ocon",
                     "esteban_ocon",
+                    "bottas",
                     "valtteri_bottas",
+                    "bortoleto",
                     "gabriel_bortoleto",
+                    "colapinto",
                     "franco_colapinto",
+                    "albon",
                     "alex_albon",
                   ]);
-                  const isYuki = driver.name.toLowerCase().includes("yuki");
-                  const isDashed = dashedDrivers.has(driver.id);
-                  const dashArray = isYuki ? "2 3" : isDashed ? "7 6" : undefined;
+                  const normalizedName = driver.name.toLowerCase().replace(/\\s+/g, " ").trim();
+                  const dashedDriverNames = new Set([
+                    "george russell",
+                    "charles leclerc",
+                    "oscar piastri",
+                    "isack hadjar",
+                    "liam lawson",
+                    "lance stroll",
+                    "esteban ocon",
+                    "valtteri bottas",
+                    "gabriel bortoleto",
+                    "franco colapinto",
+                    "alex albon",
+                  ]);
+                  const isYuki = normalizedName.includes("yuki tsunoda");
+                  const isDashed = dashedDriverIds.has(driver.id) || dashedDriverNames.has(normalizedName);
+                  const dashArray = isYuki ? "1 5" : isDashed ? "8 6" : undefined;
 
                   const line = series
                     .map(

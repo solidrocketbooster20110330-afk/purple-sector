@@ -538,27 +538,57 @@ export default function ChampionshipDriversPage() {
                 marginTop: "8px",
               }}
             >
-              {majorDrivers.map((driver, index) => (
-                <div
-                  key={driver.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontSize: "12px",
-                  }}
-                >
-                  <span
+              {majorDrivers.map((driver) => {
+                const dashedDriverIds = new Set([
+                  "russell", "george_russell",
+                  "leclerc", "charles_leclerc",
+                  "piastri", "oscar_piastri",
+                  "hadjar", "isack_hadjar",
+                  "lawson", "liam_lawson",
+                  "stroll", "lance_stroll",
+                  "ocon", "esteban_ocon",
+                  "bottas", "valtteri_bottas",
+                  "bortoleto", "gabriel_bortoleto",
+                  "colapinto", "franco_colapinto",
+                  "albon", "alex_albon",
+                ]);
+                const normalizedName = driver.name.toLowerCase().replace(/\\s+/g, " ").trim();
+                const dashedDriverNames = new Set([
+                  "george russell", "charles leclerc", "oscar piastri",
+                  "isack hadjar", "liam lawson", "lance stroll",
+                  "esteban ocon", "valtteri bottas", "gabriel bortoleto",
+                  "franco colapinto", "alex albon",
+                ]);
+                const isYuki = normalizedName.includes("yuki tsunoda");
+                const isDashed = dashedDriverIds.has(driver.id) || dashedDriverNames.has(normalizedName);
+                const dashArray = isYuki ? "1 5" : isDashed ? "8 6" : undefined;
+
+                return (
+                  <div
+                    key={driver.id}
                     style={{
-                      width: "28px",
-                      height: "3px",
-                      background: driver.color,
-                      display: "inline-block",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "12px",
                     }}
-                  />
-                  {driver.name}
-                </div>
-              ))}
+                  >
+                    <svg width="28" height="8" viewBox="0 0 28 8" aria-hidden="true" style={{ display: "block", flexShrink: 0 }}>
+                      <line
+                        x1="0"
+                        y1="4"
+                        x2="28"
+                        y2="4"
+                        stroke={driver.color}
+                        strokeWidth="3"
+                        strokeDasharray={dashArray}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    {driver.name}
+                  </div>
+                );
+              })}
             </div>
           </>
         )}

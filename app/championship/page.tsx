@@ -147,7 +147,8 @@ export default function ChampionshipDriversPage() {
     races: Race[];
   } | null>(null);
   const [rankView, setRankView] = useState(false);
-  const previousLines = useRef<Record<string, string>>({});
+  const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
+  const animatedLinePointsRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -285,7 +286,64 @@ export default function ChampionshipDriversPage() {
   })), [majorDrivers, rankView, innerW, innerH, maxRank, maxPoints, visibleRaces.length]);
 
   useEffect(() => {
-    previousLines.current = linePointsByDriver;
+    const targetLines = linePointsByDriver;
+    const previous = animatedLinePointsRef.current;
+    const previousIds = Object.keys(previous);
+
+    if (previousIds.length === 0) {
+      animatedLinePointsRef.current = targetLines;
+      setAnimatedLinePoints(targetLines);
+      return;
+    }
+
+    const parsePoints = (value: string) =>
+      value.trim().split(/\\s+/).map((pair) => pair.split(",").map(Number) as [number, number]);
+
+    const pairs = Object.fromEntries(
+      Object.entries(targetLines).map(([id, target]) => {
+        const fromPoints = parsePoints(previous[id] ?? target);
+        const toPoints = parsePoints(target);
+        return [id, fromPoints.length === toPoints.length ? { fromPoints, toPoints } : null];
+      })
+    );
+
+    const startTime = performance.now();
+    const duration = 500;
+    let frame = 0;
+
+    const animate = (now: number) => {
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const nextLines: Record<string, string> = {};
+
+      for (const [id, target] of Object.entries(targetLines)) {
+        const pair = pairs[id];
+        if (!pair) {
+          nextLines[id] = target;
+          continue;
+        }
+        const { fromPoints, toPoints } = pair as {
+          fromPoints: [number, number][];
+          toPoints: [number, number][];
+        };
+        nextLines[id] = toPoints.map(([x, y], index) => {
+          const [fromX, fromY] = fromPoints[index];
+          return `${fromX + (x - fromX) * eased},${fromY + (y - fromY) * eased}`;
+        }).join(" ");
+      }
+
+      animatedLinePointsRef.current = nextLines;
+      setAnimatedLinePoints(nextLines);
+
+      if (progress < 1) frame = requestAnimationFrame(animate);
+      else {
+        animatedLinePointsRef.current = targetLines;
+        setAnimatedLinePoints(targetLines);
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
   }, [linePointsByDriver]);
 
   const ticks = rankView
@@ -440,7 +498,7 @@ export default function ChampionshipDriversPage() {
                   const stroke = driver.color;
                   const dashArray = driverDashArray(driver.id, driver.name);
 
-                  const line = linePointsByDriver[driver.id] ?? series
+                  const line = animatedLinePoints[driver.id] ?? linePointsByDriver[driver.id] ?? series
                     .map(
                       (point, pointIndex) =>
                         `${getX(pointIndex)},${getY(point.value)}`
@@ -458,19 +516,7 @@ export default function ChampionshipDriversPage() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         opacity="0.95"
-                      >
-                        <animate
-                          key={rankView ? "rank" : "points"}
-                          attributeName="points"
-                          from={previousLines.current[driver.id] ?? line}
-                          to={line}
-                          dur="500ms"
-                          calcMode="spline"
-                          keyTimes="0;1"
-                          keySplines="0.22 1 0.36 1"
-                          fill="freeze"
-                        />
-                      </polyline>
+                      />
 
                       {series.map((point, pointIndex) => (
                         <circle

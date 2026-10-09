@@ -30,10 +30,10 @@ const grid = "#35191e";
 const teamColors: Record<string, string> = {
   McLaren: "#ff8000",
   Ferrari: "#e80020",
-  "Red Bull Racing": "#1e41ff",
-  "Red Bull": "#1e41ff",
-  "Red Bull Racing F1 Team": "#1e41ff",
-  Mercedes: "#00d2be",
+  "Red Bull": "#3671c6",
+  "Red Bull Racing": "#3671c6",
+  "Red Bull Racing F1 Team": "#3671c6",
+  Mercedes: "#27f4d2",
   "Aston Martin": "#00665e",
   "Aston Martin F1 Team": "#00665e",
   "Alpine F1 Team": "#ff87bc",
@@ -47,6 +47,7 @@ const teamColors: Record<string, string> = {
   "Haas F1 Team": "#e6002b",
   Haas: "#e6002b",
   Audi: "#f50537",
+  "Cadillac F1 Team": "#c9c9c9",
   Cadillac: "#c9c9c9",
 };
 

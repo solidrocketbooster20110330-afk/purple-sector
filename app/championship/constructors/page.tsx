@@ -113,7 +113,6 @@ export default function ChampionshipConstructorsPage() {
           fetch("/api/constructors", { cache: "no-store" }),
           fetch("https://api.jolpi.ca/ergast/f1/2026.json"),
         ]);
-
         if (!standingsResponse.ok || !scheduleResponse.ok) {
           throw new Error("Failed to load constructor championship data");
         }
@@ -122,19 +121,21 @@ export default function ChampionshipConstructorsPage() {
           standingsResponse.json(),
           scheduleResponse.json(),
         ]);
-
         const scheduledRaces: Race[] =
           scheduleData?.MRData?.RaceTable?.Races ?? [];
 
-        const raceResponses = await Promise.all(
+        const roundData = await Promise.all(
           scheduledRaces.map(async (scheduledRace) => {
+            const round = scheduledRace.round;
             try {
               const [raceResponse, sprintResponse] = await Promise.all([
-                fetch(`https://api.jolpi.ca/ergast/f1/2026/${scheduledRace.round}/results.json`),
-                fetch(`https://api.jolpi.ca/ergast/f1/2026/${scheduledRace.round}/sprint.json`),
+                fetch(`https://api.jolpi.ca/ergast/f1/2026/${round}/results.json`),
+                fetch(`https://api.jolpi.ca/ergast/f1/2026/${round}/sprint.json`),
               ]);
-              const racePage = raceResponse.ok ? await raceResponse.json() : null;
-              const sprintPage = sprintResponse.ok ? await sprintResponse.json() : null;
+              const [racePage, sprintPage] = await Promise.all([
+                raceResponse.ok ? raceResponse.json() : null,
+                sprintResponse.ok ? sprintResponse.json() : null,
+              ]);
               const race = racePage?.MRData?.RaceTable?.Races?.[0];
               const sprintRace = sprintPage?.MRData?.RaceTable?.Races?.[0];
               const Results = race?.Results ?? [];
@@ -150,7 +151,7 @@ export default function ChampionshipConstructorsPage() {
 
         if (cancelled) return;
 
-        const completedRaces = raceResponses
+        const completedRaces = roundData
           .filter((race): race is Race => race !== null)
           .sort((a, b) => Number(a.round) - Number(b.round));
         const rawConstructors: ConstructorStanding[] = Array.isArray(standingsData)
@@ -159,7 +160,10 @@ export default function ChampionshipConstructorsPage() {
         const totals = new Map<string, number>();
 
         for (const race of completedRaces) {
-          for (const result of [...(race.Results ?? []), ...(race.SprintResults ?? [])]) {
+          for (const result of [
+            ...(race.Results ?? []),
+            ...(race.SprintResults ?? []),
+          ]) {
             const id = result.Constructor?.constructorId;
             if (!id) continue;
             totals.set(id, (totals.get(id) ?? 0) + Number(result.points ?? 0));
@@ -169,9 +173,7 @@ export default function ChampionshipConstructorsPage() {
         const sortedConstructors = rawConstructors
           .map((constructor) => ({
             ...constructor,
-            points: String(
-              totals.get(constructor.Constructor.constructorId) ?? 0
-            ),
+            points: String(totals.get(constructor.Constructor.constructorId) ?? 0),
           }))
           .sort((a, b) => Number(b.points) - Number(a.points))
           .map((constructor, index) => ({
@@ -191,7 +193,6 @@ export default function ChampionshipConstructorsPage() {
     }
 
     loadData();
-
     return () => {
       cancelled = true;
     };

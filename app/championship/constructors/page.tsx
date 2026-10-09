@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BottomNav from "../../components/BottomNav";
 
 type ConstructorStanding = {
@@ -107,6 +107,7 @@ export default function ChampionshipConstructorsPage() {
   const [constructors, setConstructors] = useState<ConstructorStanding[]>([]);
   const [races, setRaces] = useState<Race[]>([]);
   const [rankView, setRankView] = useState(false);
+  const previousLines = useRef<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -227,6 +228,22 @@ export default function ChampionshipConstructorsPage() {
     rankView
       ? pad.top + ((value - 1) / Math.max(1, maxRank - 1)) * innerH
       : pad.top + innerH - (value / maxPoints) * innerH;
+
+  const linePointsByTeam = useMemo(() => Object.fromEntries(chartTeams.map((team) => {
+    const points = rankView ? team.ranks : team.points;
+    const line = points.map((point, index) => {
+      const x = pad.left + (index * innerW) / Math.max(1, races.length - 1);
+      const y = rankView
+        ? pad.top + ((point.value - 1) / Math.max(1, maxRank - 1)) * innerH
+        : pad.top + innerH - (point.value / maxPoints) * innerH;
+      return String(x) + "," + String(y);
+    }).join(" ");
+    return [team.id, line];
+  })), [chartTeams, rankView, innerW, innerH, maxRank, maxPoints, races.length]);
+
+  useEffect(() => {
+    previousLines.current = linePointsByTeam;
+  }, [linePointsByTeam]);
 
   return (
     <main style={pageStyle}>
@@ -357,7 +374,7 @@ export default function ChampionshipConstructorsPage() {
                       teamColors[team.name] ??
                       (teamIndex === 0 ? red : teamIndex === 1 ? purple : dimLine);
 
-                    const line = points
+                    const line = linePointsByTeam[team.id] ?? points
                       .map((point, index) => `${getX(index)},${getY(point.value)}`)
                       .join(" ");
 
@@ -371,7 +388,19 @@ export default function ChampionshipConstructorsPage() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           opacity={teamIndex < 2 ? "1" : "0.7"}
-                        />
+                        >
+                          <animate
+                            key={rankView ? "rank" : "points"}
+                            attributeName="points"
+                            from={previousLines.current[team.id] ?? line}
+                            to={line}
+                            dur="500ms"
+                            calcMode="spline"
+                            keyTimes="0;1"
+                            keySplines="0.22 1 0.36 1"
+                            fill="freeze"
+                          />
+                        </polyline>
                         {teamIndex < 2 &&
                           points.map((point, index) => (
                             <circle

@@ -152,15 +152,12 @@ export default function ChampionshipDriversPage() {
 
     async function loadData() {
       try {
-        const [standingsResponse, scheduleResponse] = await Promise.all([
-          fetch("/api/championship-data", { cache: "no-store" }),
-          fetch("/api/championship-data", { cache: "no-store" }),
-        ]);
-        if (!standingsResponse.ok || !scheduleResponse.ok) {
+        const response = await fetch("/api/championship-data", { cache: "no-store" });
+        if (!response.ok) {
           throw new Error("Failed to load championship data");
         }
 
-        const sharedData = await standingsResponse.json();
+        const sharedData = await response.json();
         const standingsData = sharedData?.standingsData;
         const scheduleData = sharedData?.scheduleData;
         const scheduledRaces: Race[] = scheduleData?.MRData?.RaceTable?.Races ?? [];

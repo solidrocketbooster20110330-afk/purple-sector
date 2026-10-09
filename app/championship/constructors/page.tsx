@@ -36,6 +36,25 @@ const muted = "#aaa1a4";
 const grid = "#35191e";
 const dimLine = "#7b5a60";
 
+const teamColors: Record<string, string> = {
+  McLaren: "#ff8000",
+  Ferrari: "#e80020",
+  "Red Bull Racing": "#1e41ff",
+  "Red Bull": "#1e41ff",
+  Mercedes: "#00d2be",
+  "Aston Martin": "#00665e",
+  "Alpine F1 Team": "#ff87bc",
+  Alpine: "#ff87bc",
+  Williams: "#64c4ff",
+  "Racing Bulls": "#6692ff",
+  "Visa Cash App RB": "#6692ff",
+  RB: "#6692ff",
+  "Haas F1 Team": "#e6002b",
+  Haas: "#e6002b",
+  Audi: "#f50537",
+  Cadillac: "#c9c9c9",
+};
+
 const pageStyle = {
   minHeight: "100vh",
   background: "linear-gradient(180deg,#050505 0%,#140707 100%)",
@@ -90,27 +109,60 @@ export default function ChampionshipConstructorsPage() {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.all([
-      fetch("/api/constructors", { cache: "no-store" }).then((res) =>
-        readJson<ConstructorStanding[]>(res)
-      ),
-      fetch("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=2000", {
-        next: { revalidate: 3600 },
-      }).then((res) => readJson<{ MRData?: { RaceTable?: { Races?: Race[] } } }>(res)),
-    ])
-      .then(([standingsData, racesData]) => {
+    async function loadData() {
+      try {
+        const [standingsResponse, scheduleResponse] = await Promise.all([
+          fetch("/api/constructors", { cache: "no-store" }),
+          fetch("https://api.jolpi.ca/ergast/f1/2026.json"),
+        ]);
+
+        if (!standingsResponse.ok || !scheduleResponse.ok) {
+          throw new Error("Failed to load constructor championship data");
+        }
+
+        const [standingsData, scheduleData] = await Promise.all([
+          standingsResponse.json(),
+          scheduleResponse.json(),
+        ]);
+
+        const scheduledRaces: Race[] =
+          scheduleData?.MRData?.RaceTable?.Races ?? [];
+
+        const raceResponses = await Promise.all(
+          scheduledRaces.map(async (scheduledRace) => {
+            try {
+              const response = await fetch(
+                `https://api.jolpi.ca/ergast/f1/2026/${scheduledRace.round}/results.json`
+              );
+              if (!response.ok) return null;
+
+              const page = await response.json();
+              const race = page?.MRData?.RaceTable?.Races?.[0];
+              return race && (race.Results?.length ?? 0) > 0 ? race : null;
+            } catch {
+              return null;
+            }
+          })
+        );
+
         if (cancelled) return;
+
         setConstructors(Array.isArray(standingsData) ? standingsData : []);
-        setRaces(racesData?.MRData?.RaceTable?.Races ?? []);
-      })
-      .catch(() => {
+        setRaces(
+          raceResponses
+            .filter((race): race is Race => race !== null)
+            .sort((a, b) => Number(a.round) - Number(b.round))
+        );
+      } catch {
         if (cancelled) return;
         setConstructors([]);
         setRaces([]);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    }
+
+    loadData();
 
     return () => {
       cancelled = true;
@@ -301,11 +353,8 @@ export default function ChampionshipConstructorsPage() {
                   {chartTeams.map((team, teamIndex) => {
                     const points = rankView ? team.ranks : team.points;
                     const stroke =
-                      teamIndex === 0
-                        ? red
-                        : teamIndex === 1
-                        ? purple
-                        : dimLine;
+                      teamColors[team.name] ??
+                      (teamIndex === 0 ? red : teamIndex === 1 ? purple : dimLine);
 
                     const line = points
                       .map((point, index) => `${getX(index)},${getY(point.value)}`)
@@ -374,7 +423,8 @@ export default function ChampionshipConstructorsPage() {
                         width: "28px",
                         height: "3px",
                         background:
-                          index === 0 ? red : index === 1 ? purple : dimLine,
+                          teamColors[team.name] ??
+                          (index === 0 ? red : index === 1 ? purple : dimLine),
                         display: "inline-block",
                       }}
                     />

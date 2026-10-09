@@ -107,7 +107,8 @@ export default function ChampionshipConstructorsPage() {
   const [constructors, setConstructors] = useState<ConstructorStanding[]>([]);
   const [races, setRaces] = useState<Race[]>([]);
   const [rankView, setRankView] = useState(false);
-  const previousLines = useRef<Record<string, string>>({});
+  const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
+  const animatedLinePointsRef = useRef<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -242,7 +243,64 @@ export default function ChampionshipConstructorsPage() {
   })), [chartTeams, rankView, innerW, innerH, maxRank, maxPoints, races.length]);
 
   useEffect(() => {
-    previousLines.current = linePointsByTeam;
+    const targetLines = linePointsByTeam;
+    const previous = animatedLinePointsRef.current;
+    const previousIds = Object.keys(previous);
+
+    if (previousIds.length === 0) {
+      animatedLinePointsRef.current = targetLines;
+      setAnimatedLinePoints(targetLines);
+      return;
+    }
+
+    const parsePoints = (value: string) =>
+      value.trim().split(/\\s+/).map((pair) => pair.split(",").map(Number) as [number, number]);
+
+    const pairs = Object.fromEntries(
+      Object.entries(targetLines).map(([id, target]) => {
+        const fromPoints = parsePoints(previous[id] ?? target);
+        const toPoints = parsePoints(target);
+        return [id, fromPoints.length === toPoints.length ? { fromPoints, toPoints } : null];
+      })
+    );
+
+    const startTime = performance.now();
+    const duration = 500;
+    let frame = 0;
+
+    const animate = (now: number) => {
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const nextLines: Record<string, string> = {};
+
+      for (const [id, target] of Object.entries(targetLines)) {
+        const pair = pairs[id];
+        if (!pair) {
+          nextLines[id] = target;
+          continue;
+        }
+        const { fromPoints, toPoints } = pair as {
+          fromPoints: [number, number][];
+          toPoints: [number, number][];
+        };
+        nextLines[id] = toPoints.map(([x, y], index) => {
+          const [fromX, fromY] = fromPoints[index];
+          return `${fromX + (x - fromX) * eased},${fromY + (y - fromY) * eased}`;
+        }).join(" ");
+      }
+
+      animatedLinePointsRef.current = nextLines;
+      setAnimatedLinePoints(nextLines);
+
+      if (progress < 1) frame = requestAnimationFrame(animate);
+      else {
+        animatedLinePointsRef.current = targetLines;
+        setAnimatedLinePoints(targetLines);
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
   }, [linePointsByTeam]);
 
   return (
@@ -374,7 +432,7 @@ export default function ChampionshipConstructorsPage() {
                       teamColors[team.name] ??
                       (teamIndex === 0 ? red : teamIndex === 1 ? purple : dimLine);
 
-                    const line = linePointsByTeam[team.id] ?? points
+                    const line = animatedLinePoints[team.id] ?? linePointsByTeam[team.id] ?? points
                       .map((point, index) => `${getX(index)},${getY(point.value)}`)
                       .join(" ");
 
@@ -388,19 +446,7 @@ export default function ChampionshipConstructorsPage() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           opacity={teamIndex < 2 ? "1" : "0.7"}
-                        >
-                          <animate
-                            key={rankView ? "rank" : "points"}
-                            attributeName="points"
-                            from={previousLines.current[team.id] ?? line}
-                            to={line}
-                            dur="500ms"
-                            calcMode="spline"
-                            keyTimes="0;1"
-                            keySplines="0.22 1 0.36 1"
-                            fill="freeze"
-                          />
-                        </polyline>
+                        />
                         {teamIndex < 2 &&
                           points.map((point, index) => (
                             <circle

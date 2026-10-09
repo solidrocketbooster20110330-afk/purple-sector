@@ -29,7 +29,7 @@ export default function TopNav() {
         </Link>
       </div>
 
-      <nav aria-label="메인 내비게이션" style={{ display: "flex", alignItems: "stretch", gap: "clamp(26px, 7vw, 38px)", minHeight: "48px", padding: "0 18px", overflowX: "auto", overflowY: "hidden", whiteSpace: "nowrap", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
+      <nav aria-label="메인 내비게이션" style={{ display: "flex", alignItems: "stretch", gap: "clamp(20px, 5.5vw, 30px)", minHeight: "48px", padding: "0 18px", overflowX: "auto", overflowY: "hidden", whiteSpace: "nowrap", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
         {navItems.map((item) => {
           const active = item.match(pathname);
           return (

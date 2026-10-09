@@ -18,10 +18,8 @@ type DriverStanding = {
 
 type Race = {
   round: string;
-  Results?: {
-    Driver?: { driverId?: string };
-    points?: string;
-  }[];
+  Results?: { Driver?: { driverId?: string }; points?: string }[];
+  SprintResults?: { Driver?: { driverId?: string }; points?: string }[];
 };
 
 const red = "#ef233c";
@@ -155,14 +153,19 @@ export default function ChampionshipDriversPage() {
         const resultRaces = await Promise.all(
           scheduledRaces.map(async (scheduledRace) => {
             try {
-              const response = await fetch(
-                `https://api.jolpi.ca/ergast/f1/2026/${scheduledRace.round}/results.json`
-              );
-              if (!response.ok) return null;
-
-              const page = await response.json();
-              const race = page?.MRData?.RaceTable?.Races?.[0];
-              return race && (race.Results?.length ?? 0) > 0 ? race : null;
+              const [raceResponse, sprintResponse] = await Promise.all([
+                fetch(`https://api.jolpi.ca/ergast/f1/2026/${scheduledRace.round}/results.json`),
+                fetch(`https://api.jolpi.ca/ergast/f1/2026/${scheduledRace.round}/sprint.json`),
+              ]);
+              const racePage = raceResponse.ok ? await raceResponse.json() : null;
+              const sprintPage = sprintResponse.ok ? await sprintResponse.json() : null;
+              const race = racePage?.MRData?.RaceTable?.Races?.[0];
+              const sprintRace = sprintPage?.MRData?.RaceTable?.Races?.[0];
+              const Results = race?.Results ?? [];
+              const SprintResults = sprintRace?.SprintResults ?? [];
+              return Results.length || SprintResults.length
+                ? { ...(race ?? scheduledRace), Results, SprintResults }
+                : null;
             } catch {
               return null;
             }
@@ -180,7 +183,7 @@ export default function ChampionshipDriversPage() {
         const totals = new Map<string, number>();
 
         for (const race of races) {
-          for (const result of race.Results ?? []) {
+          for (const result of [...(race.Results ?? []), ...(race.SprintResults ?? [])]) {
             const id = result.Driver?.driverId;
             if (!id) continue;
             totals.set(id, (totals.get(id) ?? 0) + Number(result.points ?? 0));
@@ -217,7 +220,7 @@ export default function ChampionshipDriversPage() {
     const base = drivers.map((driver) => {
       let cumulative = 0;
       const points = visibleRaces.map((race) => {
-        cumulative += (race.Results ?? [])
+        cumulative += [...(race.Results ?? []), ...(race.SprintResults ?? [])]
           .filter((result) => result.Driver?.driverId === driver.Driver.driverId)
           .reduce((sum, result) => sum + Number(result.points ?? 0), 0);
 

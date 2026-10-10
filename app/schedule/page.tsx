@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
+import { formatRaceDateKst } from "../../lib/f1Display";
 
 type Race = {
   round: string;
@@ -32,33 +33,6 @@ function getRaceDateTime(race: Race) {
     : `${time}Z`;
 
   return new Date(`${race.date}T${normalizedTime}`);
-}
-
-function formatRaceDateKst(race: Race) {
-  const time = race.time
-    ? /(?:Z|[+-]\d{2}:\d{2})$/.test(race.time)
-      ? race.time
-      : `${race.time}Z`
-    : "00:00:00Z";
-  const dateTime = new Date(`${race.date}T${time}`);
-  const dateLabel = dateTime.toLocaleDateString("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
-
-  if (!race.time) return dateLabel;
-
-  const timeLabel = dateTime.toLocaleTimeString("ko-KR", {
-    timeZone: "Asia/Seoul",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
-  return `${dateLabel} · ${timeLabel} KST`;
 }
 
 export default async function SchedulePage() {

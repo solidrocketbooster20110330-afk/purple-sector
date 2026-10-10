@@ -38,16 +38,16 @@ const pageStyle = {
   minHeight: "100vh",
   background: "linear-gradient(180deg, #050505 0%, #08070d 28%, #120c1d 58%, #1b1230 100%)",
   color: "white",
-  padding: "20px",
-  paddingBottom: "90px",
+  padding: "14px",
+  paddingBottom: "80px",
   fontFamily: "Arial, sans-serif",
 };
 
 const cardStyle = {
   background: "#101010",
   border: "1px solid #3a1217",
-  borderRadius: "18px",
-  padding: "15px",
+  borderRadius: "16px",
+  padding: "12px",
 };
 
 const accent = "#7c3aed";
@@ -137,7 +137,7 @@ export default async function HomePage() {
       {nextSession && (
         <>
           <NextSessionCountdown label={`🏎️ ${nextSession.label}`} raceName={nextSession.raceName} targetTime={nextSession.targetTime} />
-          <a href="/schedule" style={{ ...cardStyle, display: "block", textDecoration: "none", color: "white", marginBottom: "14px" }}>
+          <a href="/schedule" style={{ ...cardStyle, display: "block", textDecoration: "none", color: "white", marginBottom: "8px" }}>
             <div style={{ color: red, fontSize: "12px", marginBottom: "8px", letterSpacing: "1px" }}>NEXT RACE</div>
             <div style={{ fontSize: "23px", lineHeight: 1.15, fontWeight: "bold" }}>{race?.raceName ?? "Next Race"}</div>
             {race?.date && <div style={{ marginTop: "6px", color: muted, fontSize: "13px" }}>{formatRaceDate(race.date)} →</div>}
@@ -154,13 +154,13 @@ export default async function HomePage() {
         </div>
       )}
 
-      <section style={{ ...cardStyle, marginBottom: "20px" }}>
+      <section style={{ ...cardStyle, marginBottom: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "8px" }}>
           <h2 style={{ margin: 0 }}>Drivers</h2>
           <a href="/championship" style={detailLinkStyle}>View Detail →</a>
         </div>
         {drivers.slice(0, 5).map((driver: DriverStanding) => (
-          <div key={driver.position} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #251317" }}>
+          <div key={driver.position} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #251317" }}>
             <span>{driver.position}. {driver.Driver.familyName}</span>
             <strong>{driver.points}</strong>
           </div>

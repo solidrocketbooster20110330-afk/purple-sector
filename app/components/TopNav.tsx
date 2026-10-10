@@ -10,7 +10,7 @@ const navItems = [
   { href: "/schedule", label: "Schedule", match: (path: string) => path.startsWith("/schedule") },
   { href: "/results", label: "Results", match: (path: string) => path.startsWith("/results") },
   { href: "/championship", label: "Standings", match: (path: string) => path === "/championship" },
-  { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || (/^\\/championship\\/[^/]+$/.test(path) && !path.startsWith("/championship/constructors")) },
+  { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || (/^\/championship\/[^/]+$/.test(path) && !path.startsWith("/championship/constructors")) },
   { href: "/teams", label: "Teams", match: (path: string) => path.startsWith("/teams") || path.startsWith("/championship/constructors") },
 ];
 

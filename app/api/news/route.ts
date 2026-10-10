@@ -20,7 +20,7 @@ async function imageFromArticle(url: string): Promise<string> {
   try {
     const response = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" },
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(2000),
       next: { revalidate: 21600 },
     });
     if (!response.ok) return "";
@@ -45,7 +45,7 @@ export async function GET() {
   try {
     const res = await fetch(
       "https://api.rss2json.com/v1/api.json?rss_url=https://www.formula1.com/en/latest/all.xml",
-      { next: { revalidate: 900 } }
+      { next: { revalidate: 900 }, signal: AbortSignal.timeout(4000) }
     );
     if (!res.ok) {
       return Response.json([], { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } });

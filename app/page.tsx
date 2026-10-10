@@ -55,20 +55,19 @@ const accent = "#7c3aed";
 const red = "#ef233c";
 const muted = "#b9b0b2";
 
-async function getHomeData() {
-  const responses = await Promise.all(Object.values(API).map((url) => fetch(url, { next: { revalidate: 900 } })));
+async function fetchJsonOrNull(url: string) {
+  try {
+    const response = await fetch(url, { next: { revalidate: 900 } });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
 
+async function getHomeData() {
   const [driversData, constructorsData, raceData, calendarData, resultData] =
-    await Promise.all(
-      responses.map(async (response) => {
-        if (!response.ok) return null;
-        try {
-          return await response.json();
-        } catch {
-          return null;
-        }
-      })
-    );
+    await Promise.all(Object.values(API).map(fetchJsonOrNull));
 
   return {
     drivers: driversData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],

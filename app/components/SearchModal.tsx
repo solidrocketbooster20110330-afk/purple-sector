@@ -114,7 +114,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
       style={{
         position: "fixed", inset: 0, zIndex: 2000, display: "flex",
         alignItems: "flex-start", justifyContent: "center", padding: "min(12vh, 90px) 16px 24px",
-        background: "rgba(0,0,0,0.76)", backdropFilter: "blur(7px)", WebkitBackdropFilter: "blur(7px)",
+        background: "rgba(0,0,0,0.68)", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)",
       }}
     >
       <section

@@ -437,7 +437,11 @@ export default function ResultsPage() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      <Link href={`/championship/${driver.Driver.driverId ?? ""}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</Link>
+                      {driver.Driver.driverId ? (
+                        <Link href={`/championship/${driver.Driver.driverId}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</Link>
+                      ) : (
+                        <span style={{ fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</span>
+                      )}
                     </td>
                     <td
                       style={{
@@ -456,9 +460,13 @@ export default function ResultsPage() {
                         <span style={teamBadge(driver.Constructor.name)}>
                           {teamInitials(driver.Constructor.name)}
                         </span>
-                        <Link href={`/championship/constructors/${driver.Constructor.constructorId ?? ""}`} style={{ color: "#bdb6b8", textDecoration: "none" }}>
-                          {driver.Constructor.name}
-                        </Link>
+                        {driver.Constructor.constructorId ? (
+                          <Link href={`/championship/constructors/${driver.Constructor.constructorId}`} style={{ color: "#bdb6b8", textDecoration: "none" }}>
+                            {driver.Constructor.name}
+                          </Link>
+                        ) : (
+                          <span style={{ color: "#bdb6b8" }}>{driver.Constructor.name}</span>
+                        )}
                       </span>
                     </td>
                     <td

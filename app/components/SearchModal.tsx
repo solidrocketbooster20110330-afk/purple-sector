@@ -42,13 +42,19 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   useEffect(() => {
+    const controller = new AbortController();
     let cancelled = false;
+
     async function load() {
       try {
+        const requestOptions: RequestInit = {
+          cache: "no-store",
+          signal: controller.signal,
+        };
         const responses = await Promise.all([
-          fetch("/api/standings", { cache: "no-store" }),
-          fetch("/api/constructors", { cache: "no-store" }),
-          fetch("/api/schedule", { cache: "no-store" }),
+          fetch("/api/standings", requestOptions),
+          fetch("/api/constructors", requestOptions),
+          fetch("/api/schedule", requestOptions),
         ]);
         if (responses.some((response) => !response.ok)) throw new Error("Search data request failed");
         const [driversData, teamsData, racesData] = await Promise.all(responses.map((response) => response.json()));
@@ -92,8 +98,11 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
         if (!cancelled) setLoading(false);
       }
     }
-    load();
-    return () => { cancelled = true; };
+    void load();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   const results = useMemo(() => {

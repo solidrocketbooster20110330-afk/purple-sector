@@ -501,19 +501,22 @@ export default function ChampionshipDriversPage() {
                         }}
                       />
 
-                      {series.map((point, pointIndex) => (
-                        <circle
-                          key={`${driver.id}-${pointIndex}`}
-                          cx={getX(pointIndex)}
-                          cy={getY(point.value)}
-                          r="2.4"
-                          fill={stroke}
-                          style={{
-                            transition:
-                              "cx 500ms cubic-bezier(0.22, 1, 0.36, 1), cy 500ms cubic-bezier(0.22, 1, 0.36, 1)",
-                          }}
-                        />
-                      ))}
+                      {series.map((point, pointIndex) => {
+                        const animatedPoint = (animatedLinePoints[driver.id] ?? linePointsByDriver[driver.id] ?? "")
+                          .trim()
+                          .split(/\s+/)[pointIndex]
+                          ?.split(",")
+                          .map(Number);
+                        return (
+                          <circle
+                            key={`${driver.id}-${pointIndex}`}
+                            cx={animatedPoint?.[0] ?? getX(pointIndex)}
+                            cy={animatedPoint?.[1] ?? getY(point.value)}
+                            r="2.4"
+                            fill={stroke}
+                          />
+                        );
+                      })}
                     </g>
                   );
                 })}

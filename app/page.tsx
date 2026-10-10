@@ -30,7 +30,6 @@ type Race = {
 const API = {
   drivers: "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
   constructors: "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
-  nextRace: "https://api.jolpi.ca/ergast/f1/current/next.json",
   calendar: "https://api.jolpi.ca/ergast/f1/current.json",
   lastResult: "https://api.jolpi.ca/ergast/f1/current/last/results.json",
 };
@@ -66,14 +65,21 @@ async function fetchJsonOrNull(url: string) {
 }
 
 async function getHomeData() {
-  const [driversData, constructorsData, raceData, calendarData, resultData] =
+  const [driversData, constructorsData, calendarData, resultData] =
     await Promise.all(Object.values(API).map(fetchJsonOrNull));
+
+  const calendar: Race[] = calendarData?.MRData?.RaceTable?.Races ?? [];
+  const now = Date.now();
+  const race =
+    calendar.find((item) => getSessionTargetTime(item.date, item.time) >= now) ??
+    calendar[calendar.length - 1] ??
+    null;
 
   return {
     drivers: driversData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],
     constructors: constructorsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [],
-    race: raceData?.MRData?.RaceTable?.Races?.[0] ?? null,
-    calendar: calendarData?.MRData?.RaceTable?.Races ?? [],
+    race,
+    calendar,
     lastRace: resultData?.MRData?.RaceTable?.Races?.[0] ?? null,
   };
 }

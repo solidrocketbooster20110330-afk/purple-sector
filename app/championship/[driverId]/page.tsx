@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BottomNav from "../../components/BottomNav";
+import { DriverHelmetArt } from "../../components/LegalSafeF1Art";
 
 type DriverStanding = {
   position: string;
@@ -238,6 +239,9 @@ export default async function DriverDetailPage({
           background: "linear-gradient(135deg,#161010 0%,#101010 100%)",
         }}
       >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 150, marginBottom: 8, borderRadius: 16, background: "radial-gradient(ellipse at center, #292039 0%, #111016 72%)" }}>
+          <DriverHelmetArt color={teamColor} label={`Original helmet illustration for ${name}`} />
+        </div>
         <div style={{ color: teamColor, fontSize: "14px", fontWeight: "bold" }}>2026 DRIVER</div>
         <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>
           #{number} {name}

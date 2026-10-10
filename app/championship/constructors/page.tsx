@@ -251,7 +251,7 @@ export default function ChampionshipConstructorsPage() {
       return;
     }
     const parsePoints = (value: string) =>
-      value.trim().split(/\\s+/).map((pair) => pair.split(",").map(Number) as [number, number]);
+      value.trim().split(/\s+/).map((pair) => pair.split(",").map(Number) as [number, number]);
     const pairs = Object.fromEntries(Object.entries(targetLines).map(([id, target]) => {
       const fromPoints = parsePoints(previous[id] ?? target);
       const toPoints = parsePoints(target);

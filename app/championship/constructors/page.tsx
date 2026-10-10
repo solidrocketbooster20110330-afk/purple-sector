@@ -430,15 +430,22 @@ export default function ChampionshipConstructorsPage() {
                           opacity={teamIndex < 2 ? "1" : "0.7"}
                         />
                         {teamIndex < 2 &&
-                          points.map((point, index) => (
-                            <circle
-                              key={`${team.id}-${index}`}
-                              cx={getX(index)}
-                              cy={getY(point.value)}
-                              r="3.2"
-                              fill={stroke}
-                            />
-                          ))}
+                          points.map((point, index) => {
+                            const animatedPoint = (animatedLinePoints[team.id] ?? linePointsByTeam[team.id] ?? "")
+                              .trim()
+                              .split(/\s+/)[index]
+                              ?.split(",")
+                              .map(Number);
+                            return (
+                              <circle
+                                key={`${team.id}-${index}`}
+                                cx={animatedPoint?.[0] ?? getX(index)}
+                                cy={animatedPoint?.[1] ?? getY(point.value)}
+                                r="3.2"
+                                fill={stroke}
+                              />
+                            );
+                          })}
                       </g>
                     );
                   })}

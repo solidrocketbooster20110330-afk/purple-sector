@@ -202,14 +202,23 @@ export default function ResultsPage() {
 
     setResults([]);
 
+    const controller = new AbortController();
+
     fetch(
       `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/results.json`,
-      { cache: "no-store" }
+      { cache: "no-store", signal: controller.signal }
     )
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         setResults(data?.MRData?.RaceTable?.Races?.[0]?.Results ?? []);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name !== "AbortError") {
+          setResults([]);
+        }
       });
+
+    return () => controller.abort();
   }, [selectedRace]);
 
   const fastestLap = getFastestLap(results);

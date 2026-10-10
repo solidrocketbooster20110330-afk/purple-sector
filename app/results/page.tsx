@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import BottomNav from "../components/BottomNav";
 import ResultsTabs from "./ResultsTabs";
 import { useEffect, useState } from "react";
@@ -25,8 +26,8 @@ type RaceResult = {
     Time?: { time: string };
     AverageSpeed?: { units: string; speed: string };
   };
-  Driver: { givenName: string; familyName: string };
-  Constructor: { name: string };
+  Driver: { driverId?: string; givenName: string; familyName: string };
+  Constructor: { constructorId?: string; name: string };
 };
 
 type GrandPrixWithCircuit = GrandPrix & {
@@ -436,7 +437,11 @@ export default function ResultsPage() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {driver.Driver.givenName} {driver.Driver.familyName}
+                      {driver.Driver.driverId ? (
+                        <Link href={`/championship/${driver.Driver.driverId}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</Link>
+                      ) : (
+                        <span style={{ fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</span>
+                      )}
                     </td>
                     <td
                       style={{
@@ -455,9 +460,13 @@ export default function ResultsPage() {
                         <span style={teamBadge(driver.Constructor.name)}>
                           {teamInitials(driver.Constructor.name)}
                         </span>
-                        <span style={{ color: "#bdb6b8" }}>
-                          {driver.Constructor.name}
-                        </span>
+                        {driver.Constructor.constructorId ? (
+                          <Link href={`/championship/constructors/${driver.Constructor.constructorId}`} style={{ color: "#bdb6b8", textDecoration: "none" }}>
+                            {driver.Constructor.name}
+                          </Link>
+                        ) : (
+                          <span style={{ color: "#bdb6b8" }}>{driver.Constructor.name}</span>
+                        )}
                       </span>
                     </td>
                     <td

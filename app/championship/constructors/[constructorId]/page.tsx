@@ -160,14 +160,15 @@ export default async function ConstructorDetailPage({
   const constructor = standings.find((item) => item.Constructor.constructorId === constructorId);
   const races: Race[] = resultsData?.MRData?.RaceTable?.Races ?? [];
 
-  const drivers = Array.from(
-    new Map(
+  const drivers: { id?: string; name: string }[] = Array.from(
+    new Map<string, { id?: string; name: string }>(
       races
         .flatMap((race) => race.Results ?? [])
-        .map((result) => [
-          result.Driver.driverId ?? `${result.Driver.givenName}-${result.Driver.familyName}`,
-          `${result.Driver.givenName} ${result.Driver.familyName}`,
-        ])
+        .map((result) => {
+          const id = result.Driver.driverId;
+          const name = `${result.Driver.givenName} ${result.Driver.familyName}`;
+          return [id ?? name, { id, name }] as [string, { id?: string; name: string }];
+        })
     ).values()
   );
 
@@ -231,11 +232,17 @@ export default async function ConstructorDetailPage({
         {drivers.length === 0 ? (
           <p style={{ color: muted }}>Driver data가 없습니다.</p>
         ) : (
-          drivers.map((driver, index) => (
-            <div key={driver} style={{ padding: "12px 0", borderBottom: index === drivers.length - 1 ? "none" : `1px solid ${grid}` }}>
-              {driver}
-            </div>
-          ))
+          drivers.map((driver, index) =>
+            driver.id ? (
+              <Link key={driver.id} href={`/championship/${driver.id}`} style={{ display: "block", padding: "12px 0", borderBottom: index === drivers.length - 1 ? "none" : `1px solid ${grid}`, color: "white", textDecoration: "none" }}>
+                {driver.name} →
+              </Link>
+            ) : (
+              <div key={driver.name} style={{ padding: "12px 0", borderBottom: index === drivers.length - 1 ? "none" : `1px solid ${grid}`, color: "white" }}>
+                {driver.name}
+              </div>
+            )
+          )
         )}
       </section>
 

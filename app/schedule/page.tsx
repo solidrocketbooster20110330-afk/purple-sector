@@ -62,11 +62,19 @@ function formatRaceDateKst(race: Race) {
 }
 
 export default async function SchedulePage() {
-  const res = await fetch("https://api.jolpi.ca/ergast/f1/current.json", {
-    next: { revalidate: 3600 },
-  });
-  const data = await res.json();
-  const races: Race[] = data?.MRData?.RaceTable?.Races ?? [];
+  let races: Race[] = [];
+
+  try {
+    const res = await fetch("https://api.jolpi.ca/ergast/f1/current.json", {
+      next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      races = data?.MRData?.RaceTable?.Races ?? [];
+    }
+  } catch (error) {
+    console.error("Schedule page data error:", error);
+  }
   const now = Date.now();
 
   const nextRace =

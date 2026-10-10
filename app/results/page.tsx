@@ -4,6 +4,7 @@ import Link from "next/link";
 import BottomNav from "../components/BottomNav";
 import ResultsTabs from "./ResultsTabs";
 import { useEffect, useState } from "react";
+import { countryFlag, teamColors } from "../../lib/f1Display";
 import {
   fetchGrandPrix,
   getGrandPrixByRound,
@@ -73,30 +74,6 @@ function getStatusText(result: RaceResult) {
   return "DNF";
 }
 
-const teamColors: Record<string, string> = {
-  McLaren: "#ff8000",
-  Ferrari: "#e80020",
-  "Red Bull": "#3671c6",
-  "Red Bull Racing": "#3671c6",
-  "Red Bull Racing F1 Team": "#3671c6",
-  Mercedes: "#27f4d2",
-  "Aston Martin": "#00665e",
-  "Aston Martin F1 Team": "#00665e",
-  "Alpine F1 Team": "#ff87bc",
-  Alpine: "#ff87bc",
-  Williams: "#64c4ff",
-  "Racing Bulls": "#6692ff",
-  "Visa Cash App RB": "#6692ff",
-  "Visa Cash App Racing Bulls": "#6692ff",
-  "RB F1 Team": "#6692ff",
-  RB: "#6692ff",
-  "Haas F1 Team": "#e6002b",
-  Haas: "#e6002b",
-  Audi: "#f50537",
-  "Cadillac F1 Team": "#c9c9c9",
-  Cadillac: "#c9c9c9",
-};
-
 function teamInitials(name: string) {
   const words = name
     .replace(/F1 Team|F1|Racing|Team|Formula One/gi, "")
@@ -126,35 +103,6 @@ function teamBadge(name: string) {
     fontWeight: "900",
     flexShrink: 0,
   } as const;
-}
-
-function countryFlag(country?: string) {
-  const flags: Record<string, string> = {
-    Australia: "🇦🇺",
-    China: "🇨🇳",
-    Japan: "🇯🇵",
-    Canada: "🇨🇦",
-    Monaco: "🇲🇨",
-    Austria: "🇦🇹",
-    UnitedKingdom: "🇬🇧",
-    Belgium: "🇧🇪",
-    Hungary: "🇭🇺",
-    Netherlands: "🇳🇱",
-    Italy: "🇮🇹",
-    Azerbaijan: "🇦🇿",
-    Singapore: "🇸🇬",
-    UnitedStates: "🇺🇸",
-    Mexico: "🇲🇽",
-    Brazil: "🇧🇷",
-    Qatar: "🇶🇦",
-    "United Arab Emirates": "🇦🇪",
-    Spain: "🇪🇸",
-    Bahrain: "🇧🇭",
-    Germany: "🇩🇪",
-  };
-
-  if (!country) return "🌍";
-  return flags[country] ?? flags[country.replace(/\s+/g, "")] ?? "🌍";
 }
 
 function getFastestLap(results: RaceResult[]) {

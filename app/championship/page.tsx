@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type DriverStanding = {
   position: string;
@@ -147,6 +147,8 @@ export default function ChampionshipDriversPage() {
     races: Race[];
   } | null>(null);
   const [rankView, setRankView] = useState(false);
+  const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
+  const animatedLinePointsRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -270,6 +272,61 @@ export default function ChampionshipDriversPage() {
       : pad.top + innerH - (value / maxPoints) * innerH;
 
   const majorDrivers = chartDrivers;
+
+  const linePointsByDriver = useMemo(() => Object.fromEntries(majorDrivers.map((driver) => {
+    const series = rankView ? driver.ranks : driver.points;
+    const line = series.map((point, index) => {
+      const x = pad.left + (index * innerW) / Math.max(1, visibleRaces.length - 1);
+      const y = rankView
+        ? pad.top + ((point.value - 1) / Math.max(1, maxRank - 1)) * innerH
+        : pad.top + innerH - (point.value / maxPoints) * innerH;
+      return `${x},${y}`;
+    }).join(" ");
+    return [driver.id, line];
+  })), [majorDrivers, rankView, innerW, innerH, maxRank, maxPoints, visibleRaces.length]);
+
+  useEffect(() => {
+    const targetLines = linePointsByDriver;
+    const previous = animatedLinePointsRef.current;
+    if (Object.keys(previous).length === 0) {
+      animatedLinePointsRef.current = targetLines;
+      setAnimatedLinePoints(targetLines);
+      return;
+    }
+    const parsePoints = (value: string) =>
+      value.trim().split(/\\s+/).map((pair) => pair.split(",").map(Number) as [number, number]);
+    const pairs = Object.fromEntries(Object.entries(targetLines).map(([id, target]) => {
+      const fromPoints = parsePoints(previous[id] ?? target);
+      const toPoints = parsePoints(target);
+      return [id, fromPoints.length === toPoints.length ? { fromPoints, toPoints } : null];
+    }));
+    const startTime = performance.now();
+    const duration = 650;
+    let frame = 0;
+    const animate = (now: number) => {
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const nextLines: Record<string, string> = {};
+      for (const [id, target] of Object.entries(targetLines)) {
+        const pair = pairs[id];
+        if (!pair) { nextLines[id] = target; continue; }
+        const { fromPoints, toPoints } = pair as { fromPoints: [number, number][]; toPoints: [number, number][] };
+        nextLines[id] = toPoints.map(([x, y], index) => {
+          const [fromX, fromY] = fromPoints[index];
+          return `${fromX + (x - fromX) * eased},${fromY + (y - fromY) * eased}`;
+        }).join(" ");
+      }
+      animatedLinePointsRef.current = nextLines;
+      setAnimatedLinePoints(nextLines);
+      if (progress < 1) frame = requestAnimationFrame(animate);
+      else {
+        animatedLinePointsRef.current = targetLines;
+        setAnimatedLinePoints(targetLines);
+      }
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [linePointsByDriver]);
 
   const ticks = rankView
     ? Array.from({ length: maxRank }, (_, index) => index + 1)
@@ -423,11 +480,8 @@ export default function ChampionshipDriversPage() {
                   const stroke = driver.color;
                   const dashArray = driverDashArray(driver.id, driver.name);
 
-                  const line = series
-                    .map(
-                      (point, pointIndex) =>
-                        `${getX(pointIndex)},${getY(point.value)}`
-                    )
+                  const line = animatedLinePoints[driver.id] ?? linePointsByDriver[driver.id] ?? series
+                    .map((point, pointIndex) => `${getX(pointIndex)},${getY(point.value)}`)
                     .join(" ");
 
                   return (

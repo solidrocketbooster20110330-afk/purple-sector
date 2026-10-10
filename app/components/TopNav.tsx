@@ -7,6 +7,7 @@ import SearchModal from "./SearchModal";
 
 const navItems = [
   { href: "/", label: "Home", match: (path: string) => path === "/" },
+  { href: "/news", label: "News", match: (path: string) => path.startsWith("/news") },
   { href: "/schedule", label: "Schedule", match: (path: string) => path.startsWith("/schedule") },
   { href: "/results", label: "Results", match: (path: string) => path.startsWith("/results") },
   { href: "/championship", label: "Standings", match: (path: string) => path === "/championship" },

@@ -242,6 +242,7 @@ export default async function ConstructorDetailPage({
                 {driver.name}
               </div>
             )
+          )
         )}
       </section>
 

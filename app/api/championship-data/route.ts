@@ -1,22 +1,46 @@
 type DriverStanding = { Driver: { driverId: string; givenName: string; familyName: string; permanentNumber?: string }; position: string; points: string; Constructors?: { name: string }[] };
 type ConstructorStanding = { Constructor: { constructorId: string; name: string }; position: string; points: string };
 type RaceResult = { Driver?: { driverId?: string }; Constructor?: { constructorId?: string }; points?: string };
-type Race = { round: string; Results?: RaceResult[]; SprintResults?: RaceResult[]; [key: string]: any };
+type Race = {
+  round: string;
+  raceName?: string;
+  date?: string;
+  time?: string;
+  Circuit?: { circuitName?: string; Location?: { locality?: string; country?: string } };
+  Results?: RaceResult[];
+  SprintResults?: RaceResult[];
+};
+type ApiResponse = {
+  MRData?: {
+    total?: string;
+    RaceTable?: { Races?: Race[] };
+    StandingsTable?: {
+      StandingsLists?: Array<{
+        DriverStandings?: DriverStanding[];
+        ConstructorStandings?: ConstructorStanding[];
+      }>;
+    };
+  };
+};
 
 const SEASON = "2026";
 const API = "https://api.jolpi.ca/ergast/f1";
 const PAGE_SIZE = 100;
 
-async function jsonOrNull(response: Response) {
+async function jsonOrNull(response: Response): Promise<ApiResponse | null> {
   if (!response.ok) return null;
-  try { return await response.json(); } catch { return null; }
+  try {
+    return (await response.json()) as ApiResponse;
+  } catch {
+    return null;
+  }
 }
 
-async function fetchJson(url: string) {
+async function fetchJson(url: string): Promise<ApiResponse | null> {
   return jsonOrNull(await fetch(url, { next: { revalidate: 900 } }));
 }
 
-async function fetchAllRacePages(resource: "results" | "sprint", firstPage: any) {
+async function fetchAllRacePages(resource: "results" | "sprint", firstPage: ApiResponse) {
   const total = Number(firstPage?.MRData?.total ?? 0);
   const pageCount = Math.ceil(total / PAGE_SIZE);
   const rest = await Promise.all(

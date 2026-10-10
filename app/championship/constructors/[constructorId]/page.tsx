@@ -1,5 +1,6 @@
 import Link from "next/link";
 import BottomNav from "../../../components/BottomNav";
+import { RaceCarArt } from "../../../components/LegalSafeF1Art";
 
 type ConstructorStanding = {
   position: string;
@@ -193,6 +194,9 @@ export default async function ConstructorDetailPage({
       </Link>
 
       <section style={{ ...cardStyle, marginTop: "20px", borderColor: teamColor, background: "linear-gradient(135deg,#161010 0%,#101010 100%)" }}>
+        <div style={{ margin: "-4px -4px 16px", padding: "12px 4px 4px", borderRadius: 16, background: "radial-gradient(ellipse at center, #292039 0%, #111016 72%)" }}>
+          <RaceCarArt color={teamColor} label={`Original generic racing car illustration for ${name}`} />
+        </div>
         <div style={{ color: teamColor, fontSize: "14px", fontWeight: "bold" }}>2026 CONSTRUCTOR</div>
         <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>{name}</h1>
 

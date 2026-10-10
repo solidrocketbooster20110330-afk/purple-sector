@@ -19,7 +19,7 @@ type RaceResult = {
   points: string;
   status: string;
   Driver: { givenName: string; familyName: string };
-  Constructor: { name: string };
+  Constructor: { constructorId?: string; name: string };
 };
 
 type Race = {
@@ -211,7 +211,7 @@ export default async function DriverDetailPage({
   const position = driver?.position ?? "-";
   const points = driver?.points ?? "0";
   const team = driver?.Constructors?.[0]?.name ?? resultDriver?.Constructor?.name ?? "Unknown Team";
-  const constructorId = driver?.Constructors?.[0]?.constructorId;
+  const constructorId = driver?.Constructors?.[0]?.constructorId ?? resultDriver?.Constructor?.constructorId;
   const number = driver?.Driver.permanentNumber ?? "-";
   const teamColor = teamColors[team] ?? red;
 
@@ -242,7 +242,11 @@ export default async function DriverDetailPage({
         <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>
           #{number} {name}
         </h1>
-        <Link href={`/championship/constructors/${constructorId ?? ""}`} style={{ display: "inline-block", color: teamColor, fontWeight: "bold", textDecoration: "none" }}>{team} →</Link>
+        {constructorId ? (
+          <Link href={`/championship/constructors/${constructorId}`} style={{ display: "inline-block", color: teamColor, fontWeight: "bold", textDecoration: "none" }}>{team} →</Link>
+        ) : (
+          <span style={{ display: "inline-block", color: teamColor, fontWeight: "bold" }}>{team}</span>
+        )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "12px", marginTop: "20px" }}>
           {[

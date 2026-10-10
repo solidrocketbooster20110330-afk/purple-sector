@@ -27,14 +27,11 @@ type Race = {
   Qualifying?: Session;
 };
 
-type NewsItem = { title: string; link: string };
-
 const API = {
   drivers: "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
   constructors: "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
   nextRace: "https://api.jolpi.ca/ergast/f1/current/next.json",
   calendar: "https://api.jolpi.ca/ergast/f1/current.json",
-  news: "https://api.rss2json.com/v1/api.json?rss_url=https://www.formula1.com/content/fom-website/en/latest/all.xml",
   lastResult: "https://api.jolpi.ca/ergast/f1/current/last/results.json",
 };
 
@@ -61,7 +58,7 @@ const muted = "#b9b0b2";
 async function getHomeData() {
   const responses = await Promise.all(Object.values(API).map((url) => fetch(url, { next: { revalidate: 900 } })));
 
-  const [driversData, constructorsData, raceData, calendarData, newsData, resultData] =
+  const [driversData, constructorsData, raceData, calendarData, resultData] =
     await Promise.all(
       responses.map(async (response) => {
         if (!response.ok) return null;
@@ -79,7 +76,6 @@ async function getHomeData() {
     race: raceData?.MRData?.RaceTable?.Races?.[0] ?? null,
     calendar: calendarData?.MRData?.RaceTable?.Races ?? [],
     lastRace: resultData?.MRData?.RaceTable?.Races?.[0] ?? null,
-    news: Array.isArray(newsData?.items) ? newsData.items.slice(0, 3) : [],
   };
 }
 
@@ -127,7 +123,7 @@ const detailLinkStyle = {
 };
 
 export default async function HomePage() {
-  const { drivers, constructors, race, calendar, lastRace, news } = await getHomeData();
+  const { drivers, constructors, race, calendar, lastRace } = await getHomeData();
   const winner = lastRace?.Results?.[0];
   const nextSession = getNextSession(calendar as Race[]);
 
@@ -177,16 +173,6 @@ export default async function HomePage() {
             <strong>{team.points}</strong>
           </div>
         ))}
-      </section>
-
-      <section style={cardStyle}>
-        <h2>Latest News</h2>
-        {news.map((item: NewsItem) => (
-          <a key={item.link} href={item.link} target="_blank" rel="noopener noreferrer" style={{ display: "block", color: "white", textDecoration: "none", marginBottom: "12px" }}>
-            • {item.title}
-          </a>
-        ))}
-        <a href="/news" style={{ color: accent, textDecoration: "none", fontWeight: "bold" }}>More News →</a>
       </section>
 
       <BottomNav />

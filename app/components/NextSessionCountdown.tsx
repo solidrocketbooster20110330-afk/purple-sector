@@ -53,9 +53,9 @@ export default function NextSessionCountdown({
         background:
           "linear-gradient(135deg,#171d57 0%,#24105a 55%,#131942 100%)",
         border: "1px solid #4b3c9a",
-        borderRadius: "18px",
-        padding: "15px",
-        marginBottom: "14px",
+        borderRadius: "16px",
+        padding: "12px",
+        marginBottom: "8px",
         boxShadow: "0 12px 30px rgba(91,54,180,0.18)",
       }}
     >
@@ -72,7 +72,7 @@ export default function NextSessionCountdown({
 
       <div
         style={{
-          marginTop: "7px",
+          marginTop: "3px",
           fontSize: "20px",
           fontWeight: "800",
         }}
@@ -92,7 +92,7 @@ export default function NextSessionCountdown({
 
       <div
         style={{
-          marginTop: "12px",
+          marginTop: "8px",
           fontSize: "clamp(22px, 7vw, 34px)",
           lineHeight: 1,
           fontWeight: "900",

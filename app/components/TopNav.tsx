@@ -34,11 +34,11 @@ export default function TopNav() {
             </svg>
           </button>
         </div>
-        <nav aria-label="메인 내비게이션" style={{ display: "flex", alignItems: "stretch", gap: "clamp(4px, 1.15vw, 10px)", minHeight: "44px", padding: "0 clamp(6px, 1.8vw, 14px)", overflowX: "auto", overflowY: "hidden", whiteSpace: "nowrap", scrollbarWidth: "none", WebkitOverflowScrolling: "touch", width: "100%", boxSizing: "border-box" }}>
+        <nav aria-label="메인 내비게이션" style={{ display: "flex", alignItems: "stretch", gap: "0px", minHeight: "42px", padding: "0 4px", overflowX: "auto", overflowY: "hidden", whiteSpace: "nowrap", scrollbarWidth: "none", WebkitOverflowScrolling: "touch", width: "100%", boxSizing: "border-box" }}>
           {navItems.map((item) => {
             const active = item.match(pathname);
             return (
-              <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "44px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "clamp(10px, 2.9vw, 13px)", fontWeight: active ? 800 : 600, letterSpacing: "-0.2px", WebkitTapHighlightColor: "transparent" }}>
+              <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "42px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "11px", fontWeight: active ? 800 : 600, letterSpacing: "-0.35px", WebkitTapHighlightColor: "transparent" }}>
                 {item.label}
                 {active && <span aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "3px", borderRadius: "3px 3px 0 0", background: "#7c3aed" }} />}
               </Link>

@@ -184,7 +184,7 @@ export default async function DriverDetailPage({
 }) {
   const { driverId } = await params;
 
-  const [standingRes, resultsRes] = await Promise.all([
+  const [standingRes, resultsRes, photoRes] = await Promise.all([
     fetch("https://api.jolpi.ca/ergast/f1/current/driverstandings.json", {
       next: { revalidate: 3600 },
     }),
@@ -194,7 +194,7 @@ export default async function DriverDetailPage({
   ]);
 
   const standingData = await standingRes.json();
-  const resultsData = await resultsRes.json();
+  const resultsData = await resultsRes.json();\n  const photoData = photoRes?.ok ? await photoRes.json().catch(() => []) : [];
 
   const standings: DriverStanding[] =
     standingData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
@@ -214,7 +214,7 @@ export default async function DriverDetailPage({
   const team = driver?.Constructors?.[0]?.name ?? resultDriver?.Constructor?.name ?? "Unknown Team";
   const constructorId = driver?.Constructors?.[0]?.constructorId ?? resultDriver?.Constructor?.constructorId;
   const number = driver?.Driver.permanentNumber ?? "-";
-  const teamColor = teamColors[team] ?? red;
+  const teamColor = teamColors[team] ?? red;\n  const driverPhoto = Array.isArray(photoData) ? photoData.find((item: { last_name?: string; first_name?: string; headshot_url?: string }) => (item.last_name ?? "").toLowerCase() === (driver?.Driver.familyName ?? "").toLowerCase() && (item.first_name ?? "").toLowerCase() === (driver?.Driver.givenName ?? "").toLowerCase()) ?? photoData.find((item: { last_name?: string; headshot_url?: string }) => (item.last_name ?? "").toLowerCase() === (driver?.Driver.familyName ?? "").toLowerCase()) : null;
 
   const wins = races.filter((race) => race.Results?.[0]?.position === "1").length;
   const podiums = races.filter((race) => {
@@ -240,7 +240,7 @@ export default async function DriverDetailPage({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 150, marginBottom: 8, borderRadius: 16, background: "radial-gradient(ellipse at center, #292039 0%, #111016 72%)" }}>
-          <DriverHelmetArt color={teamColor} label={`Original helmet illustration for ${name}`} />
+          {driverPhoto?.headshot_url ? <img src={driverPhoto.headshot_url} alt={name} referrerPolicy="no-referrer" style={{ display: "block", width: "100%", maxWidth: "330px", height: "220px", objectFit: "contain", objectPosition: "center bottom" }} /> : <DriverHelmetArt color={teamColor} label={`Original helmet illustration for ${name}`} />}
         </div>
         <div style={{ color: teamColor, fontSize: "14px", fontWeight: "bold" }}>2026 DRIVER</div>
         <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>

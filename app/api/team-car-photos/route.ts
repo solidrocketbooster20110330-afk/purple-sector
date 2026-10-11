@@ -14,8 +14,15 @@ const teams = [
 
 type CommonsImage = {
   title?: string;
-  imageinfo?: { thumburl?: string; url?: string; extmetadata?: { Artist?: { value?: string }; LicenseShortName?: { value?: string }; LicenseUrl?: { value?: string } } }[];
-  imageinfo?: { extmetadata?: { Artist?: { value?: string }; LicenseShortName?: { value?: string }; LicenseUrl?: { value?: string } } }[];
+  imageinfo?: {
+    thumburl?: string;
+    url?: string;
+    extmetadata?: {
+      Artist?: { value?: string };
+      LicenseShortName?: { value?: string };
+      LicenseUrl?: { value?: string };
+    };
+  }[];
 };
 
 async function findCarPhoto(team: { id: string; name: string }) {

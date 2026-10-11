@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Team = { position: string; points: string; Constructor: { constructorId: string; name: string } };
-type Driver = { Driver: { driverId: string; givenName: string; familyName: string }; Constructors?: { constructorId?: string; name: string }[] };
+type Driver = { Driver: { driverId: string; givenName: string; familyName: string }; Constructors?: { constructorId?: string; name?: string }[] };
 
 const colors: Record<string, string> = {
   McLaren: "#ff8000", Ferrari: "#e80020", "Red Bull": "#3671c6", "Red Bull Racing": "#3671c6",
@@ -12,10 +12,6 @@ const colors: Record<string, string> = {
   Williams: "#64c4ff", "Racing Bulls": "#6692ff", "Visa Cash App RB": "#6692ff",
   Haas: "#e6002b", "Haas F1 Team": "#e6002b", Audi: "#f50537", Cadillac: "#c9c9c9",
 };
-
-function normalize(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
 
 export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -36,15 +32,22 @@ export default function TeamsPage() {
     return () => { cancelled = true; };
   }, []);
 
+  const rankedTeams = [...teams].sort((a, b) => {
+    const positionA = Number.parseInt(a.position, 10);
+    const positionB = Number.parseInt(b.position, 10);
+    if (Number.isFinite(positionA) && Number.isFinite(positionB)) return positionA - positionB;
+    return Number(b.points) - Number(a.points);
+  });
+
   return (
     <main style={{ minHeight: "100vh", boxSizing: "border-box", padding: "20px 14px 40px", background: "linear-gradient(180deg,#050505,#100b18 70%,#1b1230)", color: "white" }}>
       <div style={{ display: "flex", alignItems: "end", justifyContent: "space-between", gap: "12px", margin: "4px 4px 18px" }}>
         <div><div style={{ color: "#a78bfa", fontSize: "11px", fontWeight: 800, letterSpacing: "2px" }}>2026 SEASON</div><h1 style={{ margin: "5px 0 0", fontSize: "30px" }}>컨스트럭터</h1></div>
         <span style={{ color: "#aaa1a4", fontSize: "13px" }}>{teams.length} TEAMS</span>
       </div>
-      {loading ? <p style={{ color: "#aaa1a4", padding: "18px 4px" }}>팀 데이터를 불러오는 중...</p> : error ? <p style={{ color: "#aaa1a4", padding: "18px 4px" }}>데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : teams.length === 0 ? <p style={{ color: "#aaa1a4" }}>표시할 팀이 없습니다.</p> : (
+      {loading ? <p style={{ color: "#aaa1a4", padding: "18px 4px" }}>팀 데이터를 불러오는 중...</p> : error ? <p style={{ color: "#aaa1a4", padding: "18px 4px" }}>데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : rankedTeams.length === 0 ? <p style={{ color: "#aaa1a4" }}>표시할 팀이 없습니다.</p> : (
         <div style={{ display: "grid", gap: "14px" }}>
-          {teams.map((team) => {
+          {rankedTeams.map((team) => {
             const name = team.Constructor.name;
             const color = colors[name] ?? "#7c3aed";
             const teamDrivers = drivers.filter((driver) => driver.Constructors?.some((c) => c.constructorId === team.Constructor.constructorId || c.name === name));
@@ -52,7 +55,7 @@ export default function TeamsPage() {
               <Link href={`/championship/constructors/${team.Constructor.constructorId}`} aria-label={`${name} 팀 상세 보기`} style={{ display: "block", color: "white", textDecoration: "none" }}>
                 <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: "12px" }}><strong style={{ fontSize: "28px", lineHeight: 1 }}>{team.position}</strong><strong style={{ fontSize: "15px" }}>{team.points} 포인트</strong></div>
                 <div style={{ margin: "10px 0 8px", overflow: "hidden", borderRadius: "10px", background: "#e9e9e9" }}>
-                  <img src="/team-car-gray.jpg" alt={`${name} grayscale side-view F1 car`} style={{ display: "block", width: "100%", height: "142px", objectFit: "contain" }} />
+                  <img src="/team-car-gray.jpg" alt={`${name} F1 car`} style={{ display: "block", width: "100%", height: "142px", objectFit: "contain" }} />
                 </div>
                 <h2 style={{ margin: "0 0 8px", fontSize: "24px" }}>{name}</h2>
               </Link>

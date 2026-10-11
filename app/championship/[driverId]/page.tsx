@@ -191,6 +191,9 @@ export default async function DriverDetailPage({
     fetch(`https://api.jolpi.ca/ergast/f1/current/drivers/${driverId}/results.json?limit=100`, {
       next: { revalidate: 3600 },
     }),
+    fetch("https://api.openf1.org/v1/drivers?session_key=latest", {
+      next: { revalidate: 21600 },
+    }).catch(() => null),
   ]);
 
   const standingData = await standingRes.json();

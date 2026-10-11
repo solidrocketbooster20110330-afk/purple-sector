@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 type Team = { position: string; points: string; Constructor: { constructorId: string; name: string } };
 type Driver = { Driver: { driverId: string; givenName: string; familyName: string }; Constructors?: { constructorId?: string; name: string }[] };
-type TeamPhoto = { id: string; name: string; imageUrl: string | null; sourceUrl: string | null; credit: string | null; license: string | null; licenseUrl: string | null };
 
 const colors: Record<string, string> = {
   McLaren: "#ff8000", Ferrari: "#e80020", "Red Bull": "#3671c6", "Red Bull Racing": "#3671c6",
@@ -21,7 +20,6 @@ function normalize(value: string) {
 export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [photos, setPhotos] = useState<TeamPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -30,23 +28,13 @@ export default function TeamsPage() {
     Promise.all([
       fetch("/api/constructors", { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error("Teams"); return r.json(); }),
       fetch("/api/standings", { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error("Drivers"); return r.json(); }),
-      fetch("/api/team-car-photos", { cache: "no-store" }).then((r) => r.ok ? r.json() : []),
-    ]).then(([teamData, driverData, photoData]) => {
+    ]).then(([teamData, driverData]) => {
       if (cancelled) return;
       setTeams(Array.isArray(teamData) ? teamData : []);
       setDrivers(Array.isArray(driverData) ? driverData : []);
-      setPhotos(Array.isArray(photoData) ? photoData : []);
     }).catch(() => { if (!cancelled) setError(true); }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
-
-  function photoFor(team: Team) {
-    const id = normalize(team.Constructor.constructorId);
-    const name = normalize(team.Constructor.name);
-    return photos.find((photo) => normalize(photo.id) === id)
-      ?? photos.find((photo) => normalize(photo.name) === name)
-      ?? photos.find((photo) => normalize(photo.name).includes(name) || name.includes(normalize(photo.name)));
-  }
 
   return (
     <main style={{ minHeight: "100vh", boxSizing: "border-box", padding: "20px 14px 40px", background: "linear-gradient(180deg,#050505,#100b18 70%,#1b1230)", color: "white" }}>
@@ -60,7 +48,6 @@ export default function TeamsPage() {
             const name = team.Constructor.name;
             const color = colors[name] ?? "#7c3aed";
             const teamDrivers = drivers.filter((driver) => driver.Constructors?.some((c) => c.constructorId === team.Constructor.constructorId || c.name === name));
-            const photo = photoFor(team);
             return <article key={team.Constructor.constructorId} style={{ display: "block", padding: "12px", background: `linear-gradient(120deg,${color}12,#090909 55%)`, border: "1px solid #29232f", borderLeft: `4px solid ${color}`, borderRadius: "12px", color: "white" }}>
               <Link href={`/championship/constructors/${team.Constructor.constructorId}`} aria-label={`${name} 팀 상세 보기`} style={{ display: "block", color: "white", textDecoration: "none" }}>
                 <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: "12px" }}><strong style={{ fontSize: "28px", lineHeight: 1 }}>{team.position}</strong><strong style={{ fontSize: "15px" }}>{team.points} 포인트</strong></div>
@@ -69,7 +56,6 @@ export default function TeamsPage() {
                 </div>
                 <h2 style={{ margin: "0 0 8px", fontSize: "24px" }}>{name}</h2>
               </Link>
-              {photo?.imageUrl && photo.sourceUrl && <div style={{ margin: "-2px 0 8px", color: "#8f8798", fontSize: "10px", lineHeight: 1.4 }}>Photo: <a href={photo.sourceUrl} target="_blank" rel="noreferrer" style={{ color: "#aaa1b4" }}>{photo.credit || "Wikimedia Commons"}</a>{photo.license ? ` · ${photo.license}` : ""}{photo.licenseUrl ? <> · <a href={photo.licenseUrl} target="_blank" rel="noreferrer" style={{ color: "#aaa1b4" }}>License</a></> : null}</div>}
               <div style={{ display: "grid", gap: "0" }}>{teamDrivers.slice(0,2).map((driver,index) => <Link key={driver.Driver.driverId} href={`/championship/${driver.Driver.driverId}`} aria-label={`${driver.Driver.givenName} ${driver.Driver.familyName} 드라이버 상세 보기`} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 0", borderTop: "1px solid #2a252f", color: "white", textDecoration: "none", borderRadius: "8px" }}><span style={{ width: "34px", height: "34px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: `${color}20`, color, fontSize: "11px", fontWeight: 900 }}>{(driver.Driver.givenName[0] + driver.Driver.familyName[0]).toUpperCase()}</span><span style={{ flex: 1, fontWeight: 700 }}>{driver.Driver.driverId === "antonelli" ? "Kimi" : driver.Driver.givenName} {driver.Driver.familyName}</span><span style={{ color: "#aaa1a4", fontSize: "12px" }}>{index + 1}위 ↗</span></Link>)}</div>
             </article>;
           })}

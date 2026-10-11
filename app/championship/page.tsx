@@ -602,9 +602,8 @@ export default function ChampionshipDriversPage() {
                 <strong>{positionLabel(driver.position)}</strong>
 
                 <div>
-                  <div style={{ fontWeight: 900, fontSize: "18px", letterSpacing: "1px" }}>
-                    {(driver.Driver.givenName.slice(0, 3)).toUpperCase()}
-                    <span style={{ color: muted, fontSize: "11px", marginLeft: "8px", fontWeight: 600 }}>#{driver.Driver.permanentNumber ?? "-"}</span>
+                  <div style={{ fontWeight: 700, fontSize: "15px" }}>
+                    #{driver.Driver.permanentNumber ?? "-"} {driver.Driver.givenName} {driver.Driver.familyName}
                   </div>
                   <div
                     style={{
@@ -615,16 +614,8 @@ export default function ChampionshipDriversPage() {
                       alignItems: "center",
                     }}
                   >
-                    <span style={{ ...teamBadge(teamName), overflow: "hidden", position: "relative" }}>
-                      {driverPhotos[`${driver.Driver.givenName} ${driver.Driver.familyName}`.toLowerCase().replace(/[^a-z]/g, "")] ? (
-                        <img
-                          src={driverPhotos[`${driver.Driver.givenName} ${driver.Driver.familyName}`.toLowerCase().replace(/[^a-z]/g, "")]}
-                          alt={`${driver.Driver.givenName} ${driver.Driver.familyName}`}
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
-                        />
-                      ) : teamInitials(teamName)}
+                    <span style={{ ...teamBadge(teamName), overflow: "hidden", position: "relative", border: "1px solid ${teamColors[teamName] ?? muted}", background: "#09090b", color: "${teamColors[teamName] ?? muted}" }}>
+                      {driver.Driver.givenName.slice(0, 3).toUpperCase()}
                     </span>
                     {teamName}
                   </div>

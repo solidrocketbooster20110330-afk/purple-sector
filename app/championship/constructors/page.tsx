@@ -109,7 +109,7 @@ export default function ChampionshipConstructorsPage() {
   const [rankView, setRankView] = useState(false);
   const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
   const animatedLinePointsRef = useRef<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);\n  const [carPhotos, setCarPhotos] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -171,6 +171,23 @@ export default function ChampionshipConstructorsPage() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/team-car-photos", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : [])
+      .then((photos) => {
+        if (cancelled || !Array.isArray(photos)) return;
+        const mapped: Record<string, string> = {};
+        for (const photo of photos) {
+          const key = String(photo.id ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          if (key && photo.imageUrl) mapped[key] = photo.imageUrl;
+        }
+        setCarPhotos(mapped);
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
   }, []);
 
   const chartTeams = useMemo<ChartTeam[]>(() => {
@@ -525,8 +542,17 @@ export default function ChampionshipConstructorsPage() {
               }}
             >
               <strong>{positionLabel(constructor.position)}</strong>
-              <div style={{ fontWeight: "bold" }}>
-                {constructor.Constructor.name}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, fontWeight: "bold" }}>
+                {carPhotos[constructor.Constructor.constructorId.toLowerCase().replace(/[^a-z0-9]/g, "")] ? (
+                  <img
+                    src={carPhotos[constructor.Constructor.constructorId.toLowerCase().replace(/[^a-z0-9]/g, "")]}
+                    alt={`${constructor.Constructor.name} car`}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    style={{ width: "76px", height: "46px", objectFit: "cover", borderRadius: "7px", flexShrink: 0, background: "#151515" }}
+                  />
+                ) : null}
+                <span>{constructor.Constructor.name}</span>
               </div>
               <strong
                 style={{

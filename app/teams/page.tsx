@@ -95,7 +95,7 @@ export default function TeamsPage() {
                     <circle cx="118" cy="151" r="8" fill={color} stroke="#e5e7eb" strokeWidth="2"/><circle cx="432" cy="140" r="8" fill={color} stroke="#e5e7eb" strokeWidth="2"/>
                     <circle cx="118" cy="151" r="3" fill="#111827"/><circle cx="432" cy="140" r="3" fill="#111827"/>
                     <path d="M23 203l47-2 7-7 16 3 8 7-60 5zM424 181l65-4 10 7-16 7-49-2z" fill="#050608" stroke={color} strokeWidth="2"/>
-                    <text x="300" y="145" fill="#fff" fontSize="17" fontWeight="900" textAnchor="middle">{teamDrivers[0]?.Driver?.permanentNumber ?? ""}</text>
+                    <path d="M282 137l38-5 8 15-43 4z" fill="#fff" opacity=".88"/>
                     <text x="280" y="238" fontSize="12" fontWeight="800" letterSpacing="3" textAnchor="middle" fill="#c8c2d4">{name.toUpperCase()}</text>
                   </svg>
                 </div>

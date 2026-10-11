@@ -123,7 +123,7 @@ export default function ChampionshipDriversPage() {
     drivers: DriverStanding[];
     races: Race[];
   } | null>(null);
-  const [rankView, setRankView] = useState(false);
+  const [rankView, setRankView] = useState(false);\n  const [driverPhotos, setDriverPhotos] = useState<Record<string, string>>({});
   const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
   const animatedLinePointsRef = useRef<Record<string, string>>({});
 
@@ -182,6 +182,23 @@ export default function ChampionshipDriversPage() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/driver-photos", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : [])
+      .then((photos) => {
+        if (cancelled || !Array.isArray(photos)) return;
+        const mapped: Record<string, string> = {};
+        for (const photo of photos) {
+          const key = `${photo.firstName ?? ""} ${photo.lastName ?? ""}`.toLowerCase().replace(/[^a-z]/g, "");
+          if (key && photo.headshotUrl) mapped[key] = photo.headshotUrl;
+        }
+        setDriverPhotos(mapped);
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
   }, []);
 
   const drivers = data?.drivers ?? [];
@@ -597,8 +614,16 @@ export default function ChampionshipDriversPage() {
                       alignItems: "center",
                     }}
                   >
-                    <span style={teamBadge(teamName)}>
-                      {teamInitials(teamName)}
+                    <span style={{ ...teamBadge(teamName), overflow: "hidden", position: "relative" }}>
+                      {driverPhotos[`${driver.Driver.givenName} ${driver.Driver.familyName}`.toLowerCase().replace(/[^a-z]/g, "")] ? (
+                        <img
+                          src={driverPhotos[`${driver.Driver.givenName} ${driver.Driver.familyName}`.toLowerCase().replace(/[^a-z]/g, "")]}
+                          alt={`${driver.Driver.givenName} ${driver.Driver.familyName}`}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+                        />
+                      ) : teamInitials(teamName)}
                     </span>
                     {teamName}
                   </div>

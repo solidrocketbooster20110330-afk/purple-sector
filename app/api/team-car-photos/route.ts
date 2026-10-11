@@ -41,17 +41,17 @@ async function findCarPhoto(team: { id: string; name: string }) {
       const pages: CommonsImage[] = Object.values(json?.query?.pages ?? {});
       const candidate = pages.find((page) => {
         const title = (page.title ?? "").toLowerCase();
-        return Boolean(page.thumbnail?.source)
+        return Boolean(page.imageinfo?.[0]?.thumburl ?? page.imageinfo?.[0]?.url)
           && title.includes("2026")
           && (title.includes("car") || title.includes("grand prix") || title.includes("formula"))
           && !title.includes("logo");
       }) ?? pages.find((page) => Boolean(page.thumbnail?.source) && !String(page.title).toLowerCase().includes("logo"));
-      if (candidate?.thumbnail?.source) {
+      const imageUrl = candidate?.imageinfo?.[0]?.thumburl ?? candidate?.imageinfo?.[0]?.url;\n      if (imageUrl) {
         const meta = candidate.imageinfo?.[0]?.extmetadata;
         return {
           id: team.id,
           name: team.name,
-          imageUrl: candidate.thumbnail.source,
+          imageUrl,
           sourceUrl: `https://commons.wikimedia.org/wiki/${encodeURIComponent(candidate.title ?? "").replace(/%3A/g, ":").replace(/%20/g, "_")}`,
           credit: (meta?.Artist?.value ?? "Wikimedia Commons").replace(/<[^>]*>/g, "").slice(0, 180),
           license: meta?.LicenseShortName?.value ?? "Wikimedia Commons",

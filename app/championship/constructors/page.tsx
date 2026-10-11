@@ -109,7 +109,8 @@ export default function ChampionshipConstructorsPage() {
   const [rankView, setRankView] = useState(false);
   const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
   const animatedLinePointsRef = useRef<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);\n  const [carPhotos, setCarPhotos] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [carPhotos, setCarPhotos] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -182,7 +183,9 @@ export default function ChampionshipConstructorsPage() {
         const mapped: Record<string, string> = {};
         for (const photo of photos) {
           const key = String(photo.id ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-          if (key && photo.imageUrl) mapped[key] = photo.imageUrl;\n          const nameKey = String(photo.name ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");\n          if (nameKey && photo.imageUrl) mapped[nameKey] = photo.imageUrl;
+          if (key && photo.imageUrl) mapped[key] = photo.imageUrl;
+          const nameKey = String(photo.name ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          if (nameKey && photo.imageUrl) mapped[nameKey] = photo.imageUrl;
         }
         setCarPhotos(mapped);
       })

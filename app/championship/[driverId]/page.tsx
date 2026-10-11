@@ -194,7 +194,8 @@ export default async function DriverDetailPage({
   ]);
 
   const standingData = await standingRes.json();
-  const resultsData = await resultsRes.json();\n  const photoData = photoRes?.ok ? await photoRes.json().catch(() => []) : [];
+  const resultsData = await resultsRes.json();
+  const photoData = photoRes?.ok ? await photoRes.json().catch(() => []) : [];
 
   const standings: DriverStanding[] =
     standingData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
@@ -214,7 +215,8 @@ export default async function DriverDetailPage({
   const team = driver?.Constructors?.[0]?.name ?? resultDriver?.Constructor?.name ?? "Unknown Team";
   const constructorId = driver?.Constructors?.[0]?.constructorId ?? resultDriver?.Constructor?.constructorId;
   const number = driver?.Driver.permanentNumber ?? "-";
-  const teamColor = teamColors[team] ?? red;\n  const driverPhoto = Array.isArray(photoData) ? photoData.find((item: { last_name?: string; first_name?: string; headshot_url?: string }) => (item.last_name ?? "").toLowerCase() === (driver?.Driver.familyName ?? "").toLowerCase() && (item.first_name ?? "").toLowerCase() === (driver?.Driver.givenName ?? "").toLowerCase()) ?? photoData.find((item: { last_name?: string; headshot_url?: string }) => (item.last_name ?? "").toLowerCase() === (driver?.Driver.familyName ?? "").toLowerCase()) : null;
+  const teamColor = teamColors[team] ?? red;
+  const driverPhoto = Array.isArray(photoData) ? photoData.find((item: { last_name?: string; first_name?: string; headshot_url?: string }) => (item.last_name ?? "").toLowerCase() === (driver?.Driver.familyName ?? "").toLowerCase() && (item.first_name ?? "").toLowerCase() === (driver?.Driver.givenName ?? "").toLowerCase()) ?? photoData.find((item: { last_name?: string; headshot_url?: string }) => (item.last_name ?? "").toLowerCase() === (driver?.Driver.familyName ?? "").toLowerCase()) : null;
 
   const wins = races.filter((race) => race.Results?.[0]?.position === "1").length;
   const podiums = races.filter((race) => {

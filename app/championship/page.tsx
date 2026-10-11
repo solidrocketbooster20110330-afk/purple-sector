@@ -602,9 +602,9 @@ export default function ChampionshipDriversPage() {
                 <strong>{positionLabel(driver.position)}</strong>
 
                 <div>
-                  <div>
-                    #{driver.Driver.permanentNumber ?? "-"}{" "}
-                    {driver.Driver.givenName} {driver.Driver.familyName}
+                  <div style={{ fontWeight: 900, fontSize: "18px", letterSpacing: "1px" }}>
+                    {(driver.Driver.givenName.slice(0, 3)).toUpperCase()}
+                    <span style={{ color: muted, fontSize: "11px", marginLeft: "8px", fontWeight: 600 }}>#{driver.Driver.permanentNumber ?? "-"}</span>
                   </div>
                   <div
                     style={{

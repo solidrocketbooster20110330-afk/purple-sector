@@ -177,6 +177,33 @@ export default async function ConstructorDetailPage({
   const position = constructor?.position ?? "-";
   const points = constructor?.points ?? "0";
   const teamColor = teamColors[name] ?? red;
+  const carPhotoUrl = await (async () => {
+    const searches = [`${name} Formula One 2026 car`, `${name} Formula One car 2025`];
+    for (const query of searches) {
+      try {
+        const url = new URL("https://commons.wikimedia.org/w/api.php");
+        url.searchParams.set("action", "query");
+        url.searchParams.set("generator", "search");
+        url.searchParams.set("gsrsearch", query);
+        url.searchParams.set("gsrnamespace", "6");
+        url.searchParams.set("gsrlimit", "8");
+        url.searchParams.set("prop", "imageinfo");
+        url.searchParams.set("iiprop", "url");
+        url.searchParams.set("iiurlwidth", "1000");
+        url.searchParams.set("format", "json");
+        const response = await fetch(url, { next: { revalidate: 86400 } });
+        if (!response.ok) continue;
+        const json = await response.json();
+        const pages = Object.values(json?.query?.pages ?? []) as { title?: string; thumbnail?: { source?: string } }[];
+        const candidate = pages.find((page) => Boolean(page.thumbnail?.source) && /2026/i.test(page.title ?? "") && /(car|formula|grand prix)/i.test(page.title ?? "") && !/logo/i.test(page.title ?? ""))
+          ?? pages.find((page) => Boolean(page.thumbnail?.source) && !/logo/i.test(page.title ?? ""));
+        if (candidate?.thumbnail?.source) return candidate.thumbnail.source;
+      } catch {
+        // Keep the original illustration if no reliable photo can be retrieved.
+      }
+    }
+    return null;
+  })();
 
   const wins = races.reduce((sum, race) => sum + (race.Results?.filter((result) => result.position === "1").length ?? 0), 0);
   const podiums = races.reduce((sum, race) => sum + (race.Results?.filter((result) => {
@@ -195,7 +222,7 @@ export default async function ConstructorDetailPage({
 
       <section style={{ ...cardStyle, marginTop: "20px", borderColor: teamColor, background: "linear-gradient(135deg,#161010 0%,#101010 100%)" }}>
         <div style={{ margin: "-4px -4px 16px", padding: "12px 4px 4px", borderRadius: 16, background: "radial-gradient(ellipse at center, #292039 0%, #111016 72%)" }}>
-          <RaceCarArt color={teamColor} label={`Original generic racing car illustration for ${name}`} />
+          {carPhotoUrl ? <img src={carPhotoUrl} alt={`${name} Formula racing car`} referrerPolicy="no-referrer" style={{ display: "block", width: "100%", maxHeight: "250px", height: "auto", objectFit: "contain", borderRadius: 12 }} /> : <RaceCarArt color={teamColor} label={`Original generic racing car illustration for ${name}`} />}
         </div>
         <div style={{ color: teamColor, fontSize: "14px", fontWeight: "bold" }}>2026 CONSTRUCTOR</div>
         <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>{name}</h1>

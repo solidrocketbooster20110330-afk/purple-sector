@@ -67,20 +67,20 @@ export default function TeamsPage() {
                 <div style={{ position: "relative", minHeight: "174px", margin: "10px 0 8px", overflow: "hidden", borderRadius: "10px", background: `radial-gradient(ellipse at center,${color}35,#08080a 74%)`, display: "flex", alignItems: "center" }}>
                   <svg viewBox="0 0 560 250" width="100%" height="auto" role="img" aria-label={`${name} stylized Formula racing car illustration`} style={{ display: "block", minWidth: 0 }}>
                     <defs>
-                      <linearGradient id="bodyGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity=".65"/><stop offset=".25" stopColor={color}/><stop offset="1" stopColor="#08090d"/></linearGradient>
-                      <linearGradient id="tireGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#454650"/><stop offset=".5" stopColor="#08090c"/><stop offset="1" stopColor="#24252b"/></linearGradient>
+                      <linearGradient id={`bodyGradient-${team.Constructor.constructorId}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity=".65"/><stop offset=".25" stopColor={color}/><stop offset="1" stopColor="#08090d"/></linearGradient>
+                      <linearGradient id={`tireGradient-${team.Constructor.constructorId}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#454650"/><stop offset=".5" stopColor="#08090c"/><stop offset="1" stopColor="#24252b"/></linearGradient>
                     </defs>
                     <ellipse cx="280" cy="197" rx="230" ry="12" fill="#000" opacity=".5"/>
                     <path d="M421 66 L504 63 L510 72 L421 77 Z" fill={color} stroke="#090a0d" strokeWidth="3"/>
                     <path d="M430 75 L433 111 L443 113 L450 76 Z M493 72 L500 111 L510 111 L505 72 Z" fill={color} stroke="#090a0d" strokeWidth="3"/>
-                    <circle cx="145" cy="155" r="37" fill="url(#tireGradient)" stroke="#686b75" strokeWidth="3"/>
+                    <circle cx="145" cy="155" r="37" fill={`url(#tireGradient-${team.Constructor.constructorId})`} stroke="#686b75" strokeWidth="3"/>
                     <circle cx="145" cy="155" r="24" fill="#101116" stroke="#a5a9b4" strokeWidth="3"/><circle cx="145" cy="155" r="12" fill={color} stroke="#e5e7eb" strokeWidth="3"/><circle cx="145" cy="155" r="4" fill="#101116"/>
-                    <circle cx="414" cy="155" r="37" fill="url(#tireGradient)" stroke="#686b75" strokeWidth="3"/>
+                    <circle cx="414" cy="155" r="37" fill={`url(#tireGradient-${team.Constructor.constructorId})`} stroke="#686b75" strokeWidth="3"/>
                     <circle cx="414" cy="155" r="24" fill="#101116" stroke="#a5a9b4" strokeWidth="3"/><circle cx="414" cy="155" r="12" fill={color} stroke="#e5e7eb" strokeWidth="3"/><circle cx="414" cy="155" r="4" fill="#101116"/>
                     <path d="M35 170 L96 165 L131 168 L131 178 L70 184 L34 180 Z" fill={color} stroke="#08090d" strokeWidth="3"/>
                     <path d="M43 181 L82 180 L104 186 L75 191 L32 188 Z" fill="#11131a" stroke={color} strokeWidth="3"/>
-                    <path d="M91 158 L137 142 L194 131 L238 128 L258 143 L210 154 L153 164 L111 169 Z" fill="url(#bodyGradient)" stroke="#08090d" strokeWidth="4" strokeLinejoin="round"/>
-                    <path d="M128 153 L184 127 L239 111 L290 109 L336 119 L387 126 L426 143 L419 161 L366 169 L270 170 L184 166 L139 164 Z" fill="url(#bodyGradient)" stroke="#08090d" strokeWidth="4" strokeLinejoin="round"/>
+                    <path d="M91 158 L137 142 L194 131 L238 128 L258 143 L210 154 L153 164 L111 169 Z" fill={`url(#bodyGradient-${team.Constructor.constructorId})`} stroke="#08090d" strokeWidth="4" strokeLinejoin="round"/>
+                    <path d="M128 153 L184 127 L239 111 L290 109 L336 119 L387 126 L426 143 L419 161 L366 169 L270 170 L184 166 L139 164 Z" fill={`url(#bodyGradient-${team.Constructor.constructorId})`} stroke="#08090d" strokeWidth="4" strokeLinejoin="round"/>
                     <path d="M192 151 L244 143 L287 148 L345 146 L385 153 L365 164 L274 164 L211 160 Z" fill="#f1f5f9" opacity=".94"/>
                     <path d="M150 147 L205 122 L239 114 L268 117 L233 136 L188 151 Z" fill={color} stroke="#08090d" strokeWidth="3"/>
                     <path d="M220 124 L238 91 L267 77 L302 81 L328 108 L311 126 L272 134 Z" fill={color} stroke="#08090d" strokeWidth="4" strokeLinejoin="round"/>

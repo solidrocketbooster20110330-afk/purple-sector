@@ -196,8 +196,9 @@ export default async function ConstructorDetailPage({
         const json = await response.json();
         const pages = Object.values(json?.query?.pages ?? []) as { title?: string; thumbnail?: { source?: string } }[];
         const candidate = pages.find((page) => Boolean(page.imageinfo?.[0]?.thumburl ?? page.imageinfo?.[0]?.url) && /2026/i.test(page.title ?? "") && /(car|formula|grand prix)/i.test(page.title ?? "") && !/logo/i.test(page.title ?? ""))
-          ?? pages.find((page) => Boolean(page.thumbnail?.source) && !/logo/i.test(page.title ?? ""));
-        const imageUrl = candidate?.imageinfo?.[0]?.thumburl ?? candidate?.imageinfo?.[0]?.url;\n        if (imageUrl) return imageUrl;
+          ?? pages.find((page) => Boolean((page.imageinfo?.[0]?.thumburl ?? page.imageinfo?.[0]?.url)) && !/logo/i.test(page.title ?? ""));
+        const imageUrl = candidate?.imageinfo?.[0]?.thumburl ?? candidate?.imageinfo?.[0]?.url;
+        if (imageUrl) return imageUrl;
       } catch {
         // Keep the original illustration if no reliable photo can be retrieved.
       }

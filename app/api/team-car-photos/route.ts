@@ -14,7 +14,7 @@ const teams = [
 
 type CommonsImage = {
   title?: string;
-  thumbnail?: { source?: string };
+  imageinfo?: { thumburl?: string; url?: string; extmetadata?: { Artist?: { value?: string }; LicenseShortName?: { value?: string }; LicenseUrl?: { value?: string } } }[];
   imageinfo?: { extmetadata?: { Artist?: { value?: string }; LicenseShortName?: { value?: string }; LicenseUrl?: { value?: string } } }[];
 };
 

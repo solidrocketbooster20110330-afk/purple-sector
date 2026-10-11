@@ -182,7 +182,7 @@ export default function ChampionshipConstructorsPage() {
         const mapped: Record<string, string> = {};
         for (const photo of photos) {
           const key = String(photo.id ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-          if (key && photo.imageUrl) mapped[key] = photo.imageUrl;
+          if (key && photo.imageUrl) mapped[key] = photo.imageUrl;\n          const nameKey = String(photo.name ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");\n          if (nameKey && photo.imageUrl) mapped[nameKey] = photo.imageUrl;
         }
         setCarPhotos(mapped);
       })

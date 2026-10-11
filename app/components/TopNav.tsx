@@ -38,7 +38,7 @@ export default function TopNav() {
           {navItems.map((item) => {
             const active = item.match(pathname);
             return (
-              <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "42px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "clamp(11px, 2.8vw, 13px)", fontWeight: active ? 800 : 600, letterSpacing: "-0.2px", WebkitTapHighlightColor: "transparent" }}>
+              <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "42px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "clamp(13px, 3.4vw, 15px)", fontWeight: active ? 800 : 600, letterSpacing: "-0.2px", WebkitTapHighlightColor: "transparent" }}>
                 {item.label}
                 {active && <span aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "3px", borderRadius: "3px 3px 0 0", background: "#7c3aed" }} />}
               </Link>

@@ -123,7 +123,8 @@ export default function ChampionshipDriversPage() {
     drivers: DriverStanding[];
     races: Race[];
   } | null>(null);
-  const [rankView, setRankView] = useState(false);\n  const [driverPhotos, setDriverPhotos] = useState<Record<string, string>>({});
+  const [rankView, setRankView] = useState(false);
+  const [driverPhotos, setDriverPhotos] = useState<Record<string, string>>({});
   const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
   const animatedLinePointsRef = useRef<Record<string, string>>({});
 

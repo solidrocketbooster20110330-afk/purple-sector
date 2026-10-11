@@ -64,46 +64,46 @@ export default function TeamsPage() {
             return <article key={team.Constructor.constructorId} style={{ display: "block", padding: "12px", background: `linear-gradient(120deg,${color}12,#090909 55%)`, border: "1px solid #29232f", borderLeft: `4px solid ${color}`, borderRadius: "12px", color: "white" }}>
               <Link href={`/championship/constructors/${team.Constructor.constructorId}`} aria-label={`${name} 팀 상세 보기`} style={{ display: "block", color: "white", textDecoration: "none" }}>
                 <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: "12px" }}><strong style={{ fontSize: "28px", lineHeight: 1 }}>{team.position}</strong><strong style={{ fontSize: "15px" }}>{team.points} 포인트</strong></div>
-                <div style={{ position: "relative", minHeight: "128px", margin: "10px 0 8px", overflow: "hidden", borderRadius: "10px", background: `radial-gradient(ellipse at center,${color}26,#08080a 76%)`, display: "flex", alignItems: "center" }}>
-                  <svg viewBox="0 0 620 150" width="100%" height="auto" role="img" aria-label={`${name} low side-view F1 car illustration`} style={{ display: "block", minWidth: 0 }}>
+                <div style={{ position: "relative", minHeight: "142px", margin: "10px 0 8px", overflow: "hidden", borderRadius: "10px", background: `radial-gradient(ellipse at center,${color}26,#08080a 76%)`, display: "flex", alignItems: "center" }}>
+                  <svg viewBox="0 0 620 170" width="100%" height="auto" role="img" aria-label={`${name} side-view F1 car illustration`} style={{ display: "block", minWidth: 0 }}>
                     <defs>
-                      <linearGradient id={`body-${team.Constructor.constructorId}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity=".95"/><stop offset=".18" stopColor={color}/><stop offset="1" stopColor={color}/></linearGradient>
-                      <linearGradient id={`tyre-${team.Constructor.constructorId}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#303139"/><stop offset=".45" stopColor="#08090c"/><stop offset="1" stopColor="#17181e"/></linearGradient>
+                      <linearGradient id={`body-${team.Constructor.constructorId}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" stopOpacity=".95"/><stop offset=".2" stopColor={color}/><stop offset="1" stopColor={color}/></linearGradient>
+                      <linearGradient id={`tyre-${team.Constructor.constructorId}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#45464d"/><stop offset=".4" stopColor="#08090c"/><stop offset="1" stopColor="#202127"/></linearGradient>
                     </defs>
-                    <ellipse cx="309" cy="119" rx="252" ry="4.5" fill="#000" opacity=".65"/>
-                    {/* Flat, long infographic-style silhouette: small wheels and a low chassis */}
+                    <ellipse cx="309" cy="130" rx="249" ry="5" fill="#000" opacity=".6"/>
+                    {/* Side-on open-wheel car with balanced wheels, cockpit and wings */}
                     <g strokeLinejoin="round" strokeLinecap="round">
-                      <circle cx="171" cy="101" r="17" fill={`url(#tyre-${team.Constructor.constructorId})`} stroke="#08090c" strokeWidth="2"/>
-                      <circle cx="171" cy="101" r="10.5" fill="#111217" stroke="#5b5d65" strokeWidth="1.5"/>
-                      <circle cx="171" cy="101" r="3.2" fill={color}/>
-                      <circle cx="442" cy="101" r="17" fill={`url(#tyre-${team.Constructor.constructorId})`} stroke="#08090c" strokeWidth="2"/>
-                      <circle cx="442" cy="101" r="10.5" fill="#111217" stroke="#5b5d65" strokeWidth="1.5"/>
-                      <circle cx="442" cy="101" r="3.2" fill={color}/>
-                      {/* Front wing */}
-                      <path d="M42 104 L98 100 L133 101 L152 105 L148 109 L99 110 L42 108 Z" fill={color} stroke="#111217" strokeWidth="1.6"/>
-                      <path d="M48 110 L102 109 L126 113 L83 115 L44 113 Z" fill="#181920" stroke={color} strokeWidth="1"/>
-                      {/* Razor-low nose */}
-                      <path d="M96 100 L142 91 L201 89 L237 93 L263 97 L253 101 L195 103 L152 106 L127 105 Z" fill={`url(#body-${team.Constructor.constructorId})`} stroke="#111217" strokeWidth="1.6"/>
-                      <path d="M129 96 L161 91 L198 92 L174 98 L143 101 Z" fill={color}/>
-                      {/* Sidepod and floor: long horizontal mass, not a tall body */}
-                      <path d="M184 94 L222 87 L276 86 L324 89 L365 91 L397 95 L426 99 L442 104 L420 108 L365 108 L307 106 L246 105 L202 103 L174 101 Z" fill={`url(#body-${team.Constructor.constructorId})`} stroke="#111217" strokeWidth="1.7"/>
-                      <path d="M221 96 L260 91 L302 92 L342 94 L368 97 L343 101 L286 101 L238 100 Z" fill={name.includes("McLaren") ? "#152033" : "#f7f8fc"}/>
-                      <path d="M239 102 L308 103 L368 102 L403 105 L384 109 L297 110 L239 107 Z" fill="#101116" stroke={color} strokeWidth=".9"/>
-                      {/* Tiny cockpit and helmet */}
-                      <path d="M268 90 L282 76 L308 73 L331 80 L347 92 L333 96 L304 96 L281 95 Z" fill={color} stroke="#111217" strokeWidth="1.7"/>
-                      <path d="M285 89 L296 79 L312 79 L326 86 L318 91 L296 92 Z" fill="#11141a"/>
-                      <path d="M270 89 Q290 67 313 72 Q331 75 347 92" fill="none" stroke="#d9dde6" strokeWidth="2.7"/>
-                      <path d="M279 80 L279 73 L291 65 L306 68 L310 77 L298 82 Z" fill={color} stroke="#111217" strokeWidth="1.5"/>
-                      <path d="M286 72 L295 69 L303 73 L295 76 Z" fill="#171923"/>
-                      {/* Minimal suspension lines */}
-                      <path d="M171 101 L205 92 M171 101 L208 106 M442 101 L409 94 M442 101 L408 106" stroke="#b7bdc9" strokeWidth="1.4"/>
-                      {/* Rear wing: thin plate with narrow upright */}
-                      <path d="M450 91 L463 80 L466 57 L472 57 L474 97 L458 99 Z" fill={color} stroke="#111217" strokeWidth="1.5"/>
-                      <path d="M456 55 L524 53 L530 59 L457 62 Z" fill={color} stroke="#111217" strokeWidth="1.7"/>
-                      <path d="M462 56 L521 55" stroke="#fff" strokeWidth="1" opacity=".8"/>
-                      {/* Nose/front suspension details */}
-                      <path d="M196 105 L235 109 L269 109 L300 111 L363 109 L407 111 L389 114 L255 115 L202 111 Z" fill="#090a0f" stroke={color} strokeWidth="1"/>
-                      <path d="M203 94 L224 90 L233 91 L216 97 Z" fill="#fff" opacity=".9"/>
+                      <circle cx="169" cy="108" r="21" fill={`url(#tyre-${team.Constructor.constructorId})`} stroke="#08090c" strokeWidth="2"/>
+                      <circle cx="169" cy="108" r="13" fill="#101116" stroke="#777982" strokeWidth="1.5"/>
+                      <circle cx="169" cy="108" r="5" fill={color} stroke="#cfd2da" strokeWidth="1"/>
+                      <circle cx="438" cy="108" r="21" fill={`url(#tyre-${team.Constructor.constructorId})`} stroke="#08090c" strokeWidth="2"/>
+                      <circle cx="438" cy="108" r="13" fill="#101116" stroke="#777982" strokeWidth="1.5"/>
+                      <circle cx="438" cy="108" r="5" fill={color} stroke="#cfd2da" strokeWidth="1"/>
+                      {/* Front wing and suspension */}
+                      <path d="M42 111 L91 106 L133 105 L151 110 L146 115 L91 117 L43 115 Z" fill={color} stroke="#111217" strokeWidth="1.7"/>
+                      <path d="M48 117 L98 116 L126 120 L83 122 L44 120 Z" fill="#17181e" stroke={color} strokeWidth="1.1"/>
+                      <path d="M132 107 L164 96 L202 91 L245 96 L266 101 L247 107 L200 110 L157 113 Z" fill={`url(#body-${team.Constructor.constructorId})`} stroke="#111217" strokeWidth="1.7"/>
+                      <path d="M170 100 L203 95 L230 98 L208 104 L177 107 Z" fill={color}/>
+                      {/* Main body and sidepod */}
+                      <path d="M195 101 L229 93 L268 91 L302 95 L343 97 L379 101 L409 106 L438 111 L421 117 L375 117 L328 115 L278 114 L229 112 L191 110 L178 108 Z" fill={`url(#body-${team.Constructor.constructorId})`} stroke="#111217" strokeWidth="1.8"/>
+                      <path d="M224 103 L257 97 L294 98 L330 101 L361 104 L340 109 L289 109 L244 108 Z" fill={name.includes("McLaren") ? "#152033" : "#f7f8fc"}/>
+                      <path d="M230 111 L285 112 L347 112 L390 114 L374 119 L300 119 L239 116 Z" fill="#111217" stroke={color} strokeWidth="1"/>
+                      {/* Engine cover and modest cockpit */}
+                      <path d="M265 96 L276 82 L294 76 L313 79 L330 89 L342 99 L323 103 L291 102 L270 101 Z" fill={`url(#body-${team.Constructor.constructorId})`} stroke="#111217" strokeWidth="1.8"/>
+                      <path d="M281 94 L289 84 L303 82 L317 89 L311 96 L292 98 Z" fill="#11141b" stroke="#d9dde6" strokeWidth="1"/>
+                      <path d="M265 95 Q281 73 300 75 Q322 76 342 98" fill="none" stroke="#e1e4eb" strokeWidth="3.1"/>
+                      <path d="M279 83 L281 74 L294 67 L308 71 L313 82 L301 87 Z" fill={color} stroke="#111217" strokeWidth="1.5"/>
+                      <path d="M287 74 L296 71 L304 75 L296 79 Z" fill="#171923"/>
+                      {/* Suspension arms */}
+                      <path d="M169 108 L202 98 M169 108 L206 115 M438 108 L405 100 M438 108 L404 115" stroke="#b9bec8" strokeWidth="1.5"/>
+                      {/* Rear wing and support */}
+                      <path d="M443 98 L456 88 L460 61 L467 61 L470 103 L454 105 Z" fill={color} stroke="#111217" strokeWidth="1.6"/>
+                      <path d="M450 58 L520 56 L526 63 L451 65 Z" fill={color} stroke="#111217" strokeWidth="1.8"/>
+                      <path d="M456 59 L517 58" stroke="#fff" strokeWidth="1" opacity=".85"/>
+                      {/* Floor and small aero details */}
+                      <path d="M200 115 L252 119 L319 120 L382 118 L411 120 L389 124 L277 125 L211 121 Z" fill="#090a0f" stroke={color} strokeWidth="1"/>
+                      <path d="M205 101 L226 96 L238 98 L218 104 Z" fill="#fff" opacity=".9"/>
+                      <path d="M350 101 L375 103 L389 107 L359 106 Z" fill={name.includes("McLaren") ? "#152033" : "#f7f8fc"} opacity=".9"/>
                     </g>
                   </svg>
                 </div>

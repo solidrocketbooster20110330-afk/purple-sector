@@ -546,15 +546,16 @@ export default function ChampionshipConstructorsPage() {
             >
               <strong>{positionLabel(constructor.position)}</strong>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, fontWeight: "bold" }}>
-                {carPhotos[constructor.Constructor.constructorId.toLowerCase().replace(/[^a-z0-9]/g, "")] ? (
-                  <img
-                    src={carPhotos[constructor.Constructor.constructorId.toLowerCase().replace(/[^a-z0-9]/g, "")]}
-                    alt={`${constructor.Constructor.name} car`}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    style={{ width: "76px", height: "46px", objectFit: "cover", borderRadius: "7px", flexShrink: 0, background: "#151515" }}
-                  />
-                ) : null}
+                <svg viewBox="0 0 560 250" width="82px" height="46px" role="img" aria-label={`${constructor.Constructor.name} car illustration`} style={{ flexShrink: 0, borderRadius: "7px", background: "#09090b" }}>
+                  <path d="M429 65l78-6 7 8-3 7-80 5z" fill={teamColors[constructor.Constructor.name] ?? "#7c3aed"}/>
+                  <path d="M43 172l105-8 45 8v8l-107 9-43-5z" fill={teamColors[constructor.Constructor.name] ?? "#7c3aed"}/>
+                  <path d="M130 145l77-24 88-14 108 17 26 17-13 18-82 8-132-4-56-7z" fill={teamColors[constructor.Constructor.name] ?? "#7c3aed"}/>
+                  <path d="M254 112l20-28 28-9 26 5 14 18-13 18-47 7z" fill="#0c0d12" stroke="#d1d5db" strokeWidth="2"/>
+                  <path d="M247 103c14-24 40-34 60-29 16 4 26 14 35 29" fill="none" stroke="#e5e7eb" strokeWidth="4" strokeLinecap="round"/>
+                  <circle cx="118" cy="151" r="25" fill="#050507" stroke="#555861" strokeWidth="4"/><circle cx="432" cy="140" r="25" fill="#050507" stroke="#555861" strokeWidth="4"/>
+                  <circle cx="118" cy="151" r="9" fill="#9ca3af"/><circle cx="432" cy="140" r="9" fill="#9ca3af"/>
+                  <path d="M192 147l25-6 22 7-28 9z" fill={constructor.Constructor.name.toLowerCase().includes("mclaren") ? "#111827" : "#f8fafc"} opacity=".9"/>
+                </svg>
                 <span>{constructor.Constructor.name}</span>
               </div>
               <strong

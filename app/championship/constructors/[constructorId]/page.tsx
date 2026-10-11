@@ -194,7 +194,7 @@ export default async function ConstructorDetailPage({
         const response = await fetch(url, { next: { revalidate: 86400 } });
         if (!response.ok) continue;
         const json = await response.json();
-        const pages = Object.values(json?.query?.pages ?? []) as { title?: string; thumbnail?: { source?: string } }[];
+        const pages = Object.values(json?.query?.pages ?? {}) as { title?: string; imageinfo?: { thumburl?: string; url?: string }[] }[];
         const candidate = pages.find((page) => Boolean(page.imageinfo?.[0]?.thumburl ?? page.imageinfo?.[0]?.url) && /2026/i.test(page.title ?? "") && /(car|formula|grand prix)/i.test(page.title ?? "") && !/logo/i.test(page.title ?? ""))
           ?? pages.find((page) => Boolean((page.imageinfo?.[0]?.thumburl ?? page.imageinfo?.[0]?.url)) && !/logo/i.test(page.title ?? ""));
         const imageUrl = candidate?.imageinfo?.[0]?.thumburl ?? candidate?.imageinfo?.[0]?.url;

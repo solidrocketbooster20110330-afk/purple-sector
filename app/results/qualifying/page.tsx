@@ -114,16 +114,20 @@ export default function QualifyingPage() {
               <tr key={d.position}>
                 <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #35191e"}}>{d.position==="1"?"🥇":d.position==="2"?"🥈":d.position==="3"?"🥉":`P${d.position}`}</td>
                 <td style={{padding:"11px 7px",textAlign:"center",fontWeight:"bold",borderBottom:"1px solid #35191e"}}>#{d.number}</td>
-                {d.Driver.driverId ? (
-                  <Link href={`/championship/${d.Driver.driverId}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{d.Driver.givenName} {d.Driver.familyName}</Link>
-                ) : (
-                  <span style={{ fontWeight: 600 }}>{d.Driver.givenName} {d.Driver.familyName}</span>
-                )}
-                {d.Constructor.constructorId ? (
-                  <Link href={`/championship/constructors/${d.Constructor.constructorId}`} style={{ color: "#ef233c", textDecoration: "none" }}>{d.Constructor.name}</Link>
-                ) : (
-                  <span>{d.Constructor.name}</span>
-                )}
+                <td style={{ padding: "11px 7px", textAlign: "left", borderBottom: "1px solid #35191e", whiteSpace: "nowrap" }}>
+                  {d.Driver.driverId ? (
+                    <Link href={`/championship/${d.Driver.driverId}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{d.Driver.givenName} {d.Driver.familyName}</Link>
+                  ) : (
+                    <span style={{ fontWeight: 600 }}>{d.Driver.givenName} {d.Driver.familyName}</span>
+                  )}
+                </td>
+                <td style={{ padding: "11px 7px", textAlign: "left", borderBottom: "1px solid #35191e", whiteSpace: "nowrap" }}>
+                  {d.Constructor.constructorId ? (
+                    <Link href={`/championship/constructors/${d.Constructor.constructorId}`} style={{ color: "#ef233c", textDecoration: "none" }}>{d.Constructor.name}</Link>
+                  ) : (
+                    <span>{d.Constructor.name}</span>
+                  )}
+                </td>
                 <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #35191e"}}>{d.Q1 ?? "-"}</td>
                 <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #35191e"}}>{d.Q2 ?? "-"}</td>
                 <td style={{padding:"11px 7px",textAlign:"center",borderBottom:"1px solid #35191e"}}>{d.Q3 ?? "-"}</td>

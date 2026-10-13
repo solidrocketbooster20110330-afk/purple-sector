@@ -4,7 +4,7 @@ import Link from "next/link";
 import BottomNav from "../components/BottomNav";
 import ResultsTabs from "./ResultsTabs";
 import { useEffect, useState } from "react";
-import { countryFlag, teamColors } from "../../lib/f1Display";
+import { countryFlag, teamColors, displayDriverName } from "../../lib/f1Display";
 import {
   fetchGrandPrix,
   getGrandPrixByRound,
@@ -290,7 +290,7 @@ export default function ResultsPage() {
             <div
               style={{ fontSize: "20px", fontWeight: "bold", marginTop: "5px" }}
             >
-              {fastestLap.Driver.givenName} {fastestLap.Driver.familyName}
+              {displayDriverName(fastestLap.Driver.givenName, fastestLap.Driver.familyName, fastestLap.Driver.driverId)}
             </div>
             <div style={{ color: "#b66b72", marginTop: "4px" }}>
               Lap {fastestLap.FastestLap?.lap ?? "-"}
@@ -395,9 +395,9 @@ export default function ResultsPage() {
                       }}
                     >
                       {driver.Driver.driverId ? (
-                        <Link href={`/championship/${driver.Driver.driverId}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</Link>
+                        <Link href={`/championship/${driver.Driver.driverId}`} style={{ color: "white", textDecoration: "none", fontWeight: 600 }}>{displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)}</Link>
                       ) : (
-                        <span style={{ fontWeight: 600 }}>{driver.Driver.givenName} {driver.Driver.familyName}</span>
+                        <span style={{ fontWeight: 600 }}>{displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)}</span>
                       )}
                     </td>
                     <td

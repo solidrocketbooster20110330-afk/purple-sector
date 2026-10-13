@@ -124,3 +124,29 @@
     }
   }
 }
+
+/* Larger championship charts on desktop only; mobile sizing remains unchanged. */
+@media (min-width: 1024px) {
+  main section:has(svg.championship-chart-svg) {
+    width: 100%;
+    max-width: 1600px;
+  }
+
+  svg.championship-chart-svg {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 380px;
+    max-height: 560px;
+  }
+
+  main section:has(svg.championship-chart-svg) > div {
+    padding: 26px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  svg.championship-chart-svg {
+    min-height: 440px;
+    max-height: 620px;
+  }
+}

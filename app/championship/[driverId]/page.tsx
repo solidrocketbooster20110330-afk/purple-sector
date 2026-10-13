@@ -1,3 +1,4 @@
+import { displayDriverName } from "../../../lib/f1Display";
 import Link from "next/link";
 import BottomNav from "../../components/BottomNav";
 
@@ -203,9 +204,9 @@ export default async function DriverDetailPage({
   const resultDriver = races[0]?.Results?.[0];
 
   const name = driver
-    ? `${driver.Driver.givenName} ${driver.Driver.familyName}`
+    ? displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driverId)
     : resultDriver
-    ? `${resultDriver.Driver.givenName} ${resultDriver.Driver.familyName}`
+    ? displayDriverName(resultDriver.Driver.givenName, resultDriver.Driver.familyName, resultDriver.Driver.driverId)
     : driverId;
 
   const position = driver?.position ?? "-";

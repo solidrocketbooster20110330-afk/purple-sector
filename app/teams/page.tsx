@@ -13,32 +13,6 @@ const colors: Record<string, string> = {
   Haas: "#e6002b", "Haas F1 Team": "#e6002b", Audi: "#f50537", Cadillac: "#c9c9c9",
 };
 
-// Rows in /team-cars-sprite.jpg follow the order of the 11 images supplied by the user.
-const carImageIndexes: Record<string, number> = {
-  mclaren: 0,
-  mercedes: 1,
-  redbull: 2,
-  ferrari: 3,
-  williams: 4,
-  racingbulls: 5,
-  astonmartin: 6,
-  haas: 7,
-  audi: 8,
-  alpine: 9,
-  cadillac: 10,
-};
-
-function getCarImageIndex(team: Team) {
-  const id = team.Constructor.constructorId.toLowerCase().replace(/[^a-z0-9]/g, "");
-  const name = team.Constructor.name.toLowerCase().replace(/[^a-z0-9]/g, "");
-  const aliases: Record<string, number> = {
-    mclaren: 0, mercedes: 1, redbull: 2, redbullracing: 2, ferrari: 3,
-    williams: 4, racingbulls: 5, visacashapprb: 5, visacashappracingbulls: 5,
-    astonmartin: 6, astonmartinaramco: 6, haas: 7, haasf1team: 7,
-    audi: 8, sauber: 8, kicksauber: 8, alpine: 9, alpinef1team: 9, cadillac: 10,
-  };
-  return aliases[id] ?? aliases[name] ?? carImageIndexes[id] ?? carImageIndexes[name] ?? 0;
-}
 
 export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -77,7 +51,6 @@ export default function TeamsPage() {
           {rankedTeams.map((team) => {
             const name = team.Constructor.name;
             const color = colors[name] ?? "#7c3aed";
-            const imageIndex = getCarImageIndex(team);
             const teamDrivers = drivers.filter((driver) => driver.Constructors?.some((c) => c.constructorId === team.Constructor.constructorId || c.name === name));
             return <article key={team.Constructor.constructorId} style={{ display: "block", padding: "12px", background: `linear-gradient(120deg,${color}12,#090909 55%)`, border: "1px solid #29232f", borderLeft: `4px solid ${color}`, borderRadius: "12px", color: "white" }}>
               <Link href={`/championship/constructors/${team.Constructor.constructorId}`} aria-label={`${name} 팀 상세 보기`} style={{ display: "block", color: "white", textDecoration: "none" }}>

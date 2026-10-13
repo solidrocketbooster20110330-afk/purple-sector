@@ -1,3 +1,4 @@
+import { displayDriverName } from "../lib/f1Display";
 import BottomNav from "./components/BottomNav";
 import NextSessionCountdown from "./components/NextSessionCountdown";
 
@@ -149,7 +150,7 @@ export default async function HomePage() {
         <div style={{ ...cardStyle, marginBottom: "14px" }}>
           <div style={{ color: red, fontSize: "12px", marginBottom: "6px", letterSpacing: "1px" }}>LAST RESULT</div>
           <div style={{ fontSize: "19px", fontWeight: "bold", marginBottom: "8px" }}>{lastRace.raceName}</div>
-          <div style={{ fontSize: "14px" }}>🏆 {winner.Driver.givenName} {winner.Driver.familyName}</div>
+          <div style={{ fontSize: "14px" }}>🏆 {displayDriverName(winner.Driver.givenName, winner.Driver.familyName)}</div>
           <a href="/results" style={{ color: accent, textDecoration: "none", display: "inline-block", marginTop: "10px" }}>View Results →</a>
         </div>
       )}

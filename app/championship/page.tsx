@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import BottomNav from "../components/BottomNav";
-import { teamColors } from "../../lib/f1Display";
+import { teamColors, displayDriverName } from "../../lib/f1Display";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type DriverStanding = {
@@ -222,7 +222,7 @@ export default function ChampionshipDriversPage() {
 
       return {
         id: driver.Driver.driverId,
-        name: `${driver.Driver.givenName} ${driver.Driver.familyName}`,
+        name: displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.id),
         color: teamColors[teamName] ?? "#777",
         points,
       };
@@ -604,7 +604,7 @@ export default function ChampionshipDriversPage() {
 
                 <div>
                   <div style={{ fontWeight: 700, fontSize: "15px" }}>
-                    #{driver.Driver.permanentNumber ?? "-"} {driver.Driver.givenName} {driver.Driver.familyName}
+                    #{driver.Driver.permanentNumber ?? "-"} {displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.id)}
                   </div>
                   <div
                     style={{

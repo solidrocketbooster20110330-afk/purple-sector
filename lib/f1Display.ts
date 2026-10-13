@@ -79,3 +79,20 @@ export function formatRaceDateKst(race: RaceDateTime): string {
 
   return `${dateLabel} · ${timeLabel} KST`;
 }
+
+/**
+ * Keep Kimi Antonelli's display name consistent even when data providers
+ * return "Andrea Kimi Antonelli" or another given-name variant.
+ */
+export function displayDriverName(
+  givenName?: string,
+  familyName?: string,
+  driverId?: string,
+): string {
+  const normalizedFamily = (familyName ?? "").trim().toLowerCase();
+  const normalizedId = (driverId ?? "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (normalizedId === "antonelli" || normalizedFamily === "antonelli") {
+    return "Kimi Antonelli";
+  }
+  return [givenName, familyName].filter(Boolean).join(" ").trim();
+}

@@ -1,0 +1,126 @@
+/*
+ * Desktop-only Purple Sector layout polish.
+ * Deliberately scoped to wide screens so all mobile layouts stay unchanged.
+ */
+@media (min-width: 1024px) {
+  html {
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    min-width: 320px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body > header {
+    position: sticky !important;
+    top: 0;
+    backdrop-filter: blur(16px);
+    background: rgba(8, 8, 10, 0.94) !important;
+  }
+
+  body > header > div:first-child {
+    max-width: 1600px;
+    margin-inline: auto;
+    padding-inline: clamp(24px, 3vw, 52px) !important;
+  }
+
+  body > header nav {
+    max-width: 1600px;
+    margin-inline: auto;
+    padding-inline: clamp(24px, 3vw, 52px) !important;
+    justify-content: flex-start !important;
+    gap: clamp(22px, 2.4vw, 38px) !important;
+    overflow: visible !important;
+  }
+
+  body > header nav a {
+    font-size: 14px !important;
+    transition: color 160ms ease, opacity 160ms ease;
+  }
+
+  body > header nav a:hover {
+    color: #c4b5fd !important;
+  }
+
+  main {
+    width: 100%;
+    box-sizing: border-box;
+    padding-inline: clamp(28px, 3.2vw, 64px) !important;
+    padding-top: clamp(26px, 2.5vw, 42px) !important;
+  }
+
+  main > h1,
+  main > h2,
+  main > section,
+  main > article {
+    max-width: 1500px;
+    margin-inline: auto;
+  }
+
+  main > div,
+  main > section > div {
+    scroll-margin-top: 120px;
+  }
+
+  main section,
+  main article {
+    min-width: 0;
+  }
+
+  main [style*="border-radius"] {
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  main a {
+    transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  }
+
+  main button {
+    transition: transform 140ms ease, border-color 140ms ease, background-color 140ms ease;
+  }
+
+  main button:hover {
+    border-color: #7c3aed;
+  }
+
+  main button:active {
+    transform: translateY(1px);
+  }
+
+  main a:focus-visible,
+  main button:focus-visible,
+  body > header a:focus-visible,
+  body > header button:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 3px;
+  }
+
+  main img,
+  main svg {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 1440px) {
+  main {
+    padding-inline: clamp(56px, 5vw, 100px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @media (min-width: 1024px) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    main *,
+    body > header * {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+}

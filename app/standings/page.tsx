@@ -1,3 +1,4 @@
+import { displayDriverName } from "../../lib/f1Display";
 import Link from "next/link";
 
 type DriverStanding = {
@@ -70,7 +71,7 @@ export default async function StandingsPage() {
             }}
           >
             <span>
-              {driver.position}. {driver.Driver.givenName} {driver.Driver.familyName}
+              {driver.position}. {displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)}
             </span>
             <strong>{driver.points} pts</strong>
           </div>

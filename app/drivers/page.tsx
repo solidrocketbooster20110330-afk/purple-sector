@@ -1,5 +1,6 @@
 "use client";
 
+import { displayDriverName } from "../../lib/f1Display";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -75,7 +76,7 @@ export default function DriversPage() {
           {drivers.map((driver) => {
             const name = driver.Constructors?.[0]?.name ?? "Unknown Team";
             const color = colors[name] ?? "#7c3aed";
-            const fullName = driver.Driver.givenName + " " + driver.Driver.familyName;
+            const fullName = displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId);
             const acronym = driver.Driver.code ?? driver.Driver.givenName.slice(0, 3).toUpperCase();
             return <Link key={driver.Driver.driverId} href={`/championship/${driver.Driver.driverId}`} style={{ minWidth: 0, overflow: "hidden", background: "linear-gradient(160deg,#111 20%,#080808 65%,#101010)", border: "1px solid #25212b", borderBottom: `3px solid ${color}`, borderRadius: "12px", color: "white", textDecoration: "none" }}>
               <div style={{ position: "relative", height: "190px", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "8px", boxSizing: "border-box", background: `radial-gradient(ellipse at 50% 85%, ${color}35, transparent 65%)` }}>

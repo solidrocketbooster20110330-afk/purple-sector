@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import TopNav from "./components/TopNav";
+import "./desktop.css";
 
 export const metadata: Metadata = {
   title: "Purple Sector",

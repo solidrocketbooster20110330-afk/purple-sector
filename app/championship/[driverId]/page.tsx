@@ -206,7 +206,7 @@ export default async function DriverDetailPage({
   const name = driver
     ? displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driverId)
     : resultDriver
-    ? displayDriverName(resultDriver.Driver.givenName, resultDriver.Driver.familyName, resultDriver.Driver.driverId)
+    ? displayDriverName(resultDriver.Driver.givenName, resultDriver.Driver.familyName)
     : driverId;
 
   const position = driver?.position ?? "-";

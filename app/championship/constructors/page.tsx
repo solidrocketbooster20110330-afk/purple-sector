@@ -110,7 +110,6 @@ export default function ChampionshipConstructorsPage() {
   const [animatedLinePoints, setAnimatedLinePoints] = useState<Record<string, string>>({});
   const animatedLinePointsRef = useRef<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [carPhotos, setCarPhotos] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -174,24 +173,6 @@ export default function ChampionshipConstructorsPage() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/team-car-photos", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : [])
-      .then((photos) => {
-        if (cancelled || !Array.isArray(photos)) return;
-        const mapped: Record<string, string> = {};
-        for (const photo of photos) {
-          const key = String(photo.id ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-          if (key && photo.imageUrl) mapped[key] = photo.imageUrl;
-          const nameKey = String(photo.name ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-          if (nameKey && photo.imageUrl) mapped[nameKey] = photo.imageUrl;
-        }
-        setCarPhotos(mapped);
-      })
-      .catch(() => undefined);
-    return () => { cancelled = true; };
-  }, []);
 
   const chartTeams = useMemo<ChartTeam[]>(() => {
     const teams = constructors.map((constructor) => {
@@ -546,17 +527,7 @@ export default function ChampionshipConstructorsPage() {
             >
               <strong>{positionLabel(constructor.position)}</strong>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, fontWeight: "bold" }}>
-                <svg viewBox="0 0 560 250" width="82px" height="46px" role="img" aria-label={`${constructor.Constructor.name} car illustration`} style={{ flexShrink: 0, borderRadius: "7px", background: "#09090b" }}>
-                  <path d="M429 65l78-6 7 8-3 7-80 5z" fill={teamColors[constructor.Constructor.name] ?? "#7c3aed"}/>
-                  <path d="M43 172l105-8 45 8v8l-107 9-43-5z" fill={teamColors[constructor.Constructor.name] ?? "#7c3aed"}/>
-                  <path d="M130 145l77-24 88-14 108 17 26 17-13 18-82 8-132-4-56-7z" fill={teamColors[constructor.Constructor.name] ?? "#7c3aed"}/>
-                  <path d="M254 112l20-28 28-9 26 5 14 18-13 18-47 7z" fill="#0c0d12" stroke="#d1d5db" strokeWidth="2"/>
-                  <path d="M247 103c14-24 40-34 60-29 16 4 26 14 35 29" fill="none" stroke="#e5e7eb" strokeWidth="4" strokeLinecap="round"/>
-                  <circle cx="118" cy="151" r="25" fill="#050507" stroke="#555861" strokeWidth="4"/><circle cx="432" cy="140" r="25" fill="#050507" stroke="#555861" strokeWidth="4"/>
-                  <circle cx="118" cy="151" r="9" fill="#9ca3af"/><circle cx="432" cy="140" r="9" fill="#9ca3af"/>
-                  <path d="M192 147l25-6 22 7-28 9z" fill={constructor.Constructor.name.toLowerCase().includes("mclaren") ? "#111827" : "#f8fafc"} opacity=".9"/>
-                </svg>
-                <span>{constructor.Constructor.name}</span>
+                                <span>{constructor.Constructor.name}</span>
               </div>
               <strong
                 style={{

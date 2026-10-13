@@ -1,5 +1,6 @@
 "use client";
 
+import { displayDriverName } from "../../lib/f1Display";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import BottomNav from "../components/BottomNav";
@@ -86,7 +87,7 @@ export default function SearchPage() {
           .filter((driver) => driver?.Driver?.driverId)
           .map((driver) => {
             const id = driver.Driver.driverId;
-            const title = `${driver.Driver.givenName} ${driver.Driver.familyName}`;
+            const title = displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId);
             const teamName = driver.Constructors?.[0]?.name ?? "Driver";
 
             return {

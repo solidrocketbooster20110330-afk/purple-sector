@@ -375,6 +375,7 @@ export default function ChampionshipConstructorsPage() {
                   viewBox={`0 0 ${width} ${height}`}
                   width={width}
                   height={height}
+                  className="championship-chart-svg"
                   role="img"
                   aria-label="Constructor championship graph"
                   style={{ display: "block" }}

@@ -1,5 +1,6 @@
 "use client";
 
+import { displayDriverName } from "../../lib/f1Display";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -66,7 +67,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
           .map((d) => ({
             type: "driver",
             id: d.Driver.driverId,
-            title: `${d.Driver.givenName} ${d.Driver.familyName}`,
+            title: displayDriverName(d.Driver.givenName, d.Driver.familyName, d.Driver.driverId),
             subtitle: d.Constructors?.[0]?.name ?? "Driver",
             href: `/championship/${d.Driver.driverId}`,
             keywords: d.Driver.driverId.replace(/_/g, " "),

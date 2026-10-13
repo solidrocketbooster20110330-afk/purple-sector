@@ -433,6 +433,7 @@ export default function ChampionshipDriversPage() {
                 viewBox={`0 0 ${width} ${height}`}
                 width={width}
                 height={height}
+                className="championship-chart-svg"
                 role="img"
                 aria-label={
                   rankView

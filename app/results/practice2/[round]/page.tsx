@@ -89,15 +89,6 @@ function phaseTime(duration: Result["duration"], index: number) {
   return index === 0 ? duration ?? null : null;
 }
 
-function statusText(row: Row) {
-  if (row.dsq) return "DSQ";
-  if (row.dns) return "DNS";
-  if (row.dnf) return "DNF";
-
-  return formatTime(
-    Array.isArray(row.duration) ? row.duration[0] ?? null : row.duration
-  );
-}
 
 function sessionLabel(session: OpenF1Session | null) {
   return session

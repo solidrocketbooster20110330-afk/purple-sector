@@ -1,5 +1,4 @@
 import Link from "next/link";
-import BottomNav from "../../../components/BottomNav";
 
 type ConstructorStanding = {
   position: string;
@@ -299,7 +298,6 @@ export default async function ConstructorDetailPage({
         )}
       </section>
 
-      <BottomNav />
     </main>
   );
 }

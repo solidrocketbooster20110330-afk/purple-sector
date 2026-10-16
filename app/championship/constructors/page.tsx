@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import BottomNav from "../../components/BottomNav";
 
 type ConstructorStanding = {
   position: string;
@@ -537,7 +536,6 @@ export default function ChampionshipConstructorsPage() {
         )}
       </div>
 
-      <BottomNav />
     </main>
   );
 }

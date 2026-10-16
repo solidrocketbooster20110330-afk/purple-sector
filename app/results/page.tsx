@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import BottomNav from "../components/BottomNav";
 import ResultsTabs from "./ResultsTabs";
 import { useEffect, useState } from "react";
 import { countryFlag, teamColors, displayDriverName } from "../../lib/f1Display";
@@ -466,7 +465,6 @@ export default function ResultsPage() {
         )}
       </div>
 
-      <BottomNav />
     </main>
   );
 }

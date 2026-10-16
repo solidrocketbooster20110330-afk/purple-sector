@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import BottomNav from "../components/BottomNav";
 import { teamColors, displayDriverName } from "../../lib/f1Display";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -319,7 +318,6 @@ export default function ChampionshipDriversPage() {
       <main style={pageStyle}>
         <h1 style={{ marginTop: 0 }}>🏆 Championship</h1>
         <p style={{ color: muted }}>Loading...</p>
-        <BottomNav />
       </main>
     );
   }
@@ -622,7 +620,6 @@ export default function ChampionshipDriversPage() {
         )}
       </div>
 
-      <BottomNav />
     </main>
   );
 }

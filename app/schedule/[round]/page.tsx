@@ -1,5 +1,4 @@
 import Link from "next/link";
-import BottomNav from "../../components/BottomNav";
 
 type Session = {
   date?: string;
@@ -116,7 +115,6 @@ export default async function RoundPage({
           ← Schedule
         </Link>
         <h1>일정을 불러오지 못했습니다.</h1>
-        <BottomNav />
       </main>
     );
   }
@@ -225,7 +223,6 @@ export default async function RoundPage({
         </div>
       ))}
 
-      <BottomNav />
     </main>
   );
 }

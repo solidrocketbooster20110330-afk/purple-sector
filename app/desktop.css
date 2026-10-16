@@ -10,15 +10,20 @@
 
   body {
     min-width: 320px;
+    padding-top: 101px;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
   body > header {
-    position: sticky !important;
+    position: fixed !important;
     top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
     backdrop-filter: blur(16px);
-    background: rgba(8, 8, 10, 0.94) !important;
+    background: rgba(8, 8, 10, 0.96) !important;
   }
 
   body > header > div:first-child {

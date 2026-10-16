@@ -31,7 +31,6 @@ type Race = {
 };
 
 const red = "#ef233c";
-const purple = "#7c3aed";
 const muted = "#aaa1a4";
 const grid = "#35191e";
 

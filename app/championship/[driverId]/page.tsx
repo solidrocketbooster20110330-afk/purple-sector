@@ -1,6 +1,5 @@
 import { displayDriverName } from "../../../lib/f1Display";
 import Link from "next/link";
-import BottomNav from "../../components/BottomNav";
 
 type DriverStanding = {
   position: string;
@@ -322,7 +321,6 @@ export default async function DriverDetailPage({
         )}
       </section>
 
-      <BottomNav />
     </main>
   );
 }

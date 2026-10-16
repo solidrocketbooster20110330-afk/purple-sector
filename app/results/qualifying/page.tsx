@@ -9,7 +9,6 @@ import {
   getGrandPrixByRound,
   getLatestGrandPrix,
   getRelevantGrandPrix,
-  getStoredGrandPrixRound,
   storeGrandPrix,
   type GrandPrix,
 } from "../../../lib/grandPrix";

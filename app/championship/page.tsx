@@ -88,20 +88,6 @@ function positionLabel(position: string) {
   return `P${position}`;
 }
 
-function teamInitials(name: string) {
-  const words = name
-    .replace(/F1 Team|F1|Racing|Team|Formula One/gi, "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (words.length >= 2) {
-    return `${words[0][0]}${words[1][0]}`.toUpperCase();
-  }
-
-  return name.slice(0, 2).toUpperCase();
-}
-
 function teamBadge(name: string) {
   return {
     display: "inline-flex",
@@ -142,7 +128,7 @@ export default function ChampionshipDriversPage() {
         const sharedData = await response.json();
         const standingsData = sharedData?.standingsData;
         const scheduleData = sharedData?.scheduleData;
-        const scheduledRaces: Race[] = scheduleData?.MRData?.RaceTable?.Races ?? [];
+        
         const roundData: (Race | null)[] = sharedData?.roundData ?? [];
 
         if (cancelled) return;

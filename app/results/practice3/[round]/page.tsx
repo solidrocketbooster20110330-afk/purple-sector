@@ -1,6 +1,5 @@
 "use client";
 
-import BottomNav from "../../../components/BottomNav";
 import { useEffect, useState } from "react";
 import ResultsTabs from "../../ResultsTabs";
 import { useParams } from "next/navigation";
@@ -546,7 +545,6 @@ export default function PracticePage() {
         )}
       </div>
 
-      <BottomNav />
     </main>
   );
 }

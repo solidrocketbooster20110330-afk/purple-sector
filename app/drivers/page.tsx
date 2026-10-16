@@ -4,14 +4,6 @@ import { displayDriverName } from "../../lib/f1Display";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type DriverPhoto = {
-  fullName?: string;
-  firstName?: string;
-  lastName?: string;
-  acronym?: string;
-  teamName?: string;
-  headshotUrl?: string;
-};
 type Driver = {
   position: string;
   points: string;
@@ -27,43 +19,26 @@ const colors: Record<string, string> = {
 };
 const flag: Record<string, string> = { Italian: "🇮🇹", British: "🇬🇧", Dutch: "🇳🇱", Monegasque: "🇲🇨", Spanish: "🇪🇸", Australian: "🇦🇺", French: "🇫🇷", Canadian: "🇨🇦", Japanese: "🇯🇵", Thai: "🇹🇭", German: "🇩🇪", Mexican: "🇲🇽", Brazilian: "🇧🇷", Chinese: "🇨🇳", Finnish: "🇫🇮", Danish: "🇩🇰", American: "🇺🇸" };
 
-function normalizeName(value: string) {
-  return value.toLowerCase().replace(/[^a-z]/g, "");
-}
-
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [photos, setPhotos] = useState<DriverPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      fetch("/api/standings", { cache: "no-store" }).then((response) => {
+    fetch("/api/standings", { cache: "no-store" })
+      .then((response) => {
         if (!response.ok) throw new Error("Failed to load standings");
         return response.json();
-      }),
-      fetch("/api/driver-photos", { cache: "no-store" }).then((response) =>
-        response.ok ? response.json() : []
-      ),
-    ])
-      .then(([data, photoData]) => {
+      })
+      .then((data) => {
         if (cancelled) return;
         setDrivers(Array.isArray(data) ? data : []);
-        setPhotos(Array.isArray(photoData) ? photoData : []);
       })
       .catch(() => { if (!cancelled) setError(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
-
-  function photoFor(driver: Driver) {
-    const lastName = normalizeName(driver.Driver.familyName);
-    const firstName = normalizeName(driver.Driver.givenName);
-    return photos.find((photo) => normalizeName(photo.lastName ?? "") === lastName && normalizeName(photo.firstName ?? "") === firstName)
-      ?? photos.find((photo) => normalizeName(photo.lastName ?? "") === lastName);
-  }
 
   return (
     <main style={{ minHeight: "100vh", boxSizing: "border-box", padding: "16px 10px 32px", background: "linear-gradient(180deg,#050505,#100b18 70%,#1b1230)", color: "white" }}>

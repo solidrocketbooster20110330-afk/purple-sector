@@ -37,9 +37,12 @@ export default function TopNav() {
         <nav aria-label="메인 내비게이션" style={{ display: "flex", alignItems: "stretch", justifyContent: "space-between", gap: "clamp(2px, 0.8vw, 8px)", minHeight: "42px", padding: "0 8px", overflowX: "auto", overflowY: "hidden", whiteSpace: "nowrap", scrollbarWidth: "none", WebkitOverflowScrolling: "touch", width: "100%", boxSizing: "border-box" }}>
           {navItems.map((item) => {
             const active = item.match(pathname);
+            const isConstructorStandings = pathname.startsWith("/championship/constructors");
+            const label = item.label === "Teams" && isConstructorStandings ? "Constructors" : item.label;
+            const href = item.label === "Teams" && isConstructorStandings ? "/championship/constructors" : item.href;
             return (
-              <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "42px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "clamp(13px, 3.4vw, 15px)", fontWeight: active ? 800 : 600, letterSpacing: "-0.2px", WebkitTapHighlightColor: "transparent" }}>
-                {item.label}
+              <Link key={item.label} href={href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "42px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "clamp(13px, 3.4vw, 15px)", fontWeight: active ? 800 : 600, letterSpacing: "-0.2px", WebkitTapHighlightColor: "transparent" }}>
+                {label}
                 {active && <span aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "3px", borderRadius: "3px 3px 0 0", background: "#7c3aed" }} />}
               </Link>
             );

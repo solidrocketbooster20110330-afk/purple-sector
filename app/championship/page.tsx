@@ -13,6 +13,7 @@ type DriverStanding = {
     givenName: string;
     familyName: string;
     permanentNumber?: string;
+    code?: string;
   };
   Constructors?: { name: string }[];
 };
@@ -222,7 +223,7 @@ export default function ChampionshipDriversPage() {
 
       return {
         id: driver.Driver.driverId,
-        name: displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.id),
+        name: displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId),
         color: teamColors[teamName] ?? "#777",
         points,
       };

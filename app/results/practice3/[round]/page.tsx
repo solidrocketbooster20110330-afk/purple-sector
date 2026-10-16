@@ -101,12 +101,6 @@ function formatGap(gap?: number | string | null) {
   return `+${gap.toFixed(3)}s`;
 }
 
-function practiceStatus(row: Row) {
-  if (row.dsq) return "DSQ";
-  if (row.dns) return "DNS";
-  if (row.dnf) return "DNF";
-  return formatTime(row.duration);
-}
 
 function sprintStatus(result: SprintResult) {
   if (result.status?.includes("Lap")) {

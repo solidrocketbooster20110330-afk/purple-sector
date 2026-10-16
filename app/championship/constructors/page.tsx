@@ -98,11 +98,6 @@ function positionLabel(position: string) {
   return `P${position}`;
 }
 
-async function readJson<T>(response: Response): Promise<T> {
-  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-  return (await response.json()) as T;
-}
-
 export default function ChampionshipConstructorsPage() {
   const [constructors, setConstructors] = useState<ConstructorStanding[]>([]);
   const [races, setRaces] = useState<Race[]>([]);

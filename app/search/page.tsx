@@ -3,7 +3,6 @@
 import { displayDriverName } from "../../lib/f1Display";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import BottomNav from "../components/BottomNav";
 
 type DriverStanding = {
   Driver: {
@@ -278,7 +277,6 @@ export default function SearchPage() {
         )}
       </div>
 
-      <BottomNav />
     </main>
   );
 }

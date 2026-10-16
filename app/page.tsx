@@ -1,5 +1,4 @@
 import { displayDriverName } from "../lib/f1Display";
-import BottomNav from "./components/BottomNav";
 import NextSessionCountdown from "./components/NextSessionCountdown";
 
 type DriverStanding = {
@@ -181,7 +180,6 @@ export default async function HomePage() {
         ))}
       </section>
 
-      <BottomNav />
     </main>
   );
 }

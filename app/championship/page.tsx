@@ -620,7 +620,7 @@ export default function ChampionshipDriversPage() {
                     }}
                   >
                     <span style={{ ...teamBadge(teamName), overflow: "hidden", position: "relative", border: "1px solid ${teamColors[teamName] ?? muted}", background: "#09090b", color: "${teamColors[teamName] ?? muted}" }}>
-                      {driver.Driver.givenName.slice(0, 3).toUpperCase()}
+                      {driver.Driver.driverId === "antonelli" ? "ANT" : (driver.Driver.code ?? (driver.Driver.givenName.slice(0, 1) + driver.Driver.familyName.slice(0, 2)).toUpperCase())}
                     </span>
                     {teamName}
                   </div>

@@ -605,9 +605,6 @@ export default function ChampionshipDriversPage() {
 
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "9px", flexWrap: "wrap", fontWeight: 700, fontSize: "15px" }}>
-                    <span style={{ color: muted, fontSize: "11px", fontWeight: 800, letterSpacing: "0.4px", minWidth: "27px" }}>
-                      {driver.Driver.driverId === "antonelli" ? "ANT" : (driver.Driver.code ?? (driver.Driver.givenName.slice(0, 1) + driver.Driver.familyName.slice(0, 2)).toUpperCase())}
-                    </span>
                     <span>#{driver.Driver.permanentNumber ?? "-"} {displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)}</span>
                   </div>
                   <div

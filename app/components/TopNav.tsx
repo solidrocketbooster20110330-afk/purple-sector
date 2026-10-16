@@ -38,7 +38,7 @@ export default function TopNav() {
           {navItems.map((item) => {
             const active = item.match(pathname);
             const isConstructorStandings = pathname.startsWith("/championship/constructors");
-            const label = item.label === "Teams" && isConstructorStandings ? "Constructors" : item.label;
+            const label = item.label;
             const href = item.label === "Teams" && isConstructorStandings ? "/championship/constructors" : item.href;
             return (
               <Link key={item.label} href={href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "42px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "clamp(13px, 3.4vw, 15px)", fontWeight: active ? 800 : 600, letterSpacing: "-0.2px", WebkitTapHighlightColor: "transparent" }}>

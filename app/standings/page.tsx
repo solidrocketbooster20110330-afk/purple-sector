@@ -7,6 +7,7 @@ type DriverStanding = {
   Driver: {
     givenName: string;
     familyName: string;
+    driverId?: string;
   };
 };
 

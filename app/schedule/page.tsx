@@ -1,5 +1,4 @@
 import Link from "next/link";
-import BottomNav from "../components/BottomNav";
 import { formatRaceDateKst } from "../../lib/f1Display";
 
 type Race = {
@@ -60,7 +59,6 @@ export default async function SchedulePage() {
       <main style={pageStyle}>
         <h1>📅 Schedule</h1>
         <p>No schedule data available.</p>
-        <BottomNav />
       </main>
     );
   }
@@ -130,7 +128,6 @@ export default async function SchedulePage() {
         </Link>
       ))}
 
-      <BottomNav />
     </main>
   );
 }

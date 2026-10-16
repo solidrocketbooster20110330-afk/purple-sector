@@ -9,7 +9,6 @@ import {
   fetchGrandPrix,
   getGrandPrixByRound,
   getLatestGrandPrix,
-  getRelevantGrandPrix,
   getStoredGrandPrixRound,
   getSessionTargetTime,
 } from "../../../../lib/grandPrix";
@@ -66,7 +65,6 @@ const cardStyle = {
 };
 
 const headers = ["POS", "NO", "DRIVER", "TEAM", "TIME", "GAP", "LAPS"];
-const gridColumns = "56px 56px minmax(150px, 1.4fr) minmax(120px, 1fr) 110px 100px 70px";
 
 function formatTime(duration?: number) {
   if (!Number.isFinite(duration)) return "-";
@@ -91,13 +89,6 @@ function statusText(row: Row) {
 
 
 
-function sessionLabel(session: OpenF1Session | null, raceName?: string) {
-  return raceName ?? (
-    session
-      ? `${session.country_name ?? session.location ?? "Latest"} Grand Prix`
-      : "Latest Grand Prix"
-  );
-}
 
 export default function PracticePage() {
   const [sessions, setSessions] = useState<OpenF1Session[]>([]);

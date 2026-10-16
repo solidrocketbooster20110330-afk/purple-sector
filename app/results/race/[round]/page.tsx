@@ -1,5 +1,4 @@
 import Link from "next/link";
-import BottomNav from "../../../components/BottomNav";
 import ResultsTabs from "../../ResultsTabs";
 
 type RaceResult = {
@@ -201,7 +200,6 @@ export default async function RacePage({
         })}
       </div>
 
-      <BottomNav />
     </main>
   );
 }

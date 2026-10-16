@@ -1,4 +1,3 @@
-import BottomNav from "../../../components/BottomNav";
 import ResultsTabs from "../../ResultsTabs";
 import { getSessionTargetTime, type GrandPrix } from "../../../../lib/grandPrix";
 
@@ -219,7 +218,6 @@ export default async function QualifyingPage({
         )}
       </div>
 
-      <BottomNav />
     </main>
   );
 }

@@ -12,7 +12,7 @@ const navItems = [
   { href: "/results", label: "Results", match: (path: string) => path.startsWith("/results") },
   { href: "/championship", label: "Standings", match: (path: string) => path === "/championship" },
   { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || (/^\/championship\/[^/]+$/.test(path) && !path.startsWith("/championship/constructors")) },
-  { href: "/teams", label: "Teams", match: (path: string) => path.startsWith("/teams") || path.startsWith("/championship/constructors") },
+  { href: "/teams", label: "Constructors", match: (path: string) => path.startsWith("/teams") || path.startsWith("/championship/constructors") },
 ];
 
 export default function TopNav() {
@@ -39,7 +39,7 @@ export default function TopNav() {
             const active = item.match(pathname);
             const isConstructorStandings = pathname.startsWith("/championship/constructors");
             const label = item.label;
-            const href = item.label === "Teams" && isConstructorStandings ? "/championship/constructors" : item.href;
+            const href = item.label === "Constructors" && isConstructorStandings ? "/championship/constructors" : item.href;
             return (
               <Link key={item.label} href={href} aria-current={active ? "page" : undefined} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", minHeight: "42px", color: active ? "#a78bfa" : "#e5e1ea", textDecoration: "none", fontSize: "clamp(13px, 3.4vw, 15px)", fontWeight: active ? 800 : 600, letterSpacing: "-0.2px", WebkitTapHighlightColor: "transparent" }}>
                 {label}

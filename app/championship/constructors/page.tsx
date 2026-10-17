@@ -213,7 +213,7 @@ export default function ChampionshipConstructorsPage() {
   );
   const maxRank = Math.max(1, chartTeams.length);
   const width = Math.max(360, Math.min(720, races.length * 36));
-  const height = 300;
+  const height = 380;
   const pad = { top: 20, right: 18, bottom: 44, left: 46 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;

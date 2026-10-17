@@ -232,7 +232,7 @@ export default function ChampionshipDriversPage() {
     }));
   }, [drivers, visibleRaces]);
   const width = Math.max(360, Math.min(720, visibleRaces.length * 36));
-  const height = 300;
+  const height = 380;
   const pad = { top: 22, right: 18, bottom: 48, left: 50 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;

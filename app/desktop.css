@@ -143,8 +143,8 @@ body > header {
   svg.championship-chart-svg {
     width: 100% !important;
     height: auto !important;
-    min-height: 380px;
-    max-height: 560px;
+    min-height: 480px;
+    max-height: 620px;
   }
 
   main section:has(svg.championship-chart-svg) > div {
@@ -154,7 +154,7 @@ body > header {
 
 @media (min-width: 1440px) {
   svg.championship-chart-svg {
-    min-height: 440px;
-    max-height: 620px;
+    min-height: 540px;
+    max-height: 700px;
   }
 }

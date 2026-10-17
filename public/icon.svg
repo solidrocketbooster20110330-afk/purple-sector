@@ -1,37 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#d8b4fe"/>
-      <stop offset=".42" stop-color="#a855f7"/>
+      <stop offset="0" stop-color="#f5d0fe"/>
+      <stop offset=".28" stop-color="#e879f9"/>
+      <stop offset=".62" stop-color="#9333ea"/>
       <stop offset="1" stop-color="#6d28d9"/>
     </linearGradient>
-    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6d28d9" stop-opacity="0"/>
-      <stop offset=".48" stop-color="#c084fc" stop-opacity=".95"/>
-      <stop offset="1" stop-color="#7c3aed" stop-opacity="0"/>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a855f7" stop-opacity=".15"/>
+      <stop offset=".5" stop-color="#d946ef"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity=".35"/>
     </linearGradient>
-    <radialGradient id="bg" cx=".72" cy=".08" r="1">
-      <stop offset="0" stop-color="#1d0b38"/>
-      <stop offset="1" stop-color="#05030b"/>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity="0"/>
+      <stop offset=".55" stop-color="#c084fc" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#e879f9" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="bg" cx=".78" cy=".12" r="1">
+      <stop offset="0" stop-color="#170626"/>
+      <stop offset=".58" stop-color="#090411"/>
+      <stop offset="1" stop-color="#030207"/>
     </radialGradient>
-    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="7" result="blur"/>
+    <filter id="glow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
-  <rect x="29" y="29" width="454" height="454" rx="88" fill="none" stroke="#7c3aed" stroke-opacity=".72" stroke-width="2"/>
-  <g fill="url(#shine)" opacity=".8">
-    <path d="M30 172H250L217 180H30Z"/>
-    <path d="M30 215H194L172 222H30Z"/>
-    <path d="M30 354H140L119 361H30Z"/>
-    <path d="M30 393H235L204 400H30Z"/>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect x="29" y="29" width="454" height="454" rx="88" fill="none" stroke="url(#edge)" stroke-width="2.5"/>
+  <g fill="url(#trail)">
+    <path d="M25 173H258L225 180H25Z"/>
+    <path d="M25 218H207L177 225H25Z"/>
+    <path d="M25 258H165L139 265H25Z"/>
+    <path d="M25 355H142L115 362H25Z"/>
+    <path d="M25 396H235L205 403H25Z"/>
   </g>
-  <g filter="url(#glow)">
-    <path d="M61 330 219 176Q242 154 278 154H444L401 202H286Q270 202 256 216L137 337H61Z" fill="url(#purple)"/>
-    <path d="M179 350 270 260Q287 244 312 244H432L393 287H318Q307 287 297 298L245 350H179Z" fill="url(#purple)"/>
-    <path d="M294 350 337 308Q347 298 362 298H395L345 350H294Z" fill="url(#purple)"/>
+  <g filter="url(#glow)" fill="url(#purple)">
+    <path d="M62 330 220 176Q244 154 279 154H444L401 202H287Q270 202 256 216L137 337H62Z"/>
+    <path d="M179 350 270 260Q287 244 312 244H432L393 287H318Q307 287 297 298L245 350H179Z"/>
+    <path d="M294 350 337 308Q347 298 362 298H395L345 350H294Z"/>
   </g>
-  <path d="M42 334H138L258 212Q272 198 291 198H427" fill="none" stroke="#f3e8ff" stroke-opacity=".8" stroke-width="2.5"/>
-  <path d="M30 225H155M30 365H105M30 405H208" stroke="#a855f7" stroke-opacity=".45" stroke-width="2"/>
+  <path d="M42 334H138L258 212Q272 198 291 198H427" fill="none" stroke="#fdf4ff" stroke-opacity=".92" stroke-width="2.5"/>
+  <path d="M184 350 270 265Q287 249 312 249H427" fill="none" stroke="#f5d0fe" stroke-opacity=".65" stroke-width="1.5"/>
 </svg>

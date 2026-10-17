@@ -1,7 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="92" fill="#08050f"/>
-  <rect x="34" y="34" width="444" height="444" rx="76" fill="#0e091a" stroke="#7c3aed" stroke-width="12"/>
-  <path d="M104 365 220 135h61L165 365z" fill="#a78bfa"/>
-  <path d="M211 365 327 135h61L272 365z" fill="#7c3aed"/>
-  <text x="256" y="438" text-anchor="middle" font-family="Arial, sans-serif" font-size="90" font-weight="900" fill="#ffffff">PS</text>
+  <defs>
+    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d8b4fe"/>
+      <stop offset=".42" stop-color="#a855f7"/>
+      <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6d28d9" stop-opacity="0"/>
+      <stop offset=".48" stop-color="#c084fc" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#7c3aed" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="bg" cx=".72" cy=".08" r="1">
+      <stop offset="0" stop-color="#1d0b38"/>
+      <stop offset="1" stop-color="#05030b"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <rect x="29" y="29" width="454" height="454" rx="88" fill="none" stroke="#7c3aed" stroke-opacity=".72" stroke-width="2"/>
+  <g fill="url(#shine)" opacity=".8">
+    <path d="M30 172H250L217 180H30Z"/>
+    <path d="M30 215H194L172 222H30Z"/>
+    <path d="M30 354H140L119 361H30Z"/>
+    <path d="M30 393H235L204 400H30Z"/>
+  </g>
+  <g filter="url(#glow)">
+    <path d="M61 330 219 176Q242 154 278 154H444L401 202H286Q270 202 256 216L137 337H61Z" fill="url(#purple)"/>
+    <path d="M179 350 270 260Q287 244 312 244H432L393 287H318Q307 287 297 298L245 350H179Z" fill="url(#purple)"/>
+    <path d="M294 350 337 308Q347 298 362 298H395L345 350H294Z" fill="url(#purple)"/>
+  </g>
+  <path d="M42 334H138L258 212Q272 198 291 198H427" fill="none" stroke="#f3e8ff" stroke-opacity=".8" stroke-width="2.5"/>
+  <path d="M30 225H155M30 365H105M30 405H208" stroke="#a855f7" stroke-opacity=".45" stroke-width="2"/>
 </svg>

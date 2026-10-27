@@ -9,7 +9,27 @@ type Result = { points?: string; Driver?: { driverId?: string }; Constructor?: {
 type Race = { round: string; raceName?: string; Results?: Result[]; SprintResults?: Result[] };
 type SeriesPoint = { round: string; label: string; a: number; b: number };
 
-const colors = ["#a78bfa", "#fb7185"];
+const fallbackColors = ["#a78bfa", "#fb7185"];
+const TEAM_COLORS: Record<string, string> = {
+  "mclaren": "#ff8700",
+  "mercedes": "#00d2be",
+  "red bull": "#3671c6",
+  "red bull racing": "#3671c6",
+  "ferrari": "#e8002d",
+  "williams": "#64c4ff",
+  "aston martin": "#229971",
+  "alpine": "#ff87bc",
+  "haas": "#b6babd",
+  "racing bulls": "#6692ff",
+  "visa cash app rb": "#6692ff",
+  "audi": "#e30613",
+  "cadillac": "#d8d8d8",
+};
+function getTeamColor(name?: string): string {
+  const normalized = (name ?? "").toLowerCase();
+  const match = Object.entries(TEAM_COLORS).find(([team]) => normalized.includes(team));
+  return match?.[1] ?? "#a78bfa";
+}
 const panel = { border: "1px solid #32243f", background: "#101014", borderRadius: "15px", padding: "14px" };
 
 export default function ChampionshipComparePage() {
@@ -76,6 +96,15 @@ export default function ChampionshipComparePage() {
   const getY = (value: number) => pad.top + (height - pad.top - pad.bottom) * (1 - value / max);
   const pathFor = (key: "a" | "b") => points.map((point, index) => `${index === 0 ? "M" : "L"} ${getX(index)} ${getY(point[key])}`).join(" ");
   const titleFor = (id: string) => options.find((option) => option.id === id)?.name ?? "Select";
+  const selectedDriverA = drivers.find((item) => item.Driver.driverId === first);
+  const selectedDriverB = drivers.find((item) => item.Driver.driverId === second);
+  const selectedConstructorA = constructors.find((item) => item.Constructor.constructorId === first);
+  const selectedConstructorB = constructors.find((item) => item.Constructor.constructorId === second);
+  const teamA = mode === "drivers" ? selectedDriverA?.Constructors?.[0]?.name : selectedConstructorA?.Constructor.name;
+  const teamB = mode === "drivers" ? selectedDriverB?.Constructors?.[0]?.name : selectedConstructorB?.Constructor.name;
+  const colorA = getTeamColor(teamA) || fallbackColors[0];
+  const colorB = getTeamColor(teamB) || fallbackColors[1];
+  const sameTeam = mode === "drivers" && Boolean(teamA && teamB && teamA.toLowerCase() === teamB.toLowerCase());
 
   return (
     <main style={{ minHeight: "100vh", padding: "18px 14px 100px", boxSizing: "border-box", background: "linear-gradient(180deg,#050505,#120c1d 65%,#1b1230)", color: "white" }}>
@@ -102,8 +131,8 @@ export default function ChampionshipComparePage() {
           <>
             <section style={{ ...panel, overflow: "hidden", marginBottom: "12px" }}>
               <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", marginBottom: "12px", fontSize: "13px" }}>
-                <span style={{ color: colors[0] }}>━ {titleFor(first)} · {points[points.length - 1]?.a ?? 0} pts</span>
-                <span style={{ color: colors[1] }}>━ {titleFor(second)} · {points[points.length - 1]?.b ?? 0} pts</span>
+                <span style={{ color: colorA }}>━ {titleFor(first)} · {points[points.length - 1]?.a ?? 0} pts</span>
+                <span style={{ color: colorB }}>{sameTeam ? "┄" : "━"} {titleFor(second)} · {points[points.length - 1]?.b ?? 0} pts</span>
               </div>
               <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
                 <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label="Cumulative season points comparison" style={{ display: "block" }}>
@@ -112,8 +141,8 @@ export default function ChampionshipComparePage() {
                     const y = getY(value);
                     return <g key={fraction}><line x1={pad.left} x2={width-pad.right} y1={y} y2={y} stroke="#392b46"/><text x={pad.left-8} y={y+4} textAnchor="end" fill="#aaa1b7" fontSize="10">{Math.round(value)}</text></g>;
                   })}
-                  <path d={pathFor("a")} fill="none" stroke={colors[0]} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d={pathFor("b")} fill="none" stroke={colors[1]} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d={pathFor("a")} fill="none" stroke={colorA} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d={pathFor("b")} fill="none" stroke={colorB} strokeWidth="3.5" strokeDasharray={sameTeam ? "8 7" : undefined} strokeLinecap="round" strokeLinejoin="round"/>
                   {points.map((point,index) => <text key={point.round} x={getX(index)} y={height-17} textAnchor="middle" fill="#aaa1b7" fontSize="10">R{point.round}</text>)}
                 </svg>
               </div>
@@ -123,7 +152,7 @@ export default function ChampionshipComparePage() {
               <div style={{ display: "grid", gap: "6px" }}>
                 {points.slice().reverse().map((point) => (
                   <div key={point.round} style={{ display: "grid", gridTemplateColumns: "48px minmax(0,1fr) auto auto", gap: "9px", padding: "8px 0", borderBottom: "1px solid #241d2d", alignItems: "center", fontSize: "13px" }}>
-                    <strong>R{point.round}</strong><span style={{ color: "#b9b0c7", overflowWrap: "anywhere" }}>{point.label}</span><strong style={{ color: colors[0] }}>{point.a}</strong><strong style={{ color: colors[1] }}>{point.b}</strong>
+                    <strong>R{point.round}</strong><span style={{ color: "#b9b0c7", overflowWrap: "anywhere" }}>{point.label}</span><strong style={{ color: colorA }}>{point.a}</strong><strong style={{ color: colorB }}>{point.b}</strong>
                   </div>
                 ))}
               </div>

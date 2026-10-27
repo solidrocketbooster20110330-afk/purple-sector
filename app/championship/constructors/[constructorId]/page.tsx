@@ -232,6 +232,12 @@ export default async function ConstructorDetailPage({
         <div style={{ color: teamColor, fontSize: "14px", fontWeight: "bold" }}>2026 CONSTRUCTOR</div>
         <h1 style={{ margin: "8px 0 6px", fontSize: "32px" }}>{name}</h1>
 
+        {carImage && (
+          <div style={{ margin: "14px 0 4px", borderRadius: "14px", overflow: "hidden", background: "radial-gradient(ellipse at center, #24202a 0%, #0a090c 72%)", border: `1px solid ${teamColor}55` }}>
+            <img src={carImage} alt={`${name} team car`} loading="lazy" style={{ display: "block", width: "100%", height: "auto", maxHeight: "210px", objectFit: "contain", padding: "8px", boxSizing: "border-box" }} />
+          </div>
+        )}
+
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: "12px", marginTop: "20px" }}>
           {[
             ["CHAMPIONSHIP", positionLabel(position)],
@@ -244,16 +250,6 @@ export default async function ConstructorDetailPage({
           ))}
         </div>
       </section>
-
-      {carImage && (
-        <section style={{ ...cardStyle, padding: 0, overflow: "hidden" }}>
-          <div style={{ padding: "16px 18px 0" }}>
-            <h2 style={{ marginTop: 0, marginBottom: "4px" }}>2026 Team Car</h2>
-            <p style={{ margin: 0, color: muted, fontSize: "12px" }}>{name}</p>
-          </div>
-          <img src={carImage} alt={`${name} 2026 car`} loading="lazy" style={{ display: "block", width: "100%", maxHeight: "360px", objectFit: "contain", padding: "10px", boxSizing: "border-box" }} />
-        </section>
-      )}
 
       {teamPortraits.length > 0 && (
         <section style={cardStyle}>

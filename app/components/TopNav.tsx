@@ -11,7 +11,7 @@ const navItems = [
   { href: "/schedule", label: "Schedule", match: (path: string) => path.startsWith("/schedule") },
   { href: "/results", label: "Results", match: (path: string) => path.startsWith("/results") },
   { href: "/championship", label: "Standings", match: (path: string) => path === "/championship" || path.startsWith("/championship/constructors") },
-  { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || (/^\\/championship\\/[^/]+$/.test(path) && !path.startsWith("/championship/constructors")) },
+  { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || (path.startsWith("/championship/") && !path.startsWith("/championship/constructors") && !path.startsWith("/championship/compare")) },
   { href: "/teams", label: "Constructors", match: (path: string) => path.startsWith("/teams") },
   { href: "/championship/compare", label: "Compare", match: (path: string) => path.startsWith("/championship/compare") },
   { href: "/favorites", label: "Favorites", match: (path: string) => path.startsWith("/favorites") },

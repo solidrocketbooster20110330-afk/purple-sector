@@ -151,8 +151,15 @@ export default function ChampionshipComparePage() {
               <h2 style={{ margin: "0 0 10px", fontSize: "16px" }}>Round breakdown</h2>
               <div style={{ display: "grid", gap: "6px" }}>
                 {points.slice().reverse().map((point) => (
-                  <div key={point.round} style={{ display: "grid", gridTemplateColumns: "48px minmax(0,1fr) auto auto", gap: "9px", padding: "8px 0", borderBottom: "1px solid #241d2d", alignItems: "center", fontSize: "13px" }}>
-                    <strong>R{point.round}</strong><span style={{ color: "#b9b0c7", overflowWrap: "anywhere" }}>{point.label}</span><strong style={{ color: colorA }}>{point.a}</strong><strong style={{ color: colorB }}>{point.b}</strong>
+                  <div key={point.round} style={{ display: "grid", gridTemplateColumns: "40px minmax(0,1fr) auto auto auto", gap: "8px", padding: "8px 0", borderBottom: "1px solid #241d2d", alignItems: "center", fontSize: "13px" }}>
+                    <strong>R{point.round}</strong>
+                    <span style={{ color: "#b9b0c7", overflowWrap: "anywhere" }}>{point.label}</span>
+                    <strong style={{ color: colorA, fontVariantNumeric: "tabular-nums" }}>{point.a}</strong>
+                    <strong style={{ color: colorB, fontVariantNumeric: "tabular-nums" }}>{point.b}</strong>
+                    <strong aria-label={point.a === point.b ? "Tied" : `${titleFor(point.a > point.b ? first : second)} ahead by ${Math.abs(point.a - point.b)} points`} style={{ color: point.a === point.b ? "#aaa1b7" : point.a > point.b ? colorA : colorB, minWidth: "42px", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                      {point.a === point.b ? "—" : `+${Math.abs(point.a - point.b)}`}
+                    </strong>
+                  </div>
                   </div>
                 ))}
               </div>

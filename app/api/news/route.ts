@@ -86,7 +86,11 @@ async function fetchDirectRss(url: string): Promise<RawNewsItem[]> {
       signal: AbortSignal.timeout(6500),
     });
     if (!response.ok) return [];
-    return parseRss(await response.text());
+    const items = parseRss(await response.text());
+    return await Promise.all(items.map(async (item) => ({
+      ...item,
+      thumbnail: imageFromItem(item) || await imageFromArticle(item.link ?? ""),
+    })));
   } catch {
     return [];
   }

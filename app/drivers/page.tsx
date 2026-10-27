@@ -1,6 +1,7 @@
 "use client";
 
 import { displayDriverName } from "../../lib/f1Display";
+import { getTeamPortraits } from "../../lib/f1Assets";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -53,10 +54,13 @@ export default function DriversPage() {
             const color = colors[name] ?? "#7c3aed";
             const fullName = displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId);
             const acronym = driver.Driver.code ?? driver.Driver.givenName.slice(0, 3).toUpperCase();
+            const teammates = drivers.filter((candidate) => (candidate.Constructors?.[0]?.name ?? "Unknown Team") === name);
+            const teamIndex = teammates.findIndex((candidate) => candidate.Driver.driverId === driver.Driver.driverId);
+            const portrait = getTeamPortraits(name)[teamIndex];
             return <Link key={driver.Driver.driverId} href={`/championship/${driver.Driver.driverId}`} style={{ minWidth: 0, overflow: "hidden", background: "linear-gradient(160deg,#111 20%,#080808 65%,#101010)", border: "1px solid #25212b", borderBottom: `3px solid ${color}`, borderRadius: "12px", color: "white", textDecoration: "none" }}>
               <div style={{ position: "relative", height: "190px", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "8px", boxSizing: "border-box", background: `radial-gradient(ellipse at 50% 85%, ${color}35, transparent 65%)` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "5px", alignItems: "start", zIndex: 1 }}><strong style={{ fontSize: "26px", lineHeight: 1 }}>{driver.position}</strong><span style={{ fontSize: "11px", fontWeight: 700, color: "#ded8e6", textAlign: "right" }}>{driver.points} pts</span></div>
-                <div aria-label={`${fullName} acronym badge`} style={{ position: "absolute", left: "50%", top: "52%", transform: "translate(-50%,-50%)", display: "flex", alignItems: "center", justifyContent: "center", width: "88px", height: "88px", borderRadius: "50%", border: `3px solid ${color}`, background: "radial-gradient(circle at 30% 25%,#24202d,#08080b 72%)", boxShadow: `0 0 28px ${color}25, inset 0 0 14px ${color}22`, color: "white", fontSize: "28px", fontWeight: 950, letterSpacing: "1px", textShadow: `0 0 16px ${color}90` }}>{acronym}</div>
+                <div aria-label={`${fullName} portrait`} style={{ position: "absolute", left: "50%", top: "52%", transform: "translate(-50%,-50%)", display: "flex", alignItems: "center", justifyContent: "center", width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: `3px solid ${color}`, background: "radial-gradient(circle at 30% 25%,#24202d,#08080b 72%)", boxShadow: `0 0 28px ${color}25, inset 0 0 14px ${color}22`, color: "white", fontSize: "28px", fontWeight: 950, letterSpacing: "1px", textShadow: `0 0 16px ${color}90` }}>{portrait ? <img src={portrait} alt={fullName} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} /> : acronym}</div>
                 <span style={{ position: "absolute", bottom: "8px", left: "8px", fontSize: "18px", zIndex: 1 }}>{flag[driver.Driver.nationality ?? ""] ?? "🏁"}</span>
               </div>
               <div style={{ padding: "9px 8px 10px" }}><div style={{ fontSize: "clamp(15px,4vw,18px)", lineHeight: 1.2, fontWeight: 800 }}>{fullName}</div><div style={{ display: "flex", alignItems: "center", gap: "7px", marginTop: "5px", fontSize: "11px", color: "#d8d1df" }}><span style={{ width: "4px", height: "20px", borderRadius: "4px", background: color, flexShrink: 0 }} /><span style={{ overflowWrap: "anywhere" }}>{name}</span></div></div>

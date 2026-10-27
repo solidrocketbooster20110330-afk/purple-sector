@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { teamColors, displayDriverName } from "../../lib/f1Display";
+import { getTeamPortraits } from "../../lib/f1Assets";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type DriverStanding = {
@@ -566,6 +567,13 @@ export default function ChampionshipDriversPage() {
           drivers.map((driver, index) => {
             const teamName =
               driver.Constructors?.[0]?.name ?? "Unknown Team";
+            const teamDrivers = drivers.filter(
+              (candidate) => (candidate.Constructors?.[0]?.name ?? "Unknown Team") === teamName
+            );
+            const portraitIndex = teamDrivers.findIndex(
+              (candidate) => candidate.Driver.driverId === driver.Driver.driverId
+            );
+            const portrait = getTeamPortraits(teamName)[portraitIndex];
 
             return (
               <Link
@@ -573,7 +581,7 @@ export default function ChampionshipDriversPage() {
                 href={`/championship/${driver.Driver.driverId}`}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "50px 1fr auto",
+                  gridTemplateColumns: "36px 64px minmax(0,1fr) auto",
                   gap: "12px",
                   alignItems: "center",
                   padding: "13px 12px",
@@ -587,7 +595,15 @@ export default function ChampionshipDriversPage() {
               >
                 <strong>{positionLabel(driver.position)}</strong>
 
-                <div>
+                <div style={{ width: "64px", height: "64px", borderRadius: "50%", overflow: "hidden", border: `2px solid ${teamColors[teamName] ?? grid}`, background: "#101014", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {portrait ? (
+                    <img src={portrait} alt={displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+                  ) : (
+                    <span style={{ color: teamColors[teamName] ?? muted, fontWeight: 900, fontSize: "17px" }}>{driver.Driver.code ?? driver.Driver.familyName.slice(0, 3).toUpperCase()}</span>
+                  )}
+                </div>
+
+                <div style={{ minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "9px", flexWrap: "wrap", fontWeight: 700, fontSize: "15px" }}>
                     <span>#{driver.Driver.permanentNumber ?? "-"} {displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)}</span>
                   </div>

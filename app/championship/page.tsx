@@ -559,7 +559,7 @@ export default function ChampionshipDriversPage() {
         )}
       </section>
 
-      <div style={cardStyle}>
+      <div style={{ ...cardStyle, padding: "14px" }}>
         {drivers.length === 0 ? (
           <p style={{ color: muted }}>Driver 데이터가 없습니다.</p>
         ) : (
@@ -576,11 +576,11 @@ export default function ChampionshipDriversPage() {
                   gridTemplateColumns: "50px 1fr auto",
                   gap: "12px",
                   alignItems: "center",
-                  padding: "14px 0",
-                  borderBottom:
-                    index === drivers.length - 1
-                      ? "none"
-                      : `1px solid ${grid}`,
+                  padding: "13px 12px",
+                  marginBottom: "9px",
+                  border: `1px solid ${teamColors[teamName] ?? grid}`,
+                  borderRadius: "13px",
+                  background: "linear-gradient(135deg, #141117, #0b0a0d)",
                   color: "white",
                   textDecoration: "none",
                 }}

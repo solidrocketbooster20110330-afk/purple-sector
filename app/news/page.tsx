@@ -36,6 +36,8 @@ function formatDate(value?: string | null) {
 export default function NewsPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("All");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +61,15 @@ export default function NewsPage() {
     };
   }, []);
 
+  const filters = ["All", "McLaren", "Mercedes", "Red Bull", "Ferrari", "Williams", "Racing Bulls", "Aston Martin", "Alpine", "Haas", "Audi", "Cadillac", "Drivers"];
+  const filteredNews = news.filter((item) => {
+    const title = item.title.toLowerCase();
+    if (!title.includes(search.trim().toLowerCase())) return false;
+    if (filter === "All") return true;
+    if (filter === "Drivers") return /verstappen|hamilton|leclerc|norris|piastri|russell|alonso|sainz|lawson|hadjar|antonelli|bearman|gasly|ocon|albon|colapinto|bottas|perez|hulkenberg|stroll|tsunoda/i.test(item.title);
+    return title.includes(filter.toLowerCase());
+  });
+
   return (
     <main
       style={{
@@ -78,8 +89,15 @@ export default function NewsPage() {
           The latest stories from the F1 world
         </p>
 
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr)", gap: "10px", marginBottom: "14px" }}>
+          <input aria-label="Search news" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search teams, drivers or headlines..." style={{ width: "100%", minHeight: "42px", boxSizing: "border-box", padding: "10px 13px", borderRadius: "12px", border: "1px solid #3a2b4d", background: "#101010", color: "white", outline: "none" }} />
+          <div style={{ display: "flex", gap: "7px", overflowX: "auto", paddingBottom: "4px" }}>
+            {filters.map((item) => <button key={item} type="button" onClick={() => setFilter(item)} style={{ flexShrink: 0, border: `1px solid ${filter === item ? "#a78bfa" : "#30283a"}`, background: filter === item ? "#30204b" : "#101010", color: filter === item ? "#ddd0ff" : "#c1bacb", borderRadius: "999px", padding: "8px 12px", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>{item}</button>)}
+          </div>
+        </div>
+
         <div style={{ display: "grid", gap: "12px" }}>
-          {news.slice(0, 10).map((item, index) => {
+          {filteredNews.slice(0, 10).map((item, index) => {
             const imageUrl = getImageUrl(item);
             return (
               <a
@@ -139,6 +157,9 @@ export default function NewsPage() {
             );
           })}
 
+          {!loading && filteredNews.length === 0 && news.length > 0 && (
+            <p style={{ padding: "18px 4px", color: "#b8afc4" }}>No stories match this filter. Try another team or search term.</p>
+          )}
           {!loading && news.length === 0 && (
             <p style={{ padding: "18px 4px", color: "#b8afc4" }}>
               뉴스를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.

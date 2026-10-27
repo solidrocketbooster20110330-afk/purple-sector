@@ -102,8 +102,8 @@ export default function ChampionshipComparePage() {
           <>
             <section style={{ ...panel, overflow: "hidden", marginBottom: "12px" }}>
               <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", marginBottom: "12px", fontSize: "13px" }}>
-                <span style={{ color: colors[0] }}>━ {titleFor(first)} · {points.at(-1)?.a ?? 0} pts</span>
-                <span style={{ color: colors[1] }}>━ {titleFor(second)} · {points.at(-1)?.b ?? 0} pts</span>
+                <span style={{ color: colors[0] }}>━ {titleFor(first)} · {points[points.length - 1]?.a ?? 0} pts</span>
+                <span style={{ color: colors[1] }}>━ {titleFor(second)} · {points[points.length - 1]?.b ?? 0} pts</span>
               </div>
               <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
                 <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label="Cumulative season points comparison" style={{ display: "block" }}>

@@ -21,6 +21,27 @@ type Race = {
   SprintResults?: RaceResult[];
 };
 
+async function fetchAllSprintRaces(): Promise<Race[]> {
+  const base = "https://api.jolpi.ca/ergast/f1/current/sprint.json";
+  const options = { next: { revalidate: 3600 } };
+  const firstResponse = await fetch(`${base}?limit=100&offset=0`, options);
+  if (!firstResponse.ok) return [];
+  const firstData = await firstResponse.json();
+  const firstRaces: Race[] = firstData?.MRData?.RaceTable?.Races ?? [];
+  const total = Number(firstData?.MRData?.total ?? firstRaces.length);
+  const pageCount = Math.ceil(total / 100);
+  if (pageCount <= 1) return firstRaces;
+  const remaining = await Promise.all(
+    Array.from({ length: pageCount - 1 }, async (_, index) => {
+      const response = await fetch(`${base}?limit=100&offset=${(index + 1) * 100}`, options);
+      if (!response.ok) return [];
+      const data = await response.json();
+      return (data?.MRData?.RaceTable?.Races ?? []) as Race[];
+    })
+  );
+  return [ ...firstRaces, ...remaining.flat() ];
+}
+
 const red = "#ef233c";
 const muted = "#aaa1a4";
 const grid = "#35191e";
@@ -145,28 +166,25 @@ export default async function ConstructorDetailPage({
 }) {
   const { constructorId } = await params;
 
-  const [standingRes, resultsRes, sprintRes] = await Promise.all([
+  const [standingRes, resultsRes, sprintRaces] = await Promise.all([
     fetch("https://api.jolpi.ca/ergast/f1/current/constructorstandings.json", {
       next: { revalidate: 3600 },
     }),
     fetch(`https://api.jolpi.ca/ergast/f1/current/constructors/${constructorId}/results.json?limit=100`, {
       next: { revalidate: 3600 },
     }),
-    fetch("https://api.jolpi.ca/ergast/f1/current/sprint.json?limit=100", {
-      next: { revalidate: 3600 },
-    }),
+    fetchAllSprintRaces(),
   ]);
 
   const standingData = await standingRes.json();
   const resultsData = await resultsRes.json();
-  const sprintData = await sprintRes.json();
 
   const standings: ConstructorStanding[] =
     standingData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
 
   const constructor = standings.find((item) => item.Constructor.constructorId === constructorId);
   const rawRaces: Race[] = resultsData?.MRData?.RaceTable?.Races ?? [];
-  const sprintRaces: Race[] = sprintData?.MRData?.RaceTable?.Races ?? [];
+
   const races: Race[] = rawRaces.map((race) => ({
     ...race,
     SprintResults: sprintRaces

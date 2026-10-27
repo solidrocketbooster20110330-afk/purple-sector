@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTeamCarImage, getTeamPortraits } from "../../../../lib/f1Assets";
 
 type ConstructorStanding = {
   position: string;
@@ -190,6 +191,8 @@ export default async function ConstructorDetailPage({
   const position = constructor?.position ?? "-";
   const points = constructor?.points ?? "0";
   const teamColor = teamColors[name] ?? red;
+  const carImage = getTeamCarImage(name);
+  const teamPortraits = getTeamPortraits(name);
 
 
   const wins = races.reduce((sum, race) => sum + (race.Results?.filter((result) => result.position === "1").length ?? 0), 0);
@@ -223,6 +226,28 @@ export default async function ConstructorDetailPage({
           ))}
         </div>
       </section>
+
+      {carImage && (
+        <section style={{ ...cardStyle, padding: 0, overflow: "hidden" }}>
+          <div style={{ padding: "16px 18px 0" }}>
+            <h2 style={{ marginTop: 0, marginBottom: "4px" }}>2026 Team Car</h2>
+            <p style={{ margin: 0, color: muted, fontSize: "12px" }}>{name}</p>
+          </div>
+          <img src={carImage} alt={`${name} 2026 car`} loading="lazy" style={{ display: "block", width: "100%", maxHeight: "360px", objectFit: "contain", padding: "10px", boxSizing: "border-box" }} />
+        </section>
+      )}
+
+      {teamPortraits.length > 0 && (
+        <section style={cardStyle}>
+          <h2 style={{ marginTop: 0 }}>Team Portrait Gallery</h2>
+          <p style={{ color: muted, fontSize: "12px", marginTop: "-4px" }}>Portraits are grouped by team because the uploaded files do not identify individual drivers.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(105px,1fr))", gap: "10px" }}>
+            {teamPortraits.map((image, index) => (
+              <img key={image} src={image} alt={`${name} team portrait ${index + 1}`} loading="lazy" style={{ display: "block", width: "100%", aspectRatio: "3 / 4", borderRadius: "12px", border: `1px solid ${grid}`, background: "#08080a", objectFit: "cover" }} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Season Stats</h2>

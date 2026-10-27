@@ -10,13 +10,14 @@ type RaceResult = {
   position: string;
   points: string;
   Driver: { driverId?: string; givenName: string; familyName: string };
-  Constructor: { name: string };
+  Constructor: { constructorId?: string; name: string };
 };
 
 type Race = {
   raceName: string;
   round: string;
   Results?: RaceResult[];
+  SprintResults?: RaceResult[];
 };
 
 const red = "#ef233c";
@@ -76,7 +77,9 @@ type ChartPoint = { round: string; points: number };
 function buildConstructorChart(races: Race[]): ChartPoint[] {
   let total = 0;
   return races.map((race) => {
-    total += (race.Results ?? []).reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+    const racePoints = (race.Results ?? []).reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+    const sprintPoints = (race.SprintResults ?? []).reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+    total += racePoints + sprintPoints;
     return { round: race.round, points: total };
   });
 }
@@ -141,23 +144,35 @@ export default async function ConstructorDetailPage({
 }) {
   const { constructorId } = await params;
 
-  const [standingRes, resultsRes] = await Promise.all([
+  const [standingRes, resultsRes, sprintRes] = await Promise.all([
     fetch("https://api.jolpi.ca/ergast/f1/current/constructorstandings.json", {
       next: { revalidate: 3600 },
     }),
     fetch(`https://api.jolpi.ca/ergast/f1/current/constructors/${constructorId}/results.json?limit=100`, {
       next: { revalidate: 3600 },
     }),
+    fetch("https://api.jolpi.ca/ergast/f1/current/sprint.json?limit=100", {
+      next: { revalidate: 3600 },
+    }),
   ]);
 
   const standingData = await standingRes.json();
   const resultsData = await resultsRes.json();
+  const sprintData = await sprintRes.json();
 
   const standings: ConstructorStanding[] =
     standingData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
 
   const constructor = standings.find((item) => item.Constructor.constructorId === constructorId);
-  const races: Race[] = resultsData?.MRData?.RaceTable?.Races ?? [];
+  const rawRaces: Race[] = resultsData?.MRData?.RaceTable?.Races ?? [];
+  const sprintRaces: Race[] = sprintData?.MRData?.RaceTable?.Races ?? [];
+  const races: Race[] = rawRaces.map((race) => ({
+    ...race,
+    SprintResults: sprintRaces
+      .filter((sprintRace) => String(sprintRace.round) === String(race.round))
+      .flatMap((sprintRace) => sprintRace.SprintResults ?? [])
+      .filter((result) => result.Constructor.constructorId === constructorId),
+  }));
 
   const drivers: { id?: string; name: string }[] = Array.from(
     new Map<string, { id?: string; name: string }>(
@@ -256,7 +271,7 @@ export default async function ConstructorDetailPage({
               const resultsForRace = race.Results ?? [];
               const positions = resultsForRace.map((result) => Number(result.position)).filter(Number.isFinite);
               const bestPosition = positions.length ? Math.min(...positions) : null;
-              const racePoints = resultsForRace.reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+              const racePoints = [...resultsForRace, ...(race.SprintResults ?? [])].reduce((sum, result) => sum + Number(result.points ?? 0), 0);
 
               return (
                 <div key={race.round} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "12px 0", borderBottom: `1px solid ${grid}` }}>
@@ -281,7 +296,7 @@ export default async function ConstructorDetailPage({
           <p style={{ color: muted }}>Race data가 없습니다.</p>
         ) : (
           races.slice().reverse().map((race) => {
-            const totalPoints = race.Results?.reduce((sum, result) => sum + Number(result.points ?? 0), 0) ?? 0;
+            const totalPoints = [...(race.Results ?? []), ...(race.SprintResults ?? [])].reduce((sum, result) => sum + Number(result.points ?? 0), 0);
             const positions = race.Results?.map((result) => Number(result.position)).filter(Number.isFinite) ?? [];
 
             return (

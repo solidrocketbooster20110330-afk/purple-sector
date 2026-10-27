@@ -46,6 +46,8 @@ export default function QualifyingPage() {
   const [results,setResults] = useState<QualifyingResult[]>([]);
   const [open,setOpen] = useState(false);
   const [loading,setLoading] = useState(true);
+  const [resultsLoading,setResultsLoading] = useState(false);
+  const [resultsError,setResultsError] = useState(false);
 
   useEffect(() => {
     fetchGrandPrix()
@@ -64,14 +66,44 @@ export default function QualifyingPage() {
   }, []);
 
   useEffect(() => {
-    if (!selectedRace) return;
+    if (!selectedRace) {
+      setResults([]);
+      setResultsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
     setResults([]);
-    fetch(
-      `https://api.jolpi.ca/ergast/f1/${selectedRace.season}/${selectedRace.round}/qualifying.json`,
-      { cache:"no-store" }
-    )
-      .then(r => r.ok ? r.json() : null)
-      .then(d => setResults(d?.MRData?.RaceTable?.Races?.[0]?.QualifyingResults ?? []));
+    setResultsError(false);
+    setResultsLoading(true);
+    const params = new URLSearchParams({
+      season: selectedRace.season,
+      round: selectedRace.round,
+      type: "qualifying",
+    });
+
+    fetch(`/api/race-results?${params.toString()}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Qualifying request failed: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setResults(Array.isArray(data?.results) ? data.results : []);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name !== "AbortError") {
+          setResults([]);
+          setResultsError(true);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setResultsLoading(false);
+      });
+
+    return () => controller.abort();
   }, [selectedRace]);
 
   return (
@@ -100,7 +132,7 @@ export default function QualifyingPage() {
 
       <div style={cardStyle}>
         {results.length===0 ? (
-          <p>{loading ? "결과를 불러오는 중..." : "Qualifying 데이터 없음"}</p>
+          <p>{resultsLoading || loading ? "예선 결과를 불러오는 중..." : resultsError ? "예선 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." : "이 라운드의 Qualifying 결과가 아직 등록되지 않았습니다."}</p>
         ) : (
           <table style={{width:"100%",minWidth:"680px",borderCollapse:"collapse",tableLayout:"fixed"}}>
             <colgroup>

@@ -18,7 +18,7 @@ type RaceResult = {
   position: string;
   points: string;
   status: string;
-  Driver: { givenName: string; familyName: string };
+  Driver: { driverId?: string; givenName: string; familyName: string };
   Constructor: { constructorId?: string; name: string };
 };
 
@@ -27,6 +27,7 @@ type Race = {
   round: string;
   date?: string;
   Results?: RaceResult[];
+  SprintResults?: RaceResult[];
 };
 
 const red = "#ef233c";
@@ -87,7 +88,9 @@ type ChartPoint = { round: string; points: number };
 function buildChart(races: Race[]): ChartPoint[] {
   let total = 0;
   return races.map((race) => {
-    total += Number(race.Results?.[0]?.points ?? 0);
+    const racePoints = (race.Results ?? []).reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+    const sprintPoints = (race.SprintResults ?? []).reduce((sum, result) => sum + Number(result.points ?? 0), 0);
+    total += racePoints + sprintPoints;
     return { round: race.round, points: total };
   });
 }
@@ -182,23 +185,35 @@ export default async function DriverDetailPage({
 }) {
   const { driverId } = await params;
 
-  const [standingRes, resultsRes] = await Promise.all([
+  const [standingRes, resultsRes, sprintRes] = await Promise.all([
     fetch("https://api.jolpi.ca/ergast/f1/current/driverstandings.json", {
       next: { revalidate: 3600 },
     }),
     fetch(`https://api.jolpi.ca/ergast/f1/current/drivers/${driverId}/results.json?limit=100`, {
       next: { revalidate: 3600 },
     }),
+    fetch("https://api.jolpi.ca/ergast/f1/current/sprint.json?limit=100", {
+      next: { revalidate: 3600 },
+    }),
   ]);
 
   const standingData = await standingRes.json();
   const resultsData = await resultsRes.json();
+  const sprintData = await sprintRes.json();
 
   const standings: DriverStanding[] =
     standingData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
 
   const driver = standings.find((item) => item.Driver.driverId === driverId);
-  const races: Race[] = resultsData?.MRData?.RaceTable?.Races ?? [];
+  const rawRaces: Race[] = resultsData?.MRData?.RaceTable?.Races ?? [];
+  const sprintRaces: Race[] = sprintData?.MRData?.RaceTable?.Races ?? [];
+  const races: Race[] = rawRaces.map((race) => ({
+    ...race,
+    SprintResults: sprintRaces
+      .filter((sprintRace) => String(sprintRace.round) === String(race.round))
+      .flatMap((sprintRace) => sprintRace.SprintResults ?? [])
+      .filter((result) => result.Driver.driverId === driverId),
+  }));
   const resultDriver = races[0]?.Results?.[0];
 
   const name = driver

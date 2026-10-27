@@ -498,7 +498,7 @@ export default function ChampionshipConstructorsPage() {
         </div>
       </section>
 
-      <div style={{ ...cardStyle, maxHeight: "600px", overflowY: "auto" }}>
+      <div style={{ ...cardStyle, overflow: "visible" }}>
         {constructors.length === 0 ? (
           <p style={{ color: muted }}>Constructor 데이터가 없습니다.</p>
         ) : (

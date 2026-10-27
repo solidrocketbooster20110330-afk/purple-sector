@@ -1,5 +1,6 @@
 import { displayDriverName } from "../lib/f1Display";
 import NextSessionCountdown from "./components/NextSessionCountdown";
+import HomeFavorites from "./components/HomeFavorites";
 
 type DriverStanding = {
   position: string;
@@ -134,6 +135,7 @@ export default async function HomePage() {
 
   return (
     <main style={pageStyle}>
+      <HomeFavorites />
       {nextSession && (
         <>
           <NextSessionCountdown label={`🏎️ ${nextSession.label}`} raceName={nextSession.raceName} targetTime={nextSession.targetTime} />

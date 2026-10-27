@@ -1,5 +1,6 @@
 import { displayDriverName } from "../../../lib/f1Display";
 import Link from "next/link";
+import { getTeamPortraits } from "../../../lib/f1Assets";
 
 type DriverStanding = {
   position: string;
@@ -292,6 +293,20 @@ export default async function DriverDetailPage({
       </section>
 
       <PointsChart points={chartPoints} />
+
+      {getTeamPortraits(team).length > 0 && (
+        <section style={cardStyle}>
+          <h2 style={{ marginTop: 0 }}>Team Portrait Gallery</h2>
+          <p style={{ color: muted, fontSize: "12px", marginTop: "-4px" }}>Uploaded portraits are grouped by team because the image files did not include individual driver labels.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))", gap: "10px" }}>
+            {getTeamPortraits(team).map((image, index) => (
+              <div key={image} style={{ overflow: "hidden", borderRadius: "12px", border: `1px solid ${grid}`, background: "#08080a" }}>
+                <img src={image} alt={`${team} team portrait ${index + 1}`} loading="lazy" style={{ display: "block", width: "100%", aspectRatio: "3 / 4", objectFit: "cover" }} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>Recent Form</h2>

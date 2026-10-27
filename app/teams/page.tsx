@@ -58,7 +58,21 @@ export default function TeamsPage() {
                 <div style={{ display: "flex", alignItems: "start", justifyContent: "space-between", gap: "12px" }}><strong style={{ fontSize: "28px", lineHeight: 1 }}>{team.position}</strong><strong style={{ fontSize: "15px" }}>{team.points} 포인트</strong></div>
                 <h2 style={{ margin: "0 0 8px", fontSize: "24px" }}>{name}</h2>
               </Link>
-              <div style={{ display: "grid", gap: "0" }}>{teamDrivers.slice(0,2).map((driver,index) => <Link key={driver.Driver.driverId} href={`/championship/${driver.Driver.driverId}`} aria-label={`${displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)} 드라이버 상세 보기`} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 0", borderTop: "1px solid #2a252f", color: "white", textDecoration: "none", borderRadius: "8px" }}><span style={{ width: "34px", height: "34px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: `${color}20`, color, fontSize: "11px", fontWeight: 900 }}>{(driver.Driver.givenName[0] + driver.Driver.familyName[0]).toUpperCase()}</span><span style={{ flex: 1, fontWeight: 700 }}>{displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)}</span><span style={{ color: "#aaa1a4", fontSize: "12px" }}>{index + 1}위 ↗</span></Link>)}</div>
+              <div style={{ margin: "8px 0 6px", padding: "9px 0", borderTop: "1px solid #2a252f", borderBottom: "1px solid #2a252f", background: "radial-gradient(ellipse at center, #24202a 0%, #0a090c 75%)", borderRadius: "10px", overflow: "hidden" }}>
+                <img src={`/images/teams/${name.toLowerCase().includes("racing bulls") || name.toLowerCase().includes("cash app rb") ? "racing-bulls" : name.toLowerCase().includes("red bull") ? "red-bull" : name.toLowerCase().replace(/ f1 team/g, "").replace(/ /g, "-")}.webp`} alt={`${name} race car`} loading="lazy" style={{ display: "block", width: "100%", height: "auto", maxHeight: "140px", objectFit: "contain" }} onError={(event) => { event.currentTarget.style.display = "none"; }} />
+              </div>
+              <div style={{ display: "grid", gap: "0" }}>{teamDrivers.slice(0,2).map((driver,index) => {
+                const portraitSlug = name.toLowerCase().includes("racing bulls") || name.toLowerCase().includes("cash app rb") ? "racing-bulls" : name.toLowerCase().includes("red bull") ? "red-bull" : name.toLowerCase().replace(/ f1 team/g, "").replace(/ /g, "-");
+                const portrait = `/images/drivers/${portraitSlug}-${String(index + 1).padStart(2, "0")}.webp`;
+                return <Link key={driver.Driver.driverId} href={`/championship/${driver.Driver.driverId}`} aria-label={`${displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)} 드라이버 상세 보기`} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 0", borderTop: "1px solid #2a252f", color: "white", textDecoration: "none", borderRadius: "8px" }}>
+                  <span style={{ width: "38px", height: "38px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", overflow: "hidden", border: `1px solid ${color}`, background: `${color}20`, color, fontSize: "11px", fontWeight: 900 }}>
+                    <img src={portrait} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                    <span style={{ display: "none" }}>{(driver.Driver.givenName[0] + driver.Driver.familyName[0]).toUpperCase()}</span>
+                  </span>
+                  <span style={{ flex: 1, fontWeight: 700 }}>{displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId)}</span>
+                  <span style={{ color: "#aaa1a4", fontSize: "12px" }}>{index + 1}위 ↗</span>
+                </Link>;
+              })}</div>
             </article>;
           })}
         </div>

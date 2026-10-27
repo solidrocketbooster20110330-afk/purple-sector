@@ -58,7 +58,7 @@ function readTag(xml: string, tag: string): string {
 }
 
 function parseRss(xml: string): RawNewsItem[] {
-  return [...xml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi)]
+  return Array.from(xml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi))
     .slice(0, 10)
     .map((match) => {
       const item = match[1];

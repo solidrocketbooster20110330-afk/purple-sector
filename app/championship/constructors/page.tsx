@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { getTeamCarImage } from "../../../lib/f1Assets";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type ConstructorStanding = {
@@ -498,7 +499,7 @@ export default function ChampionshipConstructorsPage() {
         </div>
       </section>
 
-      <div style={{ ...cardStyle, overflow: "visible" }}>
+      <div style={{ ...cardStyle, padding: "14px", overflow: "visible" }}>
         {constructors.length === 0 ? (
           <p style={{ color: muted }}>Constructor 데이터가 없습니다.</p>
         ) : (
@@ -508,21 +509,26 @@ export default function ChampionshipConstructorsPage() {
               href={`/championship/constructors/${constructor.Constructor.constructorId}`}
               style={{
                 display: "grid",
-                gridTemplateColumns: "50px 1fr auto",
-                gap: "12px",
+                gridTemplateColumns: "42px 58px minmax(0,1fr) auto",
+                gap: "10px",
                 alignItems: "center",
-                padding: "14px 0",
-                borderBottom:
-                  index === constructors.length - 1
-                    ? "none"
-                    : `1px solid ${grid}`,
+                padding: "10px",
+                marginBottom: "9px",
+                border: `1px solid ${teamColors[constructor.Constructor.name] ?? grid}`,
+                borderRadius: "13px",
+                background: "linear-gradient(135deg, #141117, #0b0a0d)",
                 color: "white",
                 textDecoration: "none",
               }}
             >
               <strong>{positionLabel(constructor.position)}</strong>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, fontWeight: "bold" }}>
-                                <span>{constructor.Constructor.name}</span>
+              <div style={{ width: "58px", height: "44px", borderRadius: "8px", background: "#08080a", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {getTeamCarImage(constructor.Constructor.name) ? (
+                  <img src={getTeamCarImage(constructor.Constructor.name)!} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                ) : <span style={{ color: teamColors[constructor.Constructor.name] ?? muted, fontWeight: 900 }}>{constructor.Constructor.name.slice(0, 2).toUpperCase()}</span>}
+              </div>
+              <div style={{ minWidth: 0, fontWeight: "bold", overflowWrap: "anywhere" }}>
+                <span>{constructor.Constructor.name}</span>
               </div>
               <strong
                 style={{

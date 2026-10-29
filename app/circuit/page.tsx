@@ -78,6 +78,43 @@ export default function CircuitExplorerPage() {
           </div>
         </section>
 
+        <section style={{ marginTop: 14, border: "1px solid #342740", borderRadius: 18, background: "linear-gradient(145deg,#100e18,#08090f)", padding: 18 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+            <div>
+              <div style={{ color: "#a78bfa", fontSize: 11, letterSpacing: 2, fontWeight: 900 }}>ELEVATION PROFILE</div>
+              <h2 style={{ margin: "7px 0 4px", fontSize: 24 }}>COTA 지형 고도</h2>
+              <p style={{ margin: 0, color: "#a9a3b5", fontSize: 13, lineHeight: 1.5 }}>출발선에서 T1까지 약 41m 상승 · 서킷의 전체 고도차 약 41m</p>
+            </div>
+            <div style={{ background: "#21182e", border: "1px solid #4b3565", borderRadius: 12, padding: "10px 13px" }}>
+              <div style={{ color: "#a78bfa", fontSize: 10, fontWeight: 900, letterSpacing: 1 }}>ELEVATION CHANGE</div>
+              <div style={{ fontSize: 23, fontWeight: 900, marginTop: 3 }}>≈ 41 m</div>
+              <div style={{ color: "#8f879e", fontSize: 11 }}>133 ft</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 16, borderRadius: 12, overflow: "hidden", background: "#090a11", border: "1px solid #252035", padding: "10px 8px 4px" }}>
+            <svg viewBox="0 0 700 205" role="img" aria-label="Approximate COTA circuit elevation profile" style={{ display: "block", width: "100%", height: "auto" }}>
+              <defs>
+                <linearGradient id="elevFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#a78bfa" stopOpacity=".55"/><stop offset="100%" stopColor="#a78bfa" stopOpacity=".02"/></linearGradient>
+                <linearGradient id="elevLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#22d3ee"/><stop offset="25%" stopColor="#a78bfa"/><stop offset="55%" stopColor="#fb7185"/><stop offset="100%" stopColor="#22d3ee"/></linearGradient>
+              </defs>
+              {[35,75,115,155].map(y => <line key={y} x1="28" y1={y} x2="680" y2={y} stroke="#292338" strokeDasharray="4 6"/>)}
+              <path d="M28 120 L55 112 L82 32 L105 52 L135 83 L165 102 L195 92 L225 108 L255 124 L285 136 L315 126 L345 142 L375 150 L405 137 L435 126 L465 142 L495 155 L525 165 L555 145 L585 132 L615 113 L645 96 L680 120 L680 175 L28 175 Z" fill="url(#elevFill)"/>
+              <path d="M28 120 L55 112 L82 32 L105 52 L135 83 L165 102 L195 92 L225 108 L255 124 L285 136 L315 126 L345 142 L375 150 L405 137 L435 126 L465 142 L495 155 L525 165 L555 145 L585 132 L615 113 L645 96 L680 120" fill="none" stroke="url(#elevLine)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="82" cy="32" r="6" fill="#fb7185" stroke="#fff" strokeWidth="2"/>
+              <text x="95" y="25" fill="#fda4af" fontSize="13" fontWeight="800">T1 · HIGH POINT</text>
+              <circle cx="525" cy="165" r="5" fill="#22d3ee" stroke="#fff" strokeWidth="1.5"/>
+              <text x="505" y="192" fill="#67e8f9" fontSize="12" fontWeight="800" textAnchor="middle">T19–20 · LOW AREA</text>
+              <text x="28" y="194" fill="#8e849f" fontSize="11">START / FINISH</text>
+              <text x="680" y="194" fill="#8e849f" fontSize="11" textAnchor="end">LAP</text>
+            </svg>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(145px,1fr))", gap: 9, marginTop: 12 }}>
+            <div style={{ background: "#15111e", borderRadius: 10, padding: 12 }}><div style={{ color: "#fb7185", fontSize: 11, fontWeight: 900 }}>T1 UPHILL</div><div style={{ fontSize: 14, fontWeight: 800, marginTop: 5 }}>약 41m 상승</div><div style={{ color: "#8f879e", fontSize: 11, marginTop: 3 }}>급경사 오르막과 헤어핀</div></div>
+            <div style={{ background: "#15111e", borderRadius: 10, padding: 12 }}><div style={{ color: "#22d3ee", fontSize: 11, fontWeight: 900 }}>T19–20 LOW AREA</div><div style={{ fontSize: 14, fontWeight: 800, marginTop: 5 }}>서킷 최저 구간 부근</div><div style={{ color: "#8f879e", fontSize: 11, marginTop: 3 }}>T1 오르막과 대비되는 낮은 지형</div></div>
+          </div>
+          <p style={{ color: "#777084", fontSize: 11, lineHeight: 1.55, margin: "12px 0 0" }}>주의: 곡선은 지형 변화를 이해하기 위한 개략도이며, 코너별 측량 고도 데이터가 아닙니다. 공개된 COTA/F1 자료의 T1 고도 상승은 약 130–134ft(약 40–41m)입니다.</p>
+        </section>
+
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12, marginTop: 14 }}>
           <div style={{ border: "1px solid #342740", borderRadius: 18, background: "#100e16", padding: 18 }}>
             <div style={{ color: "#a78bfa", fontSize: 11, letterSpacing: 2, fontWeight: 900 }}>SELECTED CORNER</div>

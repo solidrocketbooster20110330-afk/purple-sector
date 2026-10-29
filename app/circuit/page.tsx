@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const turns = [
   { n: 1, x: 570, y: 185, name: "Turn 1", detail: "A steep uphill approach into a tight, heavy-braking hairpin.", type: "Heavy braking" },
@@ -20,6 +20,8 @@ export default function CircuitExplorerPage() {
   const [tilt, setTilt] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [lastX, setLastX] = useState(0);
+  const pinchRef = useRef<{ distance: number; zoom: number } | null>(null);
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const active = turns[selected];
 
   return (
@@ -36,9 +38,9 @@ export default function CircuitExplorerPage() {
         <section style={{ position: "relative", overflow: "hidden", borderRadius: 22, border: "1px solid #3c2b52", background: "linear-gradient(155deg,#0d0c15,#05060b 70%)", boxShadow: "0 20px 70px #0009", touchAction: "pan-y" }}>
           <div style={{ position: "absolute", zIndex: 2, top: 14, left: 14, right: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, pointerEvents: "none" }}>
             <span style={{ background: "#171321dd", border: "1px solid #443258", borderRadius: 999, padding: "7px 10px", fontSize: 10, letterSpacing: 1.2, fontWeight: 900 }}>INTERACTIVE TRACK VIEW</span>
-            <span style={{ color: "#8e849f", fontSize: 11 }}>Drag to rotate</span>
+            <span style={{ color: "#8e849f", fontSize: 11 }}>Drag to rotate · Pinch to zoom</span>
           </div>
-          <div onPointerDown={(e) => { setDragging(true); setLastX(e.clientX); e.currentTarget.setPointerCapture(e.pointerId); }} onPointerMove={(e) => { if (dragging) { setTilt((v) => Math.max(-28, Math.min(28, v - (e.clientX - lastX) * 0.35))); setLastX(e.clientX); } }} onPointerUp={() => setDragging(false)} onPointerCancel={() => setDragging(false)} style={{ height: "clamp(340px, 105vw, 540px)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", cursor: dragging ? "grabbing" : "grab", userSelect: "none" }}>
+          <div onPointerDown={(e) => { pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pointersRef.current.size === 2) { const pts = Array.from(pointersRef.current.values()); pinchRef.current = { distance: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), zoom }; setDragging(false); } else { setDragging(true); setLastX(e.clientX); } e.currentTarget.setPointerCapture(e.pointerId); }} onPointerMove={(e) => { if (!pointersRef.current.has(e.pointerId)) return; pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pointersRef.current.size >= 2) { const pts = Array.from(pointersRef.current.values()); const distance = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y); if (pinchRef.current) setZoom(Math.max(0.75, Math.min(1.8, pinchRef.current.zoom * distance / Math.max(1, pinchRef.current.distance)))); } else if (dragging) { setTilt((v) => Math.max(-28, Math.min(28, v - (e.clientX - lastX) * 0.35))); setLastX(e.clientX); } }} onPointerUp={(e) => { pointersRef.current.delete(e.pointerId); if (pointersRef.current.size < 2) pinchRef.current = null; setDragging(false); }} onPointerCancel={(e) => { pointersRef.current.delete(e.pointerId); pinchRef.current = null; setDragging(false); }} style={{ height: "clamp(340px, 105vw, 540px)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", cursor: dragging ? "grabbing" : "grab", userSelect: "none", touchAction: "none" }}>
             <div style={{ width: "100%", transform: `perspective(900px) rotateX(48deg) rotateZ(${tilt}deg) scale(${zoom})`, transition: dragging ? "none" : "transform 160ms ease-out", transformOrigin: "center center" }}>
               <svg viewBox="0 0 700 560" role="img" aria-label="Stylized 3D COTA circuit layout" style={{ width: "100%", height: "auto", overflow: "visible", display: "block" }}>
                 <defs>
@@ -59,9 +61,8 @@ export default function CircuitExplorerPage() {
               </svg>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "0 16px 16px" }}>
-            <span style={{ color: "#b9b0c7", fontSize: 12, whiteSpace: "nowrap" }}>ZOOM</span>
-            <input aria-label="Track zoom" type="range" min="0.75" max="1.4" step="0.05" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} style={{ width: "100%", accentColor: "#a78bfa" }}/>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, padding: "0 16px 16px" }}>
+            <span style={{ color: "#b9b0c7", fontSize: 12, whiteSpace: "nowrap" }}>PINCH TO ZOOM</span>
             <button onClick={() => { setZoom(1); setTilt(0); setSelected(0); }} style={{ border: "1px solid #3a2b4d", background: "#171321", color: "#eee", borderRadius: 10, padding: "9px 12px", fontWeight: 800 }}>Reset</button>
           </div>
         </section>

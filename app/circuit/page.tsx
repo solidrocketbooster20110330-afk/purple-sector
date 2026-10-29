@@ -3,15 +3,26 @@
 import { useRef, useState } from "react";
 
 const turns = [
-  { n: 1, x: 570, y: 185, name: "Turn 1", detail: "A steep uphill approach into a tight, heavy-braking hairpin.", type: "Heavy braking" },
-  { n: 2, x: 510, y: 245, name: "Turns 2–3", detail: "A flowing sequence that asks for commitment and precise placement.", type: "Fast direction change" },
-  { n: 4, x: 465, y: 285, name: "Turn 4", detail: "A quick change of direction on the way into the middle sector.", type: "Medium speed" },
-  { n: 6, x: 405, y: 345, name: "Turns 6–7", detail: "A technical section where line choice matters.", type: "Technical section" },
-  { n: 9, x: 335, y: 300, name: "Turns 9–10", detail: "A flowing transition before the tighter sequence.", type: "Flowing corners" },
-  { n: 11, x: 260, y: 345, name: "Turn 11", detail: "A key corner leading onto the long back straight.", type: "Straight-line setup" },
-  { n: 12, x: 180, y: 410, name: "Turn 12", detail: "A major braking zone at the end of the back straight.", type: "Heavy braking" },
-  { n: 15, x: 250, y: 475, name: "Turns 15–16", detail: "A tight technical complex where a clean exit helps.", type: "Technical section" },
-  { n: 19, x: 445, y: 470, name: "Turns 19–20", detail: "The final sequence before the run back to the start/finish.", type: "Final sector" },
+  { n: 1, x: 530, y: 115, name: "Turn 1", detail: "The steep uphill braking zone into the first corner.", type: "Heavy braking" },
+  { n: 2, x: 470, y: 100, name: "Turn 2", detail: "A fast transition that begins the esses sequence.", type: "Fast direction change" },
+  { n: 3, x: 430, y: 125, name: "Turn 3", detail: "A quick left-right change through the opening esses.", type: "Esses" },
+  { n: 4, x: 390, y: 105, name: "Turn 4", detail: "A flowing corner in the high-speed first sector.", type: "Esses" },
+  { n: 5, x: 350, y: 130, name: "Turn 5", detail: "The final part of the opening direction-change sequence.", type: "Esses" },
+  { n: 6, x: 320, y: 165, name: "Turn 6", detail: "The track starts to unwind toward the next section.", type: "Medium speed" },
+  { n: 7, x: 345, y: 215, name: "Turn 7", detail: "A corner that sets up the run through the middle sector.", type: "Medium speed" },
+  { n: 8, x: 390, y: 240, name: "Turn 8", detail: "A flowing change of direction.", type: "Flowing corner" },
+  { n: 9, x: 435, y: 225, name: "Turn 9", detail: "Completes the flowing section before the tighter turns.", type: "Flowing corner" },
+  { n: 10, x: 480, y: 250, name: "Turn 10", detail: "A tighter corner before the stadium section.", type: "Medium braking" },
+  { n: 11, x: 500, y: 300, name: "Turn 11", detail: "A slow corner that leads onto the long back straight.", type: "Straight-line setup" },
+  { n: 12, x: 165, y: 300, name: "Turn 12", detail: "A major braking zone at the end of the long back straight.", type: "Heavy braking" },
+  { n: 13, x: 175, y: 360, name: "Turn 13", detail: "The stadium section begins with a tight sequence.", type: "Technical section" },
+  { n: 14, x: 215, y: 395, name: "Turn 14", detail: "A short transition through the stadium complex.", type: "Technical section" },
+  { n: 15, x: 270, y: 410, name: "Turn 15", detail: "A multi-apex corner where a tidy line matters.", type: "Technical section" },
+  { n: 16, x: 325, y: 390, name: "Turn 16", detail: "The first of the final long, sweeping corners.", type: "Long-radius corner" },
+  { n: 17, x: 380, y: 370, name: "Turn 17", detail: "A long-radius corner that builds speed toward the final sector.", type: "Long-radius corner" },
+  { n: 18, x: 430, y: 345, name: "Turn 18", detail: "Continues the sweeping sequence.", type: "Long-radius corner" },
+  { n: 19, x: 485, y: 320, name: "Turn 19", detail: "A fast approach to the final corner.", type: "Final sector" },
+  { n: 20, x: 545, y: 275, name: "Turn 20", detail: "The final corner onto the main straight.", type: "Final corner" },
 ];
 
 export default function CircuitExplorerPage() {
@@ -50,14 +61,14 @@ export default function CircuitExplorerPage() {
                 </defs>
                 <rect width="700" height="560" fill="url(#grid)" opacity=".48"/>
                 <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M570 185 C560 145 530 130 490 145 L420 180 C395 190 380 215 390 240 L420 280 C440 310 420 330 390 330 L340 310 C310 295 285 300 260 345 L220 385 C195 405 165 405 150 430 C130 460 170 480 210 480 L370 480 C420 480 455 460 455 425 C455 400 430 390 405 395 L340 410 C310 420 290 400 305 375 C325 345 360 350 370 375 C380 400 410 410 440 390 L510 350 C550 330 570 300 550 270 L520 240 C500 220 510 200 535 195 Z" stroke="#252037" strokeWidth="40" transform="translate(0 15)"/>
-                  <path d="M570 185 C560 145 530 130 490 145 L420 180 C395 190 380 215 390 240 L420 280 C440 310 420 330 390 330 L340 310 C310 295 285 300 260 345 L220 385 C195 405 165 405 150 430 C130 460 170 480 210 480 L370 480 C420 480 455 460 455 425 C455 400 430 390 405 395 L340 410 C310 420 290 400 305 375 C325 345 360 350 370 375 C380 400 410 410 440 390 L510 350 C550 330 570 300 550 270 L520 240 C500 220 510 200 535 195 Z" stroke="#07070b" strokeWidth="28"/>
-                  <path d="M570 185 C560 145 530 130 490 145 L420 180 C395 190 380 215 390 240 L420 280 C440 310 420 330 390 330 L340 310 C310 295 285 300 260 345 L220 385 C195 405 165 405 150 430 C130 460 170 480 210 480 L370 480 C420 480 455 460 455 425 C455 400 430 390 405 395 L340 410 C310 420 290 400 305 375 C325 345 360 350 370 375 C380 400 410 410 440 390 L510 350 C550 330 570 300 550 270 L520 240 C500 220 510 200 535 195 Z" stroke="url(#trackGlow)" strokeWidth="12" filter="url(#glow)"/>
-                  <path d="M570 185 C560 145 530 130 490 145 L420 180 C395 190 380 215 390 240 L420 280 C440 310 420 330 390 330 L340 310 C310 295 285 300 260 345 L220 385 C195 405 165 405 150 430 C130 460 170 480 210 480 L370 480 C420 480 455 460 455 425 C455 400 430 390 405 395 L340 410 C310 420 290 400 305 375 C325 345 360 350 370 375 C380 400 410 410 440 390 L510 350 C550 330 570 300 550 270 L520 240 C500 220 510 200 535 195 Z" stroke="#f8fafc" strokeWidth="1.6" opacity=".9"/>
+                  <path d="M530 115 C505 90 480 90 455 102 L430 125 L405 105 L380 125 L350 130 C325 140 305 160 320 180 L345 215 C360 235 380 250 410 245 L455 230 C480 225 495 240 500 270 L500 300 C490 320 470 330 445 340 C415 355 390 375 360 390 L320 405 C290 420 260 415 240 400 L205 380 C180 365 165 345 165 315 L165 300 L160 245 L160 185 C160 160 175 145 200 145 L250 145 C280 145 300 160 300 185 L300 220 C300 250 280 270 250 280 L205 295 L165 300 L520 300 C550 300 565 280 555 255 C550 235 535 225 515 220 C495 215 490 190 505 170 C520 150 540 140 530 115 Z" stroke="#252037" strokeWidth="40" transform="translate(0 15)"/>
+                  <path d="M530 115 C505 90 480 90 455 102 L430 125 L405 105 L380 125 L350 130 C325 140 305 160 320 180 L345 215 C360 235 380 250 410 245 L455 230 C480 225 495 240 500 270 L500 300 C490 320 470 330 445 340 C415 355 390 375 360 390 L320 405 C290 420 260 415 240 400 L205 380 C180 365 165 345 165 315 L165 300 L160 245 L160 185 C160 160 175 145 200 145 L250 145 C280 145 300 160 300 185 L300 220 C300 250 280 270 250 280 L205 295 L165 300 L520 300 C550 300 565 280 555 255 C550 235 535 225 515 220 C495 215 490 190 505 170 C520 150 540 140 530 115 Z" stroke="#07070b" strokeWidth="28"/>
+                  <path d="M530 115 C505 90 480 90 455 102 L430 125 L405 105 L380 125 L350 130 C325 140 305 160 320 180 L345 215 C360 235 380 250 410 245 L455 230 C480 225 495 240 500 270 L500 300 C490 320 470 330 445 340 C415 355 390 375 360 390 L320 405 C290 420 260 415 240 400 L205 380 C180 365 165 345 165 315 L165 300 L160 245 L160 185 C160 160 175 145 200 145 L250 145 C280 145 300 160 300 185 L300 220 C300 250 280 270 250 280 L205 295 L165 300 L520 300 C550 300 565 280 555 255 C550 235 535 225 515 220 C495 215 490 190 505 170 C520 150 540 140 530 115 Z" stroke="url(#trackGlow)" strokeWidth="12" filter="url(#glow)"/>
+                  <path d="M530 115 C505 90 480 90 455 102 L430 125 L405 105 L380 125 L350 130 C325 140 305 160 320 180 L345 215 C360 235 380 250 410 245 L455 230 C480 225 495 240 500 270 L500 300 C490 320 470 330 445 340 C415 355 390 375 360 390 L320 405 C290 420 260 415 240 400 L205 380 C180 365 165 345 165 315 L165 300 L160 245 L160 185 C160 160 175 145 200 145 L250 145 C280 145 300 160 300 185 L300 220 C300 250 280 270 250 280 L205 295 L165 300 L520 300 C550 300 565 280 555 255 C550 235 535 225 515 220 C495 215 490 190 505 170 C520 150 540 140 530 115 Z" stroke="#f8fafc" strokeWidth="1.6" opacity=".9"/>
                 </g>
                 {turns.map((turn) => <g key={turn.n} onClick={(event) => { event.stopPropagation(); setSelected(turns.findIndex((item) => item.n === turn.n)); }} style={{ cursor: "pointer" }}><circle cx={turn.x} cy={turn.y} r={selected === turns.findIndex((item) => item.n === turn.n) ? 17 : 12} fill={selected === turns.findIndex((item) => item.n === turn.n) ? "#a78bfa" : "#0a0910"} stroke={selected === turns.findIndex((item) => item.n === turn.n) ? "#fff" : "#b9a4e8"} strokeWidth="2"/><text x={turn.x} y={turn.y+4} textAnchor="middle" fontSize="10" fontWeight="900" fill="#fff">{turn.n}</text></g>)}
                 <g><rect x="525" y="163" width="8" height="42" rx="2" fill="#f8fafc"/><path d="M533 163 h18 v10 h-18 M533 183 h18 v10 h-18" fill="#f8fafc"/><path d="M533 173 h18 M533 193 h18" stroke="#111" strokeWidth="5"/></g>
-                <text x="35" y="520" fill="#756a8d" fontSize="12" letterSpacing="2">CIRCUIT EXPLORER · SCHEMATIC LAYOUT</text>
+                <text x="35" y="520" fill="#756a8d" fontSize="12" letterSpacing="2">COTA TRACK MAP · PROTOTYPE GEOMETRY</text>
               </svg>
             </div>
           </div>

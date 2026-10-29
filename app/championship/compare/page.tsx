@@ -160,7 +160,6 @@ export default function ChampionshipComparePage() {
                       {point.a === point.b ? "—" : `+${Math.abs(point.a - point.b)}`}
                     </strong>
                   </div>
-                  </div>
                 ))}
               </div>
             </section>

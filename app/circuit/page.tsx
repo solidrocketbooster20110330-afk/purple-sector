@@ -1,32 +1,44 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+const turnDistances = [662, 855, 1155, 1270, 1362, 1582, 1719, 1930, 1969, 2182, 2598, 3777, 3990, 4113, 4298, 4506, 4617, 4703, 5054, 5364];
 const turns = [
-  { n: 1, x: 448, y: 48, name: "Turn 1 · Big Red", detail: "A steep uphill approach into a blind, tight corner.", type: "Heavy braking" },
-  { n: 2, x: 405, y: 82, name: "Turn 2", detail: "A long, tightening corner that begins the esses sequence.", type: "Flowing corner" },
-  { n: 3, x: 360, y: 117, name: "Turn 3 · Esses", detail: "The opening of the fast left-right sequence.", type: "Fast direction change" },
-  { n: 4, x: 330, y: 142, name: "Turn 4 · Esses", detail: "A quick transition through the esses.", type: "Fast direction change" },
-  { n: 5, x: 325, y: 170, name: "Turn 5 · Esses", detail: "The final part of the opening esses.", type: "Fast direction change" },
-  { n: 6, x: 348, y: 205, name: "Turn 6", detail: "The circuit opens out after the esses.", type: "Medium speed" },
-  { n: 7, x: 376, y: 232, name: "Turn 7", detail: "A flowing bend leading toward the next section.", type: "Flowing corner" },
-  { n: 8, x: 407, y: 242, name: "Turn 8", detail: "A long, loaded corner in the middle sector.", type: "Sustained cornering" },
-  { n: 9, x: 430, y: 224, name: "Turn 9", detail: "A transition toward the back section.", type: "Medium speed" },
-  { n: 10, x: 439, y: 198, name: "Turn 10", detail: "A tight corner before the run to Turn 11.", type: "Braking zone" },
-  { n: 11, x: 430, y: 172, name: "Turn 11 · Bobby Pin", detail: "A slow hairpin leading onto the long back straight.", type: "Key exit" },
-  { n: 12, x: 365, y: 305, name: "Turn 12", detail: "A major braking zone at the end of the long back straight.", type: "Heavy braking" },
-  { n: 13, x: 318, y: 340, name: "Turn 13", detail: "The stadium section begins with a long right-hander.", type: "Stadium section" },
-  { n: 14, x: 285, y: 372, name: "Turn 14", detail: "A transition within the stadium complex.", type: "Technical section" },
-  { n: 15, x: 245, y: 395, name: "Turn 15", detail: "A tight corner in the stadium complex.", type: "Technical section" },
-  { n: 16, x: 205, y: 390, name: "Turn 16", detail: "The long, flowing triple-apex sequence begins.", type: "Long corner" },
-  { n: 17, x: 180, y: 370, name: "Turn 17", detail: "A continuation of the long cornering sequence.", type: "Long corner" },
-  { n: 18, x: 165, y: 345, name: "Turn 18", detail: "The track turns back toward the final sector.", type: "Direction change" },
-  { n: 19, x: 185, y: 310, name: "Turn 19", detail: "A quick transition before the final corner.", type: "Medium speed" },
-  { n: 20, x: 245, y: 290, name: "Turn 20", detail: "The final corner returns the car to the start-finish straight.", type: "Exit speed" },
+  { n: 1, name: "Turn 1 · Big Red", detail: "Start-finish straight climbs about 41 m to this blind uphill left-hander.", type: "Heavy braking" },
+  { n: 2, name: "Turn 2", detail: "A tightening right-hander leading into the Esses.", type: "Flowing corner" },
+  { n: 3, name: "Turn 3 · Esses", detail: "The fast left-right sequence begins.", type: "Fast direction change" },
+  { n: 4, name: "Turn 4 · Esses", detail: "A quick transition through the Esses.", type: "Fast direction change" },
+  { n: 5, name: "Turn 5 · Esses", detail: "The final part of the opening Esses sequence.", type: "Fast direction change" },
+  { n: 6, name: "Turn 6", detail: "The Esses sequence opens toward the next sector.", type: "Medium speed" },
+  { n: 7, name: "Turn 7", detail: "A flowing left-hander at the start of Sector 2.", type: "Flowing corner" },
+  { n: 8, name: "Turn 8", detail: "A loaded right-hand corner.", type: "Sustained cornering" },
+  { n: 9, name: "Turn 9", detail: "A short transition in the middle sector.", type: "Medium speed" },
+  { n: 10, name: "Turn 10", detail: "A long left-hand corner before the hairpin.", type: "Braking zone" },
+  { n: 11, name: "Turn 11 · Bobby Pin", detail: "A slow left hairpin leading onto the long back straight.", type: "Key exit" },
+  { n: 12, name: "Turn 12", detail: "Heavy braking at the end of the back straight.", type: "Heavy braking" },
+  { n: 13, name: "Turn 13", detail: "The stadium section begins.", type: "Stadium section" },
+  { n: 14, name: "Turn 14", detail: "A right-hand transition in the stadium section.", type: "Technical section" },
+  { n: 15, name: "Turn 15", detail: "A tight left-hander in the stadium complex.", type: "Technical section" },
+  { n: 16, name: "Turn 16", detail: "The multi-apex sequence begins.", type: "Long corner" },
+  { n: 17, name: "Turn 17", detail: "Continuation of the multi-apex right-hand sequence.", type: "Long corner" },
+  { n: 18, name: "Turn 18", detail: "The final part of the multi-apex sequence.", type: "Direction change" },
+  { n: 19, name: "Turn 19", detail: "A left-hand turn before the final corner.", type: "Medium speed" },
+  { n: 20, name: "Turn 20", detail: "The final left-hander onto the start-finish straight.", type: "Exit speed" },
 ];
 
 export default function CircuitExplorerPage() {
   const [selected, setSelected] = useState(0);
+  const [turnPoints, setTurnPoints] = useState<{x:number;y:number}[]>([]);
+  const trackPathRef = useRef<SVGPathElement | null>(null);
+  useEffect(() => {
+    const path = trackPathRef.current;
+    if (!path) return;
+    const total = path.getTotalLength();
+    setTurnPoints(turnDistances.map((metres) => {
+      const p = path.getPointAtLength((metres / 5513) * total);
+      return { x: p.x, y: p.y };
+    }));
+  }, []);
   const [viewMode, setViewMode] = useState<"elevation" | "speed">("elevation");
   const [zoom, setZoom] = useState(1);
   const [tilt, setTilt] = useState(0);
@@ -62,15 +74,15 @@ export default function CircuitExplorerPage() {
                   <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M 28 0 L 0 0 0 28" fill="none" stroke="#292239" strokeWidth="0.7"/></pattern>
                 </defs>
                 <rect width="500" height="500" fill="url(#grid)" opacity=".48"/>
-                <g aria-label="Schematic terrain elevation" opacity={viewMode === "elevation" ? 1 : 0}><path d="M515 145 L470 130 L430 150 L390 132 L350 158 L320 195 L350 238 L405 266 L465 250 L505 286 L500 325 L445 365 L370 410 L320 430 L250 430 L190 395 L145 340 L140 285 L145 205 L190 170 L260 168 L305 202 L290 245 L240 275 L190 290" fill="#0b1320" stroke="#233049" strokeWidth="2"/><path d="M520 135 L475 120 L435 140 L395 122 L355 148 L325 185 L355 228 L410 256 L470 240 L510 276 L505 315 L450 355 L375 400 L325 420 L255 420 L195 385 L150 330 L145 275 L150 195 L195 160 L265 158 L310 192 L295 235 L245 265 L195 280" fill="none" stroke="#31405a" strokeWidth="1.5" opacity=".75"/><path d="M530 115 L530 150 L500 172 L470 170 L430 195" fill="none" stroke="#f472b6" strokeWidth="3" opacity=".65"/><path d="M530 150 L545 165 L515 187 L485 185 L445 210" fill="none" stroke="#6b3b76" strokeWidth="9" opacity=".85"/><path d="M500 300 L500 326 L450 346 L420 362 L390 382" fill="none" stroke="#1f5265" strokeWidth="12" opacity=".8"/><path d="M500 300 L500 326 L450 346 L420 362 L390 382" fill="none" stroke="#22d3ee" strokeWidth="2" opacity=".7"/><text x="548" y="150" fill="#f9a8d4" fontSize="11" fontWeight="800">HIGH</text><text x="398" y="400" fill="#67e8f9" fontSize="11" fontWeight="800">LOWER TERRAIN</text></g>
+                {viewMode === "elevation" && <g opacity=".45"><path d="M463 42 L449 50 L430 70" stroke="#f472b6" strokeWidth="2" fill="none"/><text x="405" y="65" fill="#f9a8d4" fontSize="10">T1 +41 m</text></g>}
                 <g fill="none" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M463.201 42.551c-3.095-4.166-9.585-4.959-13.542-1.491-105.774 92.51-189.942 140.467-271.342 186.844l-1.43.818a8.79 8.79 0 0 0-4.448 7.319 8.87 8.87 0 0 0 3.861 7.726c10.004 6.86 18.037 11.893 24.491 15.937 9.44 5.913 15.39 9.643 19.06 13.81l-12.113 5.437c-1.335.598-2.524.903-3.537.903-1.238 0-2.939-.402-5.131-3.54l-4.563-6.535a13.1 13.1 0 0 0-5.448-4.483l-11.76-5.206a13.07 13.07 0 0 0-9.396-.459l-11.38 3.769c-3.1 1.023-5.339 3.555-5.99 6.772a9.12 9.12 0 0 0 2.897 8.64c6.81 5.996 14.065 10.876 21.083 15.595 7.814 5.256 15.205 10.224 20.324 15.78 1.003 1.77 5.673 10.775 4.745 22.995a9.66 9.66 0 0 1-2.139 5.317c-3.422 4.198-9.976 11.888-15.405 16.219a9.1 9.1 0 0 1-3.476 1.72c-2.734.69-8.336 1.847-15.156 1.847a58 58 0 0 1-9.102-.709c-.999-.161-2.029-.56-3.066-1.183l-47.373-28.484c-5.617-3.377-13.355-2.265-17.802 2.544l-48.214 52.06a10.69 10.69 0 0 0-2.47 10.18c1 3.624 3.746 6.404 7.344 7.44l211.465 60.794c.8.23 1.623.349 2.44.349h.004c3.202 0 6.146-1.782 7.68-4.652 1.537-2.871 1.379-6.22-.42-8.954-4.86-7.388-12.923-18.609-23.722-30.107-15.686-16.704-17.69-29.534-6.913-44.286 8.675-11.876 21.268-28.367 28.003-37.141a19.36 19.36 0 0 0 4.016-11.282l.466-15.142a19.58 19.58 0 0 1 6.562-14.018l.715-.63c7.37-6.527 10.504-16.54 8.18-26.134l-3.371-13.905c-.474-1.951-.171-4.007.844-5.789 2.62-4.578 8.053-13.095 15.02-18.7 1.572-1.26 3.69-1.957 5.968-1.957l26.805 1.295.957.022c8.28 0 15.724-5.263 18.53-13.093l8.343-23.295c1.584-4.427 5.797-7.398 10.481-7.398 1.941 0 3.789.498 5.5 1.482l7.665 4.404c3.18 1.826 7.308 1.64 10.303-.463l40.179-28.161a14.04 14.04 0 0 0 5.38-7.511L464.63 50.736c.84-2.853.317-5.836-1.428-8.185z" stroke="#252037" strokeWidth="40" transform="translate(0 15)"/>
-                  <path d="M463.201 42.551c-3.095-4.166-9.585-4.959-13.542-1.491-105.774 92.51-189.942 140.467-271.342 186.844l-1.43.818a8.79 8.79 0 0 0-4.448 7.319 8.87 8.87 0 0 0 3.861 7.726c10.004 6.86 18.037 11.893 24.491 15.937 9.44 5.913 15.39 9.643 19.06 13.81l-12.113 5.437c-1.335.598-2.524.903-3.537.903-1.238 0-2.939-.402-5.131-3.54l-4.563-6.535a13.1 13.1 0 0 0-5.448-4.483l-11.76-5.206a13.07 13.07 0 0 0-9.396-.459l-11.38 3.769c-3.1 1.023-5.339 3.555-5.99 6.772a9.12 9.12 0 0 0 2.897 8.64c6.81 5.996 14.065 10.876 21.083 15.595 7.814 5.256 15.205 10.224 20.324 15.78 1.003 1.77 5.673 10.775 4.745 22.995a9.66 9.66 0 0 1-2.139 5.317c-3.422 4.198-9.976 11.888-15.405 16.219a9.1 9.1 0 0 1-3.476 1.72c-2.734.69-8.336 1.847-15.156 1.847a58 58 0 0 1-9.102-.709c-.999-.161-2.029-.56-3.066-1.183l-47.373-28.484c-5.617-3.377-13.355-2.265-17.802 2.544l-48.214 52.06a10.69 10.69 0 0 0-2.47 10.18c1 3.624 3.746 6.404 7.344 7.44l211.465 60.794c.8.23 1.623.349 2.44.349h.004c3.202 0 6.146-1.782 7.68-4.652 1.537-2.871 1.379-6.22-.42-8.954-4.86-7.388-12.923-18.609-23.722-30.107-15.686-16.704-17.69-29.534-6.913-44.286 8.675-11.876 21.268-28.367 28.003-37.141a19.36 19.36 0 0 0 4.016-11.282l.466-15.142a19.58 19.58 0 0 1 6.562-14.018l.715-.63c7.37-6.527 10.504-16.54 8.18-26.134l-3.371-13.905c-.474-1.951-.171-4.007.844-5.789 2.62-4.578 8.053-13.095 15.02-18.7 1.572-1.26 3.69-1.957 5.968-1.957l26.805 1.295.957.022c8.28 0 15.724-5.263 18.53-13.093l8.343-23.295c1.584-4.427 5.797-7.398 10.481-7.398 1.941 0 3.789.498 5.5 1.482l7.665 4.404c3.18 1.826 7.308 1.64 10.303-.463l40.179-28.161a14.04 14.04 0 0 0 5.38-7.511L464.63 50.736c.84-2.853.317-5.836-1.428-8.185z" stroke="#07070b" strokeWidth="28"/>
+                  <path d="M463.201 42.551c-3.095-4.166-9.585-4.959-13.542-1.491-105.774 92.51-189.942 140.467-271.342 186.844l-1.43.818a8.79 8.79 0 0 0-4.448 7.319 8.87 8.87 0 0 0 3.861 7.726c10.004 6.86 18.037 11.893 24.491 15.937 9.44 5.913 15.39 9.643 19.06 13.81l-12.113 5.437c-1.335.598-2.524.903-3.537.903-1.238 0-2.939-.402-5.131-3.54l-4.563-6.535a13.1 13.1 0 0 0-5.448-4.483l-11.76-5.206a13.07 13.07 0 0 0-9.396-.459l-11.38 3.769c-3.1 1.023-5.339 3.555-5.99 6.772a9.12 9.12 0 0 0 2.897 8.64c6.81 5.996 14.065 10.876 21.083 15.595 7.814 5.256 15.205 10.224 20.324 15.78 1.003 1.77 5.673 10.775 4.745 22.995a9.66 9.66 0 0 1-2.139 5.317c-3.422 4.198-9.976 11.888-15.405 16.219a9.1 9.1 0 0 1-3.476 1.72c-2.734.69-8.336 1.847-15.156 1.847a58 58 0 0 1-9.102-.709c-.999-.161-2.029-.56-3.066-1.183l-47.373-28.484c-5.617-3.377-13.355-2.265-17.802 2.544l-48.214 52.06a10.69 10.69 0 0 0-2.47 10.18c1 3.624 3.746 6.404 7.344 7.44l211.465 60.794c.8.23 1.623.349 2.44.349h.004c3.202 0 6.146-1.782 7.68-4.652 1.537-2.871 1.379-6.22-.42-8.954-4.86-7.388-12.923-18.609-23.722-30.107-15.686-16.704-17.69-29.534-6.913-44.286 8.675-11.876 21.268-28.367 28.003-37.141a19.36 19.36 0 0 0 4.016-11.282l.466-15.142a19.58 19.58 0 0 1 6.562-14.018l.715-.63c7.37-6.527 10.504-16.54 8.18-26.134l-3.371-13.905c-.474-1.951-.171-4.007.844-5.789 2.62-4.578 8.053-13.095 15.02-18.7 1.572-1.26 3.69-1.957 5.968-1.957l26.805 1.295.957.022c8.28 0 15.724-5.263 18.53-13.093l8.343-23.295c1.584-4.427 5.797-7.398 10.481-7.398 1.941 0 3.789.498 5.5 1.482l7.665 4.404c3.18 1.826 7.308 1.64 10.303-.463l40.179-28.161a14.04 14.04 0 0 0 5.38-7.511L464.63 50.736c.84-2.853.317-5.836-1.428-8.185z" stroke="#07070b" strokeWidth="28" ref={trackPathRef}/>
                   <path d="M463.201 42.551c-3.095-4.166-9.585-4.959-13.542-1.491-105.774 92.51-189.942 140.467-271.342 186.844l-1.43.818a8.79 8.79 0 0 0-4.448 7.319 8.87 8.87 0 0 0 3.861 7.726c10.004 6.86 18.037 11.893 24.491 15.937 9.44 5.913 15.39 9.643 19.06 13.81l-12.113 5.437c-1.335.598-2.524.903-3.537.903-1.238 0-2.939-.402-5.131-3.54l-4.563-6.535a13.1 13.1 0 0 0-5.448-4.483l-11.76-5.206a13.07 13.07 0 0 0-9.396-.459l-11.38 3.769c-3.1 1.023-5.339 3.555-5.99 6.772a9.12 9.12 0 0 0 2.897 8.64c6.81 5.996 14.065 10.876 21.083 15.595 7.814 5.256 15.205 10.224 20.324 15.78 1.003 1.77 5.673 10.775 4.745 22.995a9.66 9.66 0 0 1-2.139 5.317c-3.422 4.198-9.976 11.888-15.405 16.219a9.1 9.1 0 0 1-3.476 1.72c-2.734.69-8.336 1.847-15.156 1.847a58 58 0 0 1-9.102-.709c-.999-.161-2.029-.56-3.066-1.183l-47.373-28.484c-5.617-3.377-13.355-2.265-17.802 2.544l-48.214 52.06a10.69 10.69 0 0 0-2.47 10.18c1 3.624 3.746 6.404 7.344 7.44l211.465 60.794c.8.23 1.623.349 2.44.349h.004c3.202 0 6.146-1.782 7.68-4.652 1.537-2.871 1.379-6.22-.42-8.954-4.86-7.388-12.923-18.609-23.722-30.107-15.686-16.704-17.69-29.534-6.913-44.286 8.675-11.876 21.268-28.367 28.003-37.141a19.36 19.36 0 0 0 4.016-11.282l.466-15.142a19.58 19.58 0 0 1 6.562-14.018l.715-.63c7.37-6.527 10.504-16.54 8.18-26.134l-3.371-13.905c-.474-1.951-.171-4.007.844-5.789 2.62-4.578 8.053-13.095 15.02-18.7 1.572-1.26 3.69-1.957 5.968-1.957l26.805 1.295.957.022c8.28 0 15.724-5.263 18.53-13.093l8.343-23.295c1.584-4.427 5.797-7.398 10.481-7.398 1.941 0 3.789.498 5.5 1.482l7.665 4.404c3.18 1.826 7.308 1.64 10.303-.463l40.179-28.161a14.04 14.04 0 0 0 5.38-7.511L464.63 50.736c.84-2.853.317-5.836-1.428-8.185z" stroke="url(#trackGlow)" strokeWidth="12" filter="url(#glow)"/>
                   <path d="M463.201 42.551c-3.095-4.166-9.585-4.959-13.542-1.491-105.774 92.51-189.942 140.467-271.342 186.844l-1.43.818a8.79 8.79 0 0 0-4.448 7.319 8.87 8.87 0 0 0 3.861 7.726c10.004 6.86 18.037 11.893 24.491 15.937 9.44 5.913 15.39 9.643 19.06 13.81l-12.113 5.437c-1.335.598-2.524.903-3.537.903-1.238 0-2.939-.402-5.131-3.54l-4.563-6.535a13.1 13.1 0 0 0-5.448-4.483l-11.76-5.206a13.07 13.07 0 0 0-9.396-.459l-11.38 3.769c-3.1 1.023-5.339 3.555-5.99 6.772a9.12 9.12 0 0 0 2.897 8.64c6.81 5.996 14.065 10.876 21.083 15.595 7.814 5.256 15.205 10.224 20.324 15.78 1.003 1.77 5.673 10.775 4.745 22.995a9.66 9.66 0 0 1-2.139 5.317c-3.422 4.198-9.976 11.888-15.405 16.219a9.1 9.1 0 0 1-3.476 1.72c-2.734.69-8.336 1.847-15.156 1.847a58 58 0 0 1-9.102-.709c-.999-.161-2.029-.56-3.066-1.183l-47.373-28.484c-5.617-3.377-13.355-2.265-17.802 2.544l-48.214 52.06a10.69 10.69 0 0 0-2.47 10.18c1 3.624 3.746 6.404 7.344 7.44l211.465 60.794c.8.23 1.623.349 2.44.349h.004c3.202 0 6.146-1.782 7.68-4.652 1.537-2.871 1.379-6.22-.42-8.954-4.86-7.388-12.923-18.609-23.722-30.107-15.686-16.704-17.69-29.534-6.913-44.286 8.675-11.876 21.268-28.367 28.003-37.141a19.36 19.36 0 0 0 4.016-11.282l.466-15.142a19.58 19.58 0 0 1 6.562-14.018l.715-.63c7.37-6.527 10.504-16.54 8.18-26.134l-3.371-13.905c-.474-1.951-.171-4.007.844-5.789 2.62-4.578 8.053-13.095 15.02-18.7 1.572-1.26 3.69-1.957 5.968-1.957l26.805 1.295.957.022c8.28 0 15.724-5.263 18.53-13.093l8.343-23.295c1.584-4.427 5.797-7.398 10.481-7.398 1.941 0 3.789.498 5.5 1.482l7.665 4.404c3.18 1.826 7.308 1.64 10.303-.463l40.179-28.161a14.04 14.04 0 0 0 5.38-7.511L464.63 50.736c.84-2.853.317-5.836-1.428-8.185z" stroke="#f8fafc" strokeWidth="1.6" opacity=".9"/>
                 </g>
                 {viewMode === "speed" && <g><path d="M463.201 42.551c-3.095-4.166-9.585-4.959-13.542-1.491-105.774 92.51-189.942 140.467-271.342 186.844l-1.43.818a8.79 8.79 0 0 0-4.448 7.319 8.87 8.87 0 0 0 3.861 7.726c10.004 6.86 18.037 11.893 24.491 15.937 9.44 5.913 15.39 9.643 19.06 13.81l-12.113 5.437c-1.335.598-2.524.903-3.537.903-1.238 0-2.939-.402-5.131-3.54l-4.563-6.535a13.1 13.1 0 0 0-5.448-4.483l-11.76-5.206a13.07 13.07 0 0 0-9.396-.459l-11.38 3.769c-3.1 1.023-5.339 3.555-5.99 6.772a9.12 9.12 0 0 0 2.897 8.64c6.81 5.996 14.065 10.876 21.083 15.595 7.814 5.256 15.205 10.224 20.324 15.78 1.003 1.77 5.673 10.775 4.745 22.995a9.66 9.66 0 0 1-2.139 5.317c-3.422 4.198-9.976 11.888-15.405 16.219a9.1 9.1 0 0 1-3.476 1.72c-2.734.69-8.336 1.847-15.156 1.847a58 58 0 0 1-9.102-.709c-.999-.161-2.029-.56-3.066-1.183l-47.373-28.484c-5.617-3.377-13.355-2.265-17.802 2.544l-48.214 52.06a10.69 10.69 0 0 0-2.47 10.18c1 3.624 3.746 6.404 7.344 7.44l211.465 60.794c.8.23 1.623.349 2.44.349h.004c3.202 0 6.146-1.782 7.68-4.652 1.537-2.871 1.379-6.22-.42-8.954-4.86-7.388-12.923-18.609-23.722-30.107-15.686-16.704-17.69-29.534-6.913-44.286 8.675-11.876 21.268-28.367 28.003-37.141a19.36 19.36 0 0 0 4.016-11.282l.466-15.142a19.58 19.58 0 0 1 6.562-14.018l.715-.63c7.37-6.527 10.504-16.54 8.18-26.134l-3.371-13.905c-.474-1.951-.171-4.007.844-5.789 2.62-4.578 8.053-13.095 15.02-18.7 1.572-1.26 3.69-1.957 5.968-1.957l26.805 1.295.957.022c8.28 0 15.724-5.263 18.53-13.093l8.343-23.295c1.584-4.427 5.797-7.398 10.481-7.398 1.941 0 3.789.498 5.5 1.482l7.665 4.404c3.18 1.826 7.308 1.64 10.303-.463l40.179-28.161a14.04 14.04 0 0 0 5.38-7.511L464.63 50.736c.84-2.853.317-5.836-1.428-8.185z" fill="none" stroke="#22d3ee" strokeWidth="5" opacity=".9" strokeLinecap="round"/><circle r="8" fill="#fff" stroke="#22d3ee" strokeWidth="4"><animateMotion dur="92s" repeatCount="indefinite" rotate="auto" path="M463.201 42.551c-3.095-4.166-9.585-4.959-13.542-1.491-105.774 92.51-189.942 140.467-271.342 186.844l-1.43.818a8.79 8.79 0 0 0-4.448 7.319 8.87 8.87 0 0 0 3.861 7.726c10.004 6.86 18.037 11.893 24.491 15.937 9.44 5.913 15.39 9.643 19.06 13.81l-12.113 5.437c-1.335.598-2.524.903-3.537.903-1.238 0-2.939-.402-5.131-3.54l-4.563-6.535a13.1 13.1 0 0 0-5.448-4.483l-11.76-5.206a13.07 13.07 0 0 0-9.396-.459l-11.38 3.769c-3.1 1.023-5.339 3.555-5.99 6.772a9.12 9.12 0 0 0 2.897 8.64c6.81 5.996 14.065 10.876 21.083 15.595 7.814 5.256 15.205 10.224 20.324 15.78 1.003 1.77 5.673 10.775 4.745 22.995a9.66 9.66 0 0 1-2.139 5.317c-3.422 4.198-9.976 11.888-15.405 16.219a9.1 9.1 0 0 1-3.476 1.72c-2.734.69-8.336 1.847-15.156 1.847a58 58 0 0 1-9.102-.709c-.999-.161-2.029-.56-3.066-1.183l-47.373-28.484c-5.617-3.377-13.355-2.265-17.802 2.544l-48.214 52.06a10.69 10.69 0 0 0-2.47 10.18c1 3.624 3.746 6.404 7.344 7.44l211.465 60.794c.8.23 1.623.349 2.44.349h.004c3.202 0 6.146-1.782 7.68-4.652 1.537-2.871 1.379-6.22-.42-8.954-4.86-7.388-12.923-18.609-23.722-30.107-15.686-16.704-17.69-29.534-6.913-44.286 8.675-11.876 21.268-28.367 28.003-37.141a19.36 19.36 0 0 0 4.016-11.282l.466-15.142a19.58 19.58 0 0 1 6.562-14.018l.715-.63c7.37-6.527 10.504-16.54 8.18-26.134l-3.371-13.905c-.474-1.951-.171-4.007.844-5.789 2.62-4.578 8.053-13.095 15.02-18.7 1.572-1.26 3.69-1.957 5.968-1.957l26.805 1.295.957.022c8.28 0 15.724-5.263 18.53-13.093l8.343-23.295c1.584-4.427 5.797-7.398 10.481-7.398 1.941 0 3.789.498 5.5 1.482l7.665 4.404c3.18 1.826 7.308 1.64 10.303-.463l40.179-28.161a14.04 14.04 0 0 0 5.38-7.511L464.63 50.736c.84-2.853.317-5.836-1.428-8.185z"/></circle></g>}
-                {turns.map((turn) => <g key={turn.n} onClick={(event) => { event.stopPropagation(); setSelected(turns.findIndex((item) => item.n === turn.n)); }} style={{ cursor: "pointer" }}><circle cx={turn.x} cy={turn.y} r={selected === turns.findIndex((item) => item.n === turn.n) ? 17 : 12} fill={selected === turns.findIndex((item) => item.n === turn.n) ? "#a78bfa" : "#0a0910"} stroke={selected === turns.findIndex((item) => item.n === turn.n) ? "#fff" : "#b9a4e8"} strokeWidth="2"/><text x={turn.x} y={turn.y+4} textAnchor="middle" fontSize="10" fontWeight="900" fill="#fff">{turn.n}</text></g>)}
+                {turnPoints.map((point, i) => <g key={turns[i].n} onClick={(event) => { event.stopPropagation(); setSelected(i); }} style={{ cursor: "pointer" }}><circle cx={point.x} cy={point.y} r={selected === i ? 13 : 9} fill={selected === i ? "#a78bfa" : "#0a0910"} stroke={selected === i ? "#fff" : "#b9a4e8"} strokeWidth="2"/><text x={point.x} y={point.y+3.5} textAnchor="middle" fontSize="8" fontWeight="900" fill="#fff">{turns[i].n}</text></g>)}}
                 <g transform="translate(446 34) rotate(24)"><rect x="-3" y="-14" width="6" height="28" rx="1" fill="#f8fafc"/><path d="M3 -14 h12 v7 H3 M3 0 h12 v7 H3" fill="#f8fafc"/><path d="M3 -7 h12 M3 7 h12" stroke="#111" strokeWidth="4"/></g>
                 <text x="35" y="520" fill="#756a8d" fontSize="12" letterSpacing="2">COTA TRACK MAP · PROTOTYPE GEOMETRY</text>
               </svg>
@@ -82,41 +94,11 @@ export default function CircuitExplorerPage() {
           </div>
         </section>
 
-        <section style={{ marginTop: 14, border: "1px solid #342740", borderRadius: 18, background: "linear-gradient(145deg,#100e18,#08090f)", padding: 18 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-            <div>
-              <div style={{ color: "#a78bfa", fontSize: 11, letterSpacing: 2, fontWeight: 900 }}>3D ELEVATION</div>
-              <h2 style={{ margin: "7px 0 4px", fontSize: 24 }}>COTA 고저차</h2>
-              <p style={{ margin: 0, color: "#a9a3b5", fontSize: 13, lineHeight: 1.5 }}>출발선에서 T1까지 약 41m 상승 · T1 오르막을 포함한 지형의 높낮이를 시각화</p>
-            </div>
-            <div style={{ background: "#21182e", border: "1px solid #4b3565", borderRadius: 12, padding: "10px 13px" }}>
-              <div style={{ color: "#a78bfa", fontSize: 10, fontWeight: 900, letterSpacing: 1 }}>ELEVATION CHANGE</div>
-              <div style={{ fontSize: 23, fontWeight: 900, marginTop: 3 }}>≈ 41 m</div>
-              <div style={{ color: "#8f879e", fontSize: 11 }}>133 ft</div>
-            </div>
-          </div>
-          <div style={{ marginTop: 16, borderRadius: 12, overflow: "hidden", background: "#090a11", border: "1px solid #252035", padding: "10px 8px 4px" }}>
-            <svg viewBox="0 0 700 205" role="img" aria-label="Approximate COTA circuit elevation profile" style={{ display: "block", width: "100%", height: "auto" }}>
-              <defs>
-                <linearGradient id="elevFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#a78bfa" stopOpacity=".55"/><stop offset="100%" stopColor="#a78bfa" stopOpacity=".02"/></linearGradient>
-                <linearGradient id="elevLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#22d3ee"/><stop offset="25%" stopColor="#a78bfa"/><stop offset="55%" stopColor="#fb7185"/><stop offset="100%" stopColor="#22d3ee"/></linearGradient>
-              </defs>
-              {[35,75,115,155].map(y => <line key={y} x1="28" y1={y} x2="680" y2={y} stroke="#292338" strokeDasharray="4 6"/>)}
-              <path d="M28 120 L55 112 L82 32 L105 52 L135 83 L165 102 L195 92 L225 108 L255 124 L285 136 L315 126 L345 142 L375 150 L405 137 L435 126 L465 142 L495 155 L525 165 L555 145 L585 132 L615 113 L645 96 L680 120 L680 175 L28 175 Z" fill="url(#elevFill)"/>
-              <path d="M28 120 L55 112 L82 32 L105 52 L135 83 L165 102 L195 92 L225 108 L255 124 L285 136 L315 126 L345 142 L375 150 L405 137 L435 126 L465 142 L495 155 L525 165 L555 145 L585 132 L615 113 L645 96 L680 120" fill="none" stroke="url(#elevLine)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="82" cy="32" r="6" fill="#fb7185" stroke="#fff" strokeWidth="2"/>
-              <text x="95" y="25" fill="#fda4af" fontSize="13" fontWeight="800">T1 · HIGH POINT</text>
-              <circle cx="525" cy="165" r="5" fill="#22d3ee" stroke="#fff" strokeWidth="1.5"/>
-              <text x="505" y="192" fill="#67e8f9" fontSize="12" fontWeight="800" textAnchor="middle">T19–20 · LOW AREA</text>
-              <text x="28" y="194" fill="#8e849f" fontSize="11">START / FINISH</text>
-              <text x="680" y="194" fill="#8e849f" fontSize="11" textAnchor="end">LAP</text>
-            </svg>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(145px,1fr))", gap: 9, marginTop: 12 }}>
-            <div style={{ background: "#15111e", borderRadius: 10, padding: 12 }}><div style={{ color: "#fb7185", fontSize: 11, fontWeight: 900 }}>T1 UPHILL</div><div style={{ fontSize: 14, fontWeight: 800, marginTop: 5 }}>약 41m 상승</div><div style={{ color: "#8f879e", fontSize: 11, marginTop: 3 }}>급경사 오르막과 헤어핀</div></div>
-            <div style={{ background: "#15111e", borderRadius: 10, padding: 12 }}><div style={{ color: "#22d3ee", fontSize: 11, fontWeight: 900 }}>T19–20 LOW AREA</div><div style={{ fontSize: 14, fontWeight: 800, marginTop: 5 }}>서킷 최저 구간 부근</div><div style={{ color: "#8f879e", fontSize: 11, marginTop: 3 }}>T1 오르막과 대비되는 낮은 지형</div></div>
-          </div>
-          <p style={{ color: "#777084", fontSize: 11, lineHeight: 1.55, margin: "12px 0 0" }}>고저차는 실제 지형 느낌을 전달하기 위한 개략 시각화입니다. 정확한 코너별 표고 데이터 기반의 정밀 지형 모델은 아니며, T1 오르막은 공개된 서킷 소개 자료의 약 40m 상승을 기준으로 표현했습니다.</p>
+        <section style={{ marginTop: 14, border: "1px solid #342740", borderRadius: 18, background: "#100e18", padding: 18 }}>
+          <div style={{ color: "#a78bfa", fontSize: 11, letterSpacing: 2, fontWeight: 900 }}>COTA ELEVATION DATA</div>
+          <h2 style={{ margin: "8px 0", fontSize: 24 }}>실제 확인 가능한 고도 정보</h2>
+          <div style={{ fontSize: 32, fontWeight: 900 }}>+41 m</div>
+          <p style={{ color: "#b7b0c2", lineHeight: 1.6, margin: "6px 0 0" }}>스타트/피니시에서 T1까지의 공식 소개 고도 상승량. 이전의 임의 고도 곡선과 지형 폴리곤은 제거했어. 코너별 DEM 표고를 확보하기 전에는 측정하지 않은 높이를 만들어 표시하지 않아.</p>
         </section>
 
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12, marginTop: 14 }}>
@@ -129,7 +111,7 @@ export default function CircuitExplorerPage() {
           <div style={{ border: "1px solid #342740", borderRadius: 18, background: "#100e16", padding: 18 }}>
             <div style={{ color: "#a78bfa", fontSize: 11, letterSpacing: 2, fontWeight: 900 }}>EXPLORE CORNERS</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>{turns.map((turn, i) => <button key={turn.n} onClick={() => setSelected(i)} style={{ minWidth: 42, padding: "10px 12px", borderRadius: 10, border: selected === i ? "1px solid #c4b5fd" : "1px solid #383044", background: selected === i ? "#6d28d9" : "#17151d", color: "white", fontWeight: 850 }}>T{turn.n}</button>)}</div>
-            <p style={{ color: "#777084", fontSize: 11, lineHeight: 1.5, marginBottom: 0 }}>Track outline and terrain height are schematic visualizations, not surveyed GPS/elevation geometry. Corner notes are descriptive guidance, not live telemetry.</p>
+            <p style={{ color: "#777084", fontSize: 11, lineHeight: 1.5, marginBottom: 0 }}>Track outline: F1DB circuit SVG. Turn anchors: published lap distances mapped along the 5.513 km lap. Corner notes are descriptive guidance, not live telemetry.</p>
           </div>
         </section>
       </div>

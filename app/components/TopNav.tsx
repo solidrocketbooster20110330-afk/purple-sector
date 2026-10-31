@@ -9,7 +9,6 @@ const navItems = [
   { href: "/", label: "Home", match: (path: string) => path === "/" },
   { href: "/news", label: "News", match: (path: string) => path.startsWith("/news") },
   { href: "/schedule", label: "Schedule", match: (path: string) => path.startsWith("/schedule") },
-  { href: "/circuit", label: "Circuit", match: (path: string) => path.startsWith("/circuit") },
   { href: "/results", label: "Results", match: (path: string) => path.startsWith("/results") },
   { href: "/championship", label: "Standings", match: (path: string) => path === "/championship" || path.startsWith("/championship/constructors") },
   { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || (path.startsWith("/championship/") && !path.startsWith("/championship/constructors") && !path.startsWith("/championship/compare")) },
@@ -43,8 +42,8 @@ export default function TopNav() {
   };
 
   const labels = language === "ko"
-    ? { Home: "홈", News: "뉴스", Schedule: "일정", Circuit: "서킷", Results: "결과", Standings: "순위", Drivers: "드라이버", Constructors: "컨스트럭터", Compare: "비교" }
-    : { Home: "Home", News: "News", Schedule: "Schedule", Circuit: "Circuit", Results: "Results", Standings: "Standings", Drivers: "Drivers", Constructors: "Constructors", Compare: "Compare" };
+    ? { Home: "홈", News: "뉴스", Schedule: "일정", Results: "결과", Standings: "순위", Drivers: "드라이버", Constructors: "컨스트럭터", Compare: "비교" }
+    : { Home: "Home", News: "News", Schedule: "Schedule", Results: "Results", Standings: "Standings", Drivers: "Drivers", Constructors: "Constructors", Compare: "Compare" };
 
   return (
     <>

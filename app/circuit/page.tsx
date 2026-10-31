@@ -34,10 +34,40 @@ export default function CircuitExplorerPage() {
     const path = trackPathRef.current;
     if (!path) return;
     const total = path.getTotalLength();
-    setTurnPoints(turnDistances.map((metres) => {
-      const p = path.getPointAtLength((metres / 5513) * total);
+    const samples = 2400;
+    const points = Array.from({ length: samples + 1 }, (_, i) => path.getPointAtLength((i / samples) * total));
+    const curvature = points.map((point, i) => {
+      const before = points[Math.max(0, i - 4)];
+      const after = points[Math.min(samples, i + 4)];
+      const ax = point.x - before.x;
+      const ay = point.y - before.y;
+      const bx = after.x - point.x;
+      const by = after.y - point.y;
+      const angle = Math.atan2(ax * by - ay * bx, ax * bx + ay * by);
+      return Math.abs(angle);
+    });
+    const used: number[] = [];
+    const snapped = turnDistances.map((metres) => {
+      const expected = Math.round((metres / 5513) * samples);
+      const window = Math.round(samples * 0.06);
+      const min = Math.max(5, expected - window);
+      const max = Math.min(samples - 5, expected + window);
+      let best = expected;
+      let bestScore = -Infinity;
+      for (let i = min; i <= max; i++) {
+        if (used.some((n) => Math.abs(n - i) < samples * 0.006)) continue;
+        const distancePenalty = Math.abs(i - expected) / window;
+        const score = curvature[i] - distancePenalty * 0.035;
+        if (score > bestScore) {
+          bestScore = score;
+          best = i;
+        }
+      }
+      used.push(best);
+      const p = points[best];
       return { x: p.x, y: p.y };
-    }));
+    });
+    setTurnPoints(snapped);
   }, []);
   const [viewMode, setViewMode] = useState<"elevation" | "speed">("elevation");
   const [zoom, setZoom] = useState(1);

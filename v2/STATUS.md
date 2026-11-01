@@ -4,6 +4,7 @@
 - [x] Initial domain types
 - [x] Time formatting helpers
 - [x] Architecture and data-integrity rules
+- [x] Live timing UI shell (static preview; sample values clearly labeled)
 - [ ] Live timing UI shell
 - [ ] Provider evaluation and adapter
 - [ ] Session polling/streaming

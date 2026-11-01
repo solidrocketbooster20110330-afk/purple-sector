@@ -1,6 +1,10 @@
 const API = "https://api.openf1.org/v1";
+let lastRequestAt = 0;
 
 async function rows(path: string, token?: string) {
+  const wait = Math.max(0, 400 - (Date.now() - lastRequestAt));
+  if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+  lastRequestAt = Date.now();
   const res = await fetch(`${API}/${path}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     next: { revalidate: token ? 0 : 30 },

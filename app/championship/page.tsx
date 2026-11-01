@@ -582,7 +582,12 @@ export default function ChampionshipDriversPage() {
             const portraitIndex = teamDrivers.findIndex(
               (candidate) => candidate.Driver.driverId === driver.Driver.driverId
             );
-            const portrait = getTeamPortraits(teamName)[portraitIndex];
+            const localPortrait = getTeamPortraits(teamName)[portraitIndex];
+            const photoKey = `${driver.Driver.givenName} ${driver.Driver.familyName}`
+              .toLowerCase()
+              .replace(/[^a-z]/g, "");
+            // Prefer the driver's own OpenF1 headshot; never infer identity from team ranking order.
+            const portrait = driverPhotos[photoKey] ?? localPortrait;
 
             return (
               <Link

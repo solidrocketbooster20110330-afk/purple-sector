@@ -1,35 +1,38 @@
 const API = "https://api.openf1.org/v1";
 
-async function rows(path: string) {
-  const res = await fetch(`${API}/${path}`, { next: { revalidate: 30 } });
+async function rows(path: string, token?: string) {
+  const res = await fetch(`${API}/${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    next: { revalidate: token ? 0 : 30 },
+  });
   if (!res.ok) throw new Error(`OpenF1 request failed: ${res.status}`);
-  return res.json();
+  return res.json() as Promise<any[]>;
 }
 
 export async function GET() {
   try {
+    const token = process.env.OPENF1_ACCESS_TOKEN;
     const year = new Date().getUTCFullYear();
-    const sessions = await rows(`sessions?year=${year}`);
+    const sessions = await rows(`sessions?year=${year}`, token);
     const now = Date.now();
-    const list = (sessions as any[])
+    const active = sessions.find((s) => Date.parse(s.date_start) <= now && Date.parse(s.date_end) >= now);
+    const completed = sessions
       .filter((s) => s.date_end && Date.parse(s.date_end) < now)
       .sort((a, b) => Date.parse(a.date_end) - Date.parse(b.date_end));
-    const session = list.at(-1);
+    const session = token && active ? active : completed.at(-1);
 
     if (!session) {
-      return Response.json({ source: "OpenF1", freshness: "unavailable", session: null, drivers: [] });
+      return Response.json({ source: "OpenF1", freshness: "unavailable", session: null, drivers: [], message: "No published session data." });
     }
 
     const key = session.session_key;
-    const [drivers, results, laps, intervals, stints, weather, raceControl] = await Promise.all([
-      rows(`drivers?session_key=${key}`),
-      rows(`session_result?session_key=${key}`).catch(() => []),
-      rows(`laps?session_key=${key}`).catch(() => []),
-      rows(`intervals?session_key=${key}`).catch(() => []),
-      rows(`stints?session_key=${key}`).catch(() => []),
-      rows(`weather?session_key=${key}`).catch(() => []),
-      rows(`race_control?session_key=${key}`).catch(() => []),
-    ]) as any[][];
+    const drivers = await rows(`drivers?session_key=${key}`, token);
+    const results = await rows(`session_result?session_key=${key}`, token).catch(() => []);
+    const laps = await rows(`laps?session_key=${key}`, token).catch(() => []);
+    const intervals = await rows(`intervals?session_key=${key}`, token).catch(() => []);
+    const stints = await rows(`stints?session_key=${key}`, token).catch(() => []);
+    const weather = await rows(`weather?session_key=${key}`, token).catch(() => []);
+    const raceControl = await rows(`race_control?session_key=${key}`, token).catch(() => []);
 
     const latest = new Map<string, any>();
     const best = new Map<string, number>();
@@ -46,7 +49,11 @@ export async function GET() {
       if (!old || String(item.date) > String(old.date)) lastInterval.set(id, item);
     }
     const lastStint = new Map<string, any>();
-    for (const item of stints) lastStint.set(String(item.driver_number), item);
+    for (const item of stints) {
+      const id = String(item.driver_number);
+      const old = lastStint.get(id);
+      if (!old || Number(item.stint_number) > Number(old.stint_number)) lastStint.set(id, item);
+    }
     const resultByDriver = new Map(results.map((r) => [String(r.driver_number), r]));
 
     const timing = drivers.map((d) => {
@@ -73,10 +80,10 @@ export async function GET() {
     }).sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
 
     const weatherNow = weather.at(-1) ?? null;
-    const latestControl = raceControl.at(-1) ?? null;
+    const live = Boolean(token && active && String(active.session_key) === String(key));
     return Response.json({
       source: "OpenF1",
-      freshness: "historical",
+      freshness: live ? "live" : "historical",
       updatedAt: new Date().toISOString(),
       session: {
         meeting: session.meeting_name ?? session.circuit_short_name ?? "Formula 1",
@@ -97,9 +104,9 @@ export async function GET() {
       raceControl: raceControl.slice(-8).reverse().map((item) => ({
         date: item.date, category: item.category, flag: item.flag, message: item.message,
       })),
-      status: latestControl?.flag ?? latestControl?.message ?? "SESSION COMPLETED",
-      note: "Historical published data. OpenF1 real-time data requires authenticated live access.",
-    }, { headers: { "Cache-Control": "s-maxage=30, stale-while-revalidate=60" } });
+      status: live ? "LIVE" : "SESSION COMPLETED",
+      note: live ? "Authenticated OpenF1 live data." : "Published historical data. Real-time feed requires authenticated OpenF1 live access.",
+    }, { headers: { "Cache-Control": live ? "no-store" : "s-maxage=30, stale-while-revalidate=60" } });
   } catch (error) {
     console.error("OpenF1 timing error:", error);
     return Response.json({ source: "OpenF1", freshness: "unavailable", error: "Data temporarily unavailable.", drivers: [] }, { status: 502 });

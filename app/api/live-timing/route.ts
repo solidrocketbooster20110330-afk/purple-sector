@@ -113,6 +113,7 @@ export async function GET() {
     }, { headers: { "Cache-Control": live ? "no-store" : "s-maxage=30, stale-while-revalidate=60" } });
   } catch (error) {
     console.error("OpenF1 timing error:", error);
-    return Response.json({ source: "OpenF1", freshness: "unavailable", error: "Data temporarily unavailable.", drivers: [] }, { status: 502 });
+    const detail = error instanceof Error ? error.message : "Unknown OpenF1 error";
+    return Response.json({ source: "OpenF1", freshness: "unavailable", error: `OpenF1 connection failed: ${detail}`, drivers: [] }, { status: 502 });
   }
 }

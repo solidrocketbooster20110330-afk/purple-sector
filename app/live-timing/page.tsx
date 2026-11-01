@@ -1,44 +1,150 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "./live-timing.css";
 
-const drivers = [
-  { pos: 1, no: 1, code: "VER", name: "Max Verstappen", team: "RED BULL RACING", color: "#3671c6", gap: "LEADER", interval: "—", last: "1:32.451", best: "1:31.882", s1: "28.412", s2: "31.205", s3: "32.834", tire: "S", laps: 24 },
-  { pos: 2, no: 4, code: "NOR", name: "Lando Norris", team: "McLAREN", color: "#ff8000", gap: "+1.245", interval: "+1.245", last: "1:32.682", best: "1:32.104", s1: "28.501", s2: "31.298", s3: "32.883", tire: "M", laps: 24 },
-  { pos: 3, no: 81, code: "PIA", name: "Oscar Piastri", team: "McLAREN", color: "#ff8000", gap: "+2.103", interval: "+0.858", last: "1:32.710", best: "1:32.220", s1: "28.530", s2: "31.310", s3: "32.870", tire: "M", laps: 24 },
-  { pos: 4, no: 16, code: "LEC", name: "Charles Leclerc", team: "FERRARI", color: "#e8002d", gap: "+3.882", interval: "+1.779", last: "1:33.018", best: "1:32.501", s1: "28.601", s2: "31.440", s3: "32.977", tire: "S", laps: 23 },
-  { pos: 5, no: 44, code: "HAM", name: "Lewis Hamilton", team: "FERRARI", color: "#e8002d", gap: "+5.106", interval: "+1.224", last: "1:33.201", best: "1:32.740", s1: "28.722", s2: "31.502", s3: "32.977", tire: "S", laps: 23 },
-  { pos: 6, no: 63, code: "RUS", name: "George Russell", team: "MERCEDES", color: "#27f4d2", gap: "+6.441", interval: "+1.335", last: "1:33.410", best: "1:32.998", s1: "28.801", s2: "31.601", s3: "33.008", tire: "H", laps: 23 },
-  { pos: 7, no: 12, code: "ANT", name: "Kimi Antonelli", team: "MERCEDES", color: "#27f4d2", gap: "+7.209", interval: "+0.768", last: "1:33.552", best: "1:33.110", s1: "28.820", s2: "31.690", s3: "33.042", tire: "H", laps: 23 },
-  { pos: 8, no: 14, code: "ALO", name: "Fernando Alonso", team: "ASTON MARTIN", color: "#229971", gap: "+9.650", interval: "+2.441", last: "1:33.910", best: "1:33.420", s1: "28.990", s2: "31.801", s3: "33.119", tire: "M", laps: 22 },
-  { pos: 9, no: 10, code: "GAS", name: "Pierre Gasly", team: "ALPINE", color: "#ff87bc", gap: "+11.004", interval: "+1.354", last: "1:34.101", best: "1:33.901", s1: "29.001", s2: "31.920", s3: "33.180", tire: "H", laps: 22 },
-  { pos: 10, no: 23, code: "ALB", name: "Alex Albon", team: "WILLIAMS", color: "#64c4ff", gap: "+12.338", interval: "+1.334", last: "1:34.300", best: "1:34.010", s1: "29.110", s2: "31.990", s3: "33.200", tire: "M", laps: 22 },
-];
+type Driver = {
+  number: number; code: string; name: string; team: string; teamColour: string;
+  position: number | null; gap: number | string | null; interval: number | string | null;
+  lastLap: number | null; bestLap: number | null; sectors: (number | null)[];
+  tyre: string | null; laps: number | null;
+};
+type TimingData = {
+  source: string; freshness: string; updatedAt?: string;
+  session: { meeting: string; name: string; circuit: string; location: string; country: string; start: string; end: string } | null;
+  drivers: Driver[]; weather?: { air: number | null; track: number | null; wind: number | null; rain: boolean | null } | null;
+  raceControl?: { date: string; category: string; flag?: string; message?: string }[];
+  status?: string; note?: string; error?: string;
+};
+
+function lapTime(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  const m = Math.floor(value / 60);
+  return m ? `${m}:${(value - m * 60).toFixed(3).padStart(6, "0")}` : value.toFixed(3);
+}
+function gap(value: number | string | null | undefined, position: number | null) {
+  if (position === 1) return "LEADER";
+  if (value == null) return "—";
+  return typeof value === "number" ? `+${value.toFixed(3)}` : String(value);
+}
+function shortDate(value?: string) {
+  if (!value) return "—";
+  return new Date(value).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
 
 export default function LiveTimingPage() {
+  const [data, setData] = useState<TimingData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    try {
+      const response = await fetch("/api/live-timing", { cache: "no-store" });
+      const json = await response.json();
+      if (!response.ok) throw new Error(json.error ?? "Could not load timing data");
+      setData(json);
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Data unavailable");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    const timer = window.setInterval(() => void load(), 60000);
+    return () => window.clearInterval(timer);
+  }, [load]);
+
+  const tyres = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const driver of data?.drivers ?? []) {
+      if (driver.tyre) counts.set(driver.tyre.toUpperCase(), (counts.get(driver.tyre.toUpperCase()) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  }, [data]);
+
+  const session = data?.session;
+  const weather = data?.weather;
+
   return (
     <main className="ps-live">
       <section className="ps-session">
-        <div className="ps-session-title"><div><span className="eyebrow">2026 FIA FORMULA ONE WORLD CHAMPIONSHIP</span><h1>UNITED STATES <em>GRAND PRIX</em></h1><p>CIRCUIT OF THE AMERICAS <span>·</span> AUSTIN, TEXAS</p></div><div className="ps-session-clock"><span>SESSION TIME</span><strong>18:42</strong><small>DEMO DATA · NOT LIVE</small></div></div>
-        <div className="ps-session-meta"><span className="green-dot"/> SESSION IN PROGRESS <b>RACE</b><span className="meta-sep"/> LAP <strong>24</strong><span className="meta-sep"/> OF <strong>56</strong><span className="meta-spacer"/><span className="weather">☀ <b>27°C</b> AIR</span><span className="weather">◉ <b>34°C</b> TRACK</span><span className="weather">↗ <b>8 km/h</b> WIND</span></div>
+        <div className="ps-session-title">
+          <div>
+            <span className="eyebrow">FIA FORMULA ONE WORLD CHAMPIONSHIP · OPENF1</span>
+            <h1>{session?.meeting?.toUpperCase() ?? "LIVE TIMING"} <em>{session ? "SESSION" : ""}</em></h1>
+            <p>{session ? `${session.circuit} · ${session.location} ${session.country}` : "WAITING FOR SESSION DATA"}</p>
+          </div>
+          <div className="ps-session-clock">
+            <span>SESSION</span><strong>{session?.name ?? (loading ? "LOADING" : "—")}</strong>
+            <small>{data?.freshness === "live" ? "LIVE FEED" : "PUBLISHED DATA"}</small>
+          </div>
+        </div>
+        <div className="ps-session-meta">
+          <span className={data?.freshness === "live" ? "green-dot" : "pulse-dot"} />
+          {data?.freshness === "live" ? "LIVE SESSION" : data?.freshness === "historical" ? "LATEST PUBLISHED SESSION" : loading ? "LOADING DATA" : "DATA UNAVAILABLE"}
+          <b>{session?.name?.toUpperCase() ?? "—"}</b>
+          <span className="meta-sep" /> {session ? shortDate(session.start) : "—"}
+          <span className="meta-spacer" />
+          <span className="weather">AIR <b>{weather?.air == null ? "—" : `${weather.air}°C`}</b></span>
+          <span className="weather">TRACK <b>{weather?.track == null ? "—" : `${weather.track}°C`}</b></span>
+          <span className="weather">WIND <b>{weather?.wind == null ? "—" : `${weather.wind} m/s`}</b></span>
+        </div>
       </section>
 
       <div className="ps-layout">
         <section className="ps-main-column">
-          <div className="ps-section-heading"><div><span className="eyebrow">LIVE SESSION DATA</span><h2>Timing Tower</h2></div><div className="ps-updated"><span className="pulse-dot"/> DEMO SNAPSHOT <small>14:32:18 UTC</small></div></div>
-          <div className="ps-table-wrap"><table className="ps-timing-table"><thead><tr><th>POS</th><th>DRIVER</th><th>GAP</th><th>INT</th><th>LAST LAP</th><th>BEST</th><th>S1</th><th>S2</th><th>S3</th><th>TYRE</th><th>LAPS</th></tr></thead><tbody>{drivers.map((d) => <tr key={d.code} className={d.pos === 1 ? "leader" : ""}><td className="pos">{String(d.pos).padStart(2,"0")}</td><td><div className="driver-cell"><i style={{background:d.color}}/><span className="driver-number">{d.no}</span><span className="driver-name"><b>{d.code}</b><small>{d.name}</small></span></div></td><td className="gap">{d.gap}</td><td>{d.interval}</td><td className="lap-time">{d.last}</td><td>{d.best}</td><td className={d.pos===1?"purple-sector":""}>{d.s1}</td><td>{d.s2}</td><td>{d.s3}</td><td><span className={"tyre "+d.tire.toLowerCase()}>{d.tire}</span></td><td>{d.laps}</td></tr>)}</tbody></table></div>
-          <div className="ps-table-foot"><span>SHOWING 10 OF 22 DRIVERS</span><span>ALL TIMES ARE ILLUSTRATIVE PLACEHOLDERS</span></div>
+          <div className="ps-section-heading">
+            <div><span className="eyebrow">SESSION CLASSIFICATION</span><h2>Timing Tower</h2></div>
+            <div className="ps-updated"><span className="pulse-dot" /> {data?.freshness === "live" ? "LIVE DATA" : "OFFICIAL PUBLISHED DATA"}<small>{data?.updatedAt ? shortDate(data.updatedAt) : "—"}</small></div>
+          </div>
+          {error && <div className="ps-panel"><b>데이터 연결 오류</b><p className="ps-disclaimer">{error}</p><button onClick={() => { setLoading(true); void load(); }}>다시 불러오기</button></div>}
+          <div className="ps-table-wrap">
+            <table className="ps-timing-table">
+              <thead><tr><th>POS</th><th>DRIVER</th><th>GAP</th><th>INT</th><th>LAST LAP</th><th>BEST</th><th>S1</th><th>S2</th><th>S3</th><th>TYRE</th><th>LAPS</th></tr></thead>
+              <tbody>
+                {(data?.drivers ?? []).map((d) => (
+                  <tr key={d.number} className={d.position === 1 ? "leader" : ""}>
+                    <td className="pos">{d.position == null ? "—" : String(d.position).padStart(2, "0")}</td>
+                    <td><div className="driver-cell"><i style={{ background: d.teamColour }} /><span className="driver-number">{d.number}</span><span className="driver-name"><b>{d.code}</b><small>{d.name} · {d.team}</small></span></div></td>
+                    <td className="gap">{gap(d.gap, d.position)}</td><td>{d.interval == null ? "—" : typeof d.interval === "number" ? `+${d.interval.toFixed(3)}` : d.interval}</td>
+                    <td className="lap-time">{lapTime(d.lastLap)}</td><td>{lapTime(d.bestLap)}</td>
+                    {d.sectors.map((sector, i) => <td key={i}>{lapTime(sector)}</td>)}
+                    <td>{d.tyre ? <span className={"tyre " + (d.tyre.toLowerCase().includes("soft") ? "s" : d.tyre.toLowerCase().includes("medium") ? "m" : "h")}>{d.tyre[0]}</span> : "—"}</td>
+                    <td>{d.laps ?? "—"}</td>
+                  </tr>
+                ))}
+                {!data?.drivers?.length && <tr><td colSpan={11} style={{ textAlign: "center", padding: 28 }}>{loading ? "OpenF1 데이터를 불러오는 중…" : "표시할 세션 데이터가 없습니다."}</td></tr>}
+              </tbody>
+            </table>
+          </div>
+          <div className="ps-table-foot"><span>{data?.drivers?.length ?? 0} DRIVERS · OPENF1</span><span>— MEANS NO SOURCE VALUE</span></div>
 
-          <section className="ps-panel" id="telemetry"><div className="ps-panel-heading"><div><span className="eyebrow">CAR PERFORMANCE</span><h2>Telemetry Overview</h2></div><span className="panel-tag">VER · CAR 01</span></div><div className="ps-telemetry-grid"><div className="telemetry-stat"><span>SPEED</span><strong>312<small>km/h</small></strong><div className="meter"><i style={{width:"88%"}}/></div></div><div className="telemetry-stat"><span>THROTTLE</span><strong>100<small>%</small></strong><div className="meter green"><i style={{width:"100%"}}/></div></div><div className="telemetry-stat"><span>BRAKE</span><strong>0<small>%</small></strong><div className="meter red"><i style={{width:"0%"}}/></div></div><div className="telemetry-stat"><span>GEAR</span><strong>8<small>th</small></strong><div className="gear-row">{[1,2,3,4,5,6,7,8].map(n=><i key={n} className={n<=8?"lit":""}/>)}</div></div><div className="telemetry-stat"><span>ENGINE RPM</span><strong>12,450<small>rpm</small></strong><div className="meter purple"><i style={{width:"91%"}}/></div></div><div className="telemetry-stat"><span>DRS</span><strong className="drs-on">OPEN</strong><div className="telemetry-note">ZONE 2 · AVAILABLE</div></div></div><p className="ps-disclaimer">Telemetry values are visual placeholders for the UI preview. Live values will appear only when supported by the connected data source.</p></section>
+          <section className="ps-panel" id="telemetry">
+            <div className="ps-panel-heading"><div><span className="eyebrow">CAR PERFORMANCE</span><h2>Telemetry Overview</h2></div><span className="panel-tag">SOURCE DATA ONLY</span></div>
+            <p className="ps-disclaimer">현재 선택된 세션에서 확인 가능한 차량 텔레메트리가 없으면 임의의 숫자를 표시하지 않아. 실시간 차량 텔레메트리는 인증된 라이브 데이터 연결 후 활성화할 수 있어.</p>
+            <div className="ps-telemetry-grid">
+              {["SPEED", "THROTTLE", "BRAKE", "GEAR", "ENGINE RPM", "DRS"].map((label) => <div className="telemetry-stat" key={label}><span>{label}</span><strong>—</strong><div className="telemetry-note">NO SOURCE VALUE</div></div>)}
+            </div>
+          </section>
         </section>
 
         <aside className="ps-side-column">
-          <section className="ps-panel track-panel" id="track"><div className="ps-panel-heading"><div><span className="eyebrow">CIRCUIT POSITION</span><h2>Track Map</h2></div><span className="panel-tag">COTA</span></div><div className="track-placeholder"><svg viewBox="0 0 360 260" role="img" aria-label="Circuit map placeholder"><path d="M76 206 L45 157 L58 78 L112 45 L165 57 L195 30 L253 42 L285 81 L267 116 L310 151 L290 204 L225 220 L185 190 L142 224 Z" fill="none" stroke="#282333" strokeWidth="13" strokeLinejoin="round" strokeLinecap="round"/><path d="M76 206 L45 157 L58 78 L112 45 L165 57 L195 30 L253 42 L285 81 L267 116 L310 151 L290 204 L225 220 L185 190 L142 224 Z" fill="none" stroke="#a78bfa" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/><circle cx="76" cy="206" r="5" fill="#fff"/><circle cx="285" cy="81" r="5" fill="#ff8000"/><circle cx="185" cy="190" r="5" fill="#3671c6"/><text x="27" y="232" fill="#8f899e" fontSize="10">START / FINISH</text><text x="197" y="18" fill="#8f899e" fontSize="10">T1</text></svg><span className="map-watermark">TRACK MAP PREVIEW</span></div><div className="track-legend"><span><i className="legend-purple"/> CIRCUIT</span><span><i className="legend-white"/> START / FINISH</span><span><i className="legend-orange"/> DRIVER</span></div></section>
+          <section className="ps-panel track-panel" id="track"><div className="ps-panel-heading"><div><span className="eyebrow">CIRCUIT</span><h2>Track Map</h2></div><span className="panel-tag">{session?.circuit ?? "—"}</span></div><div className="track-placeholder"><span className="map-watermark">TRACK GEOMETRY NOT PROVIDED BY THIS FEED</span></div><p className="ps-disclaimer">서킷 좌표 데이터가 연결되면 실제 차량 위치를 표시할 예정이야.</p></section>
 
-          <section className="ps-panel" id="strategy"><div className="ps-panel-heading"><div><span className="eyebrow">RACE CONTROL</span><h2>Track Status</h2></div><span className="status-green">GREEN</span></div><div className="status-row"><span>FLAG STATUS</span><b><i className="green-dot"/> GREEN FLAG</b></div><div className="status-row"><span>SAFETY CAR</span><b className="muted-value">NOT DEPLOYED</b></div><div className="status-row"><span>VIRTUAL SAFETY CAR</span><b className="muted-value">INACTIVE</b></div><div className="status-row"><span>DRS</span><b className="status-enabled">ENABLED</b></div></section>
+          <section className="ps-panel" id="strategy"><div className="ps-panel-heading"><div><span className="eyebrow">RACE CONTROL</span><h2>Latest Messages</h2></div></div>
+            {(data?.raceControl ?? []).slice(0, 5).map((item, i) => <div className="status-row" key={i}><span>{item.category ?? "EVENT"}</span><b>{item.flag ?? item.message ?? "—"}</b></div>)}
+            {!data?.raceControl?.length && <p className="ps-disclaimer">이 세션의 레이스 컨트롤 메시지가 없어.</p>}
+          </section>
 
-          <section className="ps-panel"><div className="ps-panel-heading"><div><span className="eyebrow">PIT STRATEGY</span><h2>Tyre Distribution</h2></div></div><div className="tyre-bars"><div><span className="tyre s">S</span><div className="bar"><i className="soft-bar" style={{width:"35%"}}/></div><b>4</b></div><div><span className="tyre m">M</span><div className="bar"><i className="medium-bar" style={{width:"45%"}}/></div><b>10</b></div><div><span className="tyre h">H</span><div className="bar"><i className="hard-bar" style={{width:"20%"}}/></div><b>8</b></div></div><p className="ps-disclaimer">Illustrative tyre allocation · not a live strategy feed</p></section>
+          <section className="ps-panel"><div className="ps-panel-heading"><div><span className="eyebrow">PIT STRATEGY</span><h2>Tyre Distribution</h2></div></div>
+            {tyres.length ? <div className="tyre-bars">{tyres.map(([compound, count]) => <div key={compound}><span className={"tyre " + (compound.includes("SOFT") ? "s" : compound.includes("MEDIUM") ? "m" : "h")}>{compound[0]}</span><div className="bar"><i style={{ width: `${count / Math.max(data?.drivers.length ?? 1, 1) * 100}%` }} /></div><b>{count}</b></div>)}</div> : <p className="ps-disclaimer">타이어 스틴트 데이터가 제공되지 않아.</p>}
+          </section>
         </aside>
       </div>
-      <footer className="ps-footer"><span>PURPLE<span>SECTOR</span></span><span>LIVE TIMING UI PREVIEW · DATA SOURCE INTEGRATION PENDING</span></footer>
+      <footer className="ps-footer"><span>PURPLE<span>SECTOR</span></span><span>DATA: OPENF1 · {data?.freshness === "live" ? "LIVE" : "HISTORICAL / PUBLISHED"}</span></footer>
     </main>
   );
 }

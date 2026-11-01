@@ -23,7 +23,7 @@ export async function GET() {
     const completed = sessions
       .filter((s) => s.date_end && Date.parse(s.date_end) < now)
       .sort((a, b) => Date.parse(a.date_end) - Date.parse(b.date_end));
-    const session = token && active ? active : completed.at(-1);
+    const session = token && active ? active : completed[completed.length - 1];
 
     if (!session) {
       return Response.json({ source: "OpenF1", freshness: "unavailable", session: null, drivers: [], message: "No published session data." });
@@ -83,7 +83,7 @@ export async function GET() {
       };
     }).sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
 
-    const weatherNow = weather.at(-1) ?? null;
+    const weatherNow = weather[weather.length - 1] ?? null;
     const live = Boolean(token && active && String(active.session_key) === String(key));
     return Response.json({
       source: "OpenF1",

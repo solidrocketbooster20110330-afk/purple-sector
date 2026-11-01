@@ -14,6 +14,7 @@ const navItems = [
   { href: "/drivers", label: "Drivers", match: (path: string) => path.startsWith("/drivers") || (path.startsWith("/championship/") && !path.startsWith("/championship/constructors") && !path.startsWith("/championship/compare")) },
   { href: "/teams", label: "Constructors", match: (path: string) => path.startsWith("/teams") },
   { href: "/championship/compare", label: "Compare", match: (path: string) => path.startsWith("/championship/compare") },
+  { href: "/live-timing", label: "Live Timing", match: (path: string) => path.startsWith("/live-timing") },
 ];
 
 export default function TopNav() {
@@ -42,8 +43,8 @@ export default function TopNav() {
   };
 
   const labels = language === "ko"
-    ? { Home: "홈", News: "뉴스", Schedule: "일정", Results: "결과", Standings: "순위", Drivers: "드라이버", Constructors: "컨스트럭터", Compare: "비교" }
-    : { Home: "Home", News: "News", Schedule: "Schedule", Results: "Results", Standings: "Standings", Drivers: "Drivers", Constructors: "Constructors", Compare: "Compare" };
+    ? { Home: "홈", News: "뉴스", Schedule: "일정", Results: "결과", Standings: "순위", Drivers: "드라이버", Constructors: "컨스트럭터", Compare: "비교", "Live Timing": "라이브 타이밍" }
+    : { Home: "Home", News: "News", Schedule: "Schedule", Results: "Results", Standings: "Standings", Drivers: "Drivers", Constructors: "Constructors", Compare: "Compare", "Live Timing": "Live Timing" };
 
   return (
     <>

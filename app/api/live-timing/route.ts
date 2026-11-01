@@ -1,14 +1,21 @@
 const API = "https://api.openf1.org/v1";
 let lastRequestAt = 0;
 
-async function rows(path: string, token?: string) {
+async function rows(path: string, token?: string, onAuthRejected?: () => void) {
   const wait = Math.max(0, 400 - (Date.now() - lastRequestAt));
   if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
   lastRequestAt = Date.now();
-  const res = await fetch(`${API}/${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    next: { revalidate: token ? 0 : 30 },
+
+  const request = (accessToken?: string) => fetch(`${API}/${path}`, {
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    next: { revalidate: accessToken ? 0 : 30 },
   });
+
+  let res = await request(token);
+  if (res.status === 401 && token) {
+    onAuthRejected?.();
+    res = await request();
+  }
   if (!res.ok) throw new Error(`OpenF1 request failed: ${res.status}`);
   return res.json() as Promise<any[]>;
 }
@@ -16,27 +23,29 @@ async function rows(path: string, token?: string) {
 export async function GET() {
   try {
     const token = process.env.OPENF1_ACCESS_TOKEN;
+    let authRejected = false;
+    const onAuthRejected = () => { authRejected = true; };
     const year = new Date().getUTCFullYear();
-    const sessions = await rows(`sessions?year=${year}`, token);
+    const sessions = await rows(`sessions?year=${year}`, token, onAuthRejected);
     const now = Date.now();
     const active = sessions.find((s) => Date.parse(s.date_start) <= now && Date.parse(s.date_end) >= now);
     const completed = sessions
       .filter((s) => s.date_end && Date.parse(s.date_end) < now)
       .sort((a, b) => Date.parse(a.date_end) - Date.parse(b.date_end));
-    const session = token && active ? active : completed[completed.length - 1];
+    const session = token && !authRejected && active ? active : completed[completed.length - 1];
 
     if (!session) {
       return Response.json({ source: "OpenF1", freshness: "unavailable", session: null, drivers: [], message: "No published session data." });
     }
 
     const key = session.session_key;
-    const drivers = await rows(`drivers?session_key=${key}`, token);
-    const results = await rows(`session_result?session_key=${key}`, token).catch(() => []);
-    const laps = await rows(`laps?session_key=${key}`, token).catch(() => []);
-    const intervals = await rows(`intervals?session_key=${key}`, token).catch(() => []);
-    const stints = await rows(`stints?session_key=${key}`, token).catch(() => []);
-    const weather = await rows(`weather?session_key=${key}`, token).catch(() => []);
-    const raceControl = await rows(`race_control?session_key=${key}`, token).catch(() => []);
+    const drivers = await rows(`drivers?session_key=${key}`, authRejected ? undefined : token, onAuthRejected);
+    const results = await rows(`session_result?session_key=${key}`, authRejected ? undefined : token, onAuthRejected).catch(() => []);
+    const laps = await rows(`laps?session_key=${key}`, authRejected ? undefined : token, onAuthRejected).catch(() => []);
+    const intervals = await rows(`intervals?session_key=${key}`, authRejected ? undefined : token, onAuthRejected).catch(() => []);
+    const stints = await rows(`stints?session_key=${key}`, authRejected ? undefined : token, onAuthRejected).catch(() => []);
+    const weather = await rows(`weather?session_key=${key}`, authRejected ? undefined : token, onAuthRejected).catch(() => []);
+    const raceControl = await rows(`race_control?session_key=${key}`, authRejected ? undefined : token, onAuthRejected).catch(() => []);
 
     const latest = new Map<string, any>();
     const best = new Map<string, number>();
@@ -84,7 +93,7 @@ export async function GET() {
     }).sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
 
     const weatherNow = weather[weather.length - 1] ?? null;
-    const live = Boolean(token && active && String(active.session_key) === String(key));
+    const live = Boolean(token && !authRejected && active && String(active.session_key) === String(key));
     return Response.json({
       source: "OpenF1",
       freshness: live ? "live" : "historical",

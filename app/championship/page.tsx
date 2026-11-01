@@ -77,8 +77,16 @@ const dashedDriverNames = new Set([
 ]);
 function driverDashArray(id: string, name: string): string | undefined {
   const normalizedName = name.toLowerCase().replace(/\s+/g, " ").trim();
-  // Yuki's dotted stroke is the reference style for the graph.
-  if (normalizedName.includes("yuki tsunoda") || id === "tsunoda" || id === "yuki_tsunoda") return "1 5";
+  const normalizedId = id.toLowerCase().replace(/[^a-z]/g, "");
+  // Yuki Tsunoda and Ryo Hikawa use the same dotted stroke style.
+  if (
+    normalizedName.includes("yuki tsunoda") ||
+    normalizedId === "tsunoda" ||
+    normalizedId === "yukitsunoda" ||
+    normalizedName.includes("ryo hikawa") ||
+    normalizedId === "hikawa" ||
+    normalizedId === "ryohikawa"
+  ) return "1 5";
   return dashedDriverIds.has(id) || dashedDriverNames.has(normalizedName) ? "8 6" : undefined;
 }
 

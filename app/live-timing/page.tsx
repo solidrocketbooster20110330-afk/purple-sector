@@ -62,7 +62,7 @@ export default function LiveTimingPage() {
     for (const driver of data?.drivers ?? []) {
       if (driver.tyre) counts.set(driver.tyre.toUpperCase(), (counts.get(driver.tyre.toUpperCase()) ?? 0) + 1);
     }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [data]);
 
   const session = data?.session;

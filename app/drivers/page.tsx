@@ -1,9 +1,10 @@
 "use client";
 
 import { displayDriverName } from "../../lib/f1Display";
-import { getTeamPortraits } from "../../lib/f1Assets";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+type DriverPhoto = { fullName: string; firstName: string; lastName: string; acronym: string; teamName: string; headshotUrl: string };
 
 type Driver = {
   position: string;
@@ -22,19 +23,23 @@ const flag: Record<string, string> = { Italian: "🇮🇹", British: "🇬🇧",
 
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [driverPhotos, setDriverPhotos] = useState<DriverPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/standings", { cache: "no-store" })
-      .then((response) => {
+    Promise.all([
+      fetch("/api/standings", { cache: "no-store" }).then((response) => {
         if (!response.ok) throw new Error("Failed to load standings");
         return response.json();
-      })
-      .then((data) => {
+      }),
+      fetch("/api/driver-photos", { cache: "no-store" }).then((response) => response.ok ? response.json() : []),
+    ])
+      .then(([standings, photos]) => {
         if (cancelled) return;
-        setDrivers(Array.isArray(data) ? data : []);
+        setDrivers(Array.isArray(standings) ? standings : []);
+        setDriverPhotos(Array.isArray(photos) ? photos : []);
       })
       .catch(() => { if (!cancelled) setError(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -54,9 +59,10 @@ export default function DriversPage() {
             const color = colors[name] ?? "#7c3aed";
             const fullName = displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId);
             const acronym = driver.Driver.code ?? driver.Driver.givenName.slice(0, 3).toUpperCase();
-            const teammates = drivers.filter((candidate) => (candidate.Constructors?.[0]?.name ?? "Unknown Team") === name);
-            const teamIndex = teammates.findIndex((candidate) => candidate.Driver.driverId === driver.Driver.driverId);
-            const portrait = getTeamPortraits(name)[teamIndex];
+            const portrait = driverPhotos.find((photo) =>
+              photo.lastName.toLowerCase() === driver.Driver.familyName.toLowerCase() &&
+              photo.firstName.toLowerCase() === driver.Driver.givenName.toLowerCase()
+            )?.headshotUrl;
             return <Link key={driver.Driver.driverId} href={`/championship/${driver.Driver.driverId}`} style={{ minWidth: 0, overflow: "hidden", background: "linear-gradient(160deg,#111 20%,#080808 65%,#101010)", border: "1px solid #25212b", borderBottom: `3px solid ${color}`, borderRadius: "12px", color: "white", textDecoration: "none" }}>
               <div style={{ position: "relative", height: "190px", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "8px", boxSizing: "border-box", background: `radial-gradient(ellipse at 50% 85%, ${color}35, transparent 65%)` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "5px", alignItems: "start", zIndex: 1 }}><strong style={{ fontSize: "26px", lineHeight: 1 }}>{driver.position}</strong><span style={{ fontSize: "11px", fontWeight: 700, color: "#ded8e6", textAlign: "right" }}>{driver.points} pts</span></div>

@@ -60,6 +60,8 @@ export default function DriversPage() {
             const fullName = displayDriverName(driver.Driver.givenName, driver.Driver.familyName, driver.Driver.driverId);
             const acronym = driver.Driver.code ?? driver.Driver.givenName.slice(0, 3).toUpperCase();
             const portrait = driverPhotos.find((photo) =>
+              Boolean(driver.Driver.code) && photo.acronym === driver.Driver.code
+            )?.headshotUrl ?? driverPhotos.find((photo) =>
               photo.lastName.toLowerCase() === driver.Driver.familyName.toLowerCase() &&
               photo.firstName.toLowerCase() === driver.Driver.givenName.toLowerCase()
             )?.headshotUrl;

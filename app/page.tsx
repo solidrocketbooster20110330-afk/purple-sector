@@ -2,7 +2,7 @@ import { displayDriverName } from "../lib/f1Display";
 import HomeRaceCard from "./components/HomeRaceCard";
 import HomeFavorites from "./components/HomeFavorites";
 
-type DriverStanding = { position: string; points: string; Driver: { driverId: string; givenName: string; familyName: string } };
+type DriverStanding = { position: string; points: string; Driver: { driverId: string; givenName: string; familyName: string }; Constructors?: { name: string }[] };
 type ConstructorStanding = { position: string; points: string; Constructor: { constructorId: string; name: string } };
 type Session = { date?: string; time?: string };
 type Race = {
@@ -43,7 +43,7 @@ async function getHomeData() {
   };
 }
 const cardStyle = {
-  background: "linear-gradient(145deg,#073b37 0%,#172b2a 52%,#1b1b1d 100%)",
+  background: "linear-gradient(145deg,#171126 0%,#211638 48%,#17151d 100%)",
   border: "1px solid #253c39", borderRadius: "22px", padding: "18px 16px",
   marginBottom: "16px", boxShadow: "0 14px 30px #0007",
 };
@@ -54,7 +54,7 @@ export default async function HomePage() {
   const driverLeaderPoints = Number(drivers[0]?.points ?? 0);
   const constructorLeaderPoints = Number(constructors[0]?.points ?? 0);
   return (
-    <main style={{ minHeight: "100vh", background: "#050505", color: "white", padding: "20px 14px 90px", fontFamily: "Arial, sans-serif" }}>
+    <main style={{ minHeight: "100vh", background: "linear-gradient(155deg,#090710 0%,#160d25 35%,#24143b 72%,#0a0810 100%)", color: "white", padding: "20px 14px 90px", fontFamily: "Arial, sans-serif" }}>
       <HomeFavorites />
       <HomeRaceCard race={race} />
       <section style={{ marginBottom: "16px" }}>
@@ -69,9 +69,11 @@ export default async function HomePage() {
               const points = Number(driver.points);
               const gap = Math.round(points - driverLeaderPoints);
               const fill = driverLeaderPoints > 0 ? Math.max(0, Math.min(100, points / driverLeaderPoints * 100)) : 0;
+              const driverTeam = driver.Constructors?.[0]?.name ?? "";
+              const driverColor = teamColors[driverTeam] ?? "#7c3aed";
               return (
                 <a key={driver.Driver.driverId} href={`/championship/${driver.Driver.driverId}`} style={{ position: "relative", display: "flex", alignItems: "center", gap: "10px", minHeight: "48px", padding: "0 12px", borderRadius: "12px", overflow: "hidden", color: "white", textDecoration: "none", background: "#ffffff0d" }}>
-                  <span style={{ position: "absolute", inset: "0 auto 0 0", width: `${fill}%`, background: "linear-gradient(90deg,#0d8178aa,#20a99b88)", borderRadius: "12px" }} />
+                  <span style={{ position: "absolute", inset: "0 auto 0 0", width: `${fill}%`, background: `linear-gradient(90deg,${driverColor}dd,${driverColor}77)`, borderRadius: "12px" }} />
                   <strong style={{ position: "relative", zIndex: 1, width: "18px", fontSize: "16px" }}>{index + 1}</strong>
                   <span style={{ position: "relative", zIndex: 1, flex: 1, minWidth: 0, fontSize: "14px", fontWeight: 750, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{displayDriverName(driver.Driver.givenName, driver.Driver.familyName)}</span>
                   {index > 0 && <span style={{ position: "relative", zIndex: 1, color: "#c6c0c8", fontSize: "12px" }}>{gap}</span>}
@@ -100,16 +102,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      <section style={{ borderRadius: "22px", padding: "18px 16px", background: "#171719", border: "1px solid #29272b" }}>
-        <a href="/settings/notifications" style={{ display: "block", padding: "8px 4px 16px", color: "white", textDecoration: "none", borderBottom: "1px solid #343237" }}>
-          <div style={{ fontSize: "16px" }}>♧　알림 설정　›</div>
-          <div style={{ color: muted, fontSize: "12px", margin: "5px 0 0 30px" }}>세션 시작 전에 알림</div>
-        </a>
-        <a href="/widget" style={{ display: "block", padding: "16px 4px 8px", color: "white", textDecoration: "none" }}>
-          <div style={{ fontSize: "16px" }}>▦　위젯 추가　›</div>
-          <div style={{ color: muted, fontSize: "12px", margin: "5px 0 0 30px" }}>홈 화면에서 바로 확인</div>
-        </a>
-      </section>
+      
     </main>
   );
 }

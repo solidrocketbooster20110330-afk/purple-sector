@@ -1,187 +1,115 @@
 import { displayDriverName } from "../lib/f1Display";
-import NextSessionCountdown from "./components/NextSessionCountdown";
+import HomeRaceCard from "./components/HomeRaceCard";
 import HomeFavorites from "./components/HomeFavorites";
 
-type DriverStanding = {
-  position: string;
-  points: string;
-  Driver: { givenName: string; familyName: string };
-};
-
-type ConstructorStanding = {
-  position: string;
-  points: string;
-  Constructor: { name: string };
-};
-
+type DriverStanding = { position: string; points: string; Driver: { driverId: string; givenName: string; familyName: string } };
+type ConstructorStanding = { position: string; points: string; Constructor: { constructorId: string; name: string } };
 type Session = { date?: string; time?: string };
-
 type Race = {
-  raceName: string;
-  date: string;
-  time?: string;
-  FirstPractice?: Session;
-  SecondPractice?: Session;
-  ThirdPractice?: Session;
-  SprintQualifying?: Session;
-  Sprint?: Session;
-  Qualifying?: Session;
+  raceName: string; date: string; time?: string;
+  Circuit?: { circuitName?: string; Location?: { locality?: string; country?: string } };
+  FirstPractice?: Session; SecondPractice?: Session; ThirdPractice?: Session;
+  SprintQualifying?: Session; Sprint?: Session; Qualifying?: Session;
 };
 
 const API = {
   drivers: "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
   constructors: "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
   calendar: "https://api.jolpi.ca/ergast/f1/current.json",
-  lastResult: "https://api.jolpi.ca/ergast/f1/current/last/results.json",
 };
-
-const pageStyle = {
-  minHeight: "100vh",
-  background: "linear-gradient(180deg, #050505 0%, #08070d 28%, #120c1d 58%, #1b1230 100%)",
-  color: "white",
-  padding: "14px",
-  paddingBottom: "80px",
-  fontFamily: "Arial, sans-serif",
+const teamColors: Record<string, string> = {
+  Mercedes: "#00a19c", Ferrari: "#e80020", "Red Bull": "#3671c6", "Red Bull Racing": "#3671c6",
+  McLaren: "#ff8000", "Aston Martin": "#00665e", Alpine: "#ff87bc", "Alpine F1 Team": "#ff87bc",
+  Williams: "#64c4ff", "Racing Bulls": "#6692ff", "Visa Cash App RB": "#6692ff",
+  Haas: "#e6002b", "Haas F1 Team": "#e6002b",
 };
-
-const cardStyle = {
-  background: "#101010",
-  border: "1px solid #3a1217",
-  borderRadius: "16px",
-  padding: "12px",
-};
-
-const accent = "#7c3aed";
-const red = "#ef233c";
-const muted = "#b9b0b2";
-
 async function fetchJsonOrNull(url: string) {
-  try {
-    const response = await fetch(url, { next: { revalidate: 900 } });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
+  try { const response = await fetch(url, { next: { revalidate: 900 } }); return response.ok ? await response.json() : null; }
+  catch { return null; }
 }
-
+function getSessionTime(session?: Session) {
+  if (!session?.date) return Number.NaN;
+  return new Date(session.time ? `${session.date}T${session.time}` : `${session.date}T00:00:00Z`).getTime();
+}
 async function getHomeData() {
-  const [driversData, constructorsData, calendarData, resultData] =
-    await Promise.all(Object.values(API).map(fetchJsonOrNull));
-
+  const [driversData, constructorsData, calendarData] = await Promise.all(Object.values(API).map(fetchJsonOrNull));
   const calendar: Race[] = calendarData?.MRData?.RaceTable?.Races ?? [];
   const now = Date.now();
-  const race =
-    calendar.find((item) => getSessionTargetTime(item.date, item.time) >= now) ??
-    calendar[calendar.length - 1] ??
-    null;
-
+  const race = calendar.find((item) => getSessionTime({ date: item.date, time: item.time }) >= now) ?? null;
   return {
     drivers: driversData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],
     constructors: constructorsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [],
     race,
-    calendar,
-    lastRace: resultData?.MRData?.RaceTable?.Races?.[0] ?? null,
   };
 }
-
-function formatRaceDate(date: string) {
-  return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function getSessionTargetTime(date?: string, time?: string) {
-  if (!date) return Number.NaN;
-  return new Date(time ? `${date}T${time}` : `${date}T00:00:00Z`).getTime();
-}
-
-function getNextSession(races: Race[]) {
-  const sessions: Array<{ label: string; raceName: string; targetTime: number }> = [];
-
-  for (const race of races) {
-    const sessionList: Array<[string, Session | undefined]> = [
-      ["FP1", race.FirstPractice],
-      ["Sprint Qualifying", race.SprintQualifying],
-      ["FP2", race.SecondPractice],
-      ["FP3", race.ThirdPractice],
-      ["Qualifying", race.Qualifying],
-      ["Sprint", race.Sprint],
-      ["Race", { date: race.date, time: race.time }],
-    ];
-
-    for (const [label, session] of sessionList) {
-      const targetTime = getSessionTargetTime(session?.date, session?.time);
-      if (Number.isFinite(targetTime)) sessions.push({ label, raceName: race.raceName, targetTime });
-    }
-  }
-
-  return (
-    sessions
-      .filter((session) => session.targetTime > Date.now())
-      .sort((a, b) => a.targetTime - b.targetTime)[0] ?? null
-  );
-}
-
-const detailLinkStyle = {
-  color: accent,
-  textDecoration: "none",
-  fontWeight: "bold",
-  fontSize: "14px",
+const cardStyle = {
+  background: "linear-gradient(145deg,#073b37 0%,#172b2a 52%,#1b1b1d 100%)",
+  border: "1px solid #253c39", borderRadius: "22px", padding: "18px 16px",
+  marginBottom: "16px", boxShadow: "0 14px 30px #0007",
 };
+const muted = "#aaa5ad";
 
 export default async function HomePage() {
-  const { drivers, constructors, race, calendar, lastRace } = await getHomeData();
-  const winner = lastRace?.Results?.[0];
-  const nextSession = getNextSession(calendar as Race[]);
-
+  const { drivers, constructors, race } = await getHomeData();
+  const driverLeaderPoints = Number(drivers[0]?.points ?? 0);
+  const constructorLeaderPoints = Number(constructors[0]?.points ?? 0);
   return (
-    <main style={pageStyle}>
+    <main style={{ minHeight: "100vh", background: "#050505", color: "white", padding: "20px 14px 90px", fontFamily: "Arial, sans-serif" }}>
       <HomeFavorites />
-      {nextSession && (
-        <>
-          <NextSessionCountdown label={`🏎️ ${nextSession.label}`} raceName={nextSession.raceName} targetTime={nextSession.targetTime} />
-          <a href="/schedule" style={{ ...cardStyle, display: "block", textDecoration: "none", color: "white", marginBottom: "8px" }}>
-            <div style={{ color: red, fontSize: "12px", marginBottom: "8px", letterSpacing: "1px" }}>NEXT RACE</div>
-            <div style={{ fontSize: "23px", lineHeight: 1.15, fontWeight: "bold" }}>{race?.raceName ?? "Next Race"}</div>
-            {race?.date && <div style={{ marginTop: "6px", color: muted, fontSize: "13px" }}>{formatRaceDate(race.date)} →</div>}
-          </a>
-        </>
-      )}
-
-      {lastRace && winner && (
-        <div style={{ ...cardStyle, marginBottom: "14px" }}>
-          <div style={{ color: red, fontSize: "12px", marginBottom: "6px", letterSpacing: "1px" }}>LAST RESULT</div>
-          <div style={{ fontSize: "19px", fontWeight: "bold", marginBottom: "8px" }}>{lastRace.raceName}</div>
-          <div style={{ fontSize: "14px" }}>🏆 {displayDriverName(winner.Driver.givenName, winner.Driver.familyName)}</div>
-          <a href="/results" style={{ color: accent, textDecoration: "none", display: "inline-block", marginTop: "10px" }}>View Results →</a>
+      <HomeRaceCard race={race} />
+      <section style={{ marginBottom: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 4px 12px" }}>
+          <h2 style={{ margin: 0, fontSize: "21px", fontWeight: 850 }}>챔피언십 순위</h2>
+          <a href="/championship" style={{ color: muted, textDecoration: "none", fontSize: "14px" }}>전체 보기 ›</a>
         </div>
-      )}
-
-      <section style={{ ...cardStyle, marginBottom: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "8px" }}>
-          <h2 style={{ margin: 0 }}>Drivers</h2>
-          <a href="/championship" style={detailLinkStyle}>View Detail →</a>
-        </div>
-        {drivers.slice(0, 5).map((driver: DriverStanding) => (
-          <div key={driver.position} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #251317" }}>
-            <span>{driver.position}. {driver.Driver.familyName}</span>
-            <strong>{driver.points}</strong>
+        <div style={cardStyle}>
+          <div style={{ color: muted, fontSize: "13px", margin: "0 4px 10px" }}>드라이버</div>
+          <div style={{ display: "grid", gap: "7px" }}>
+            {drivers.slice(0, 5).map((driver: DriverStanding, index: number) => {
+              const points = Number(driver.points);
+              const gap = Math.round(points - driverLeaderPoints);
+              const fill = driverLeaderPoints > 0 ? Math.max(0, Math.min(100, points / driverLeaderPoints * 100)) : 0;
+              return (
+                <a key={driver.Driver.driverId} href={`/championship/${driver.Driver.driverId}`} style={{ position: "relative", display: "flex", alignItems: "center", gap: "10px", minHeight: "48px", padding: "0 12px", borderRadius: "12px", overflow: "hidden", color: "white", textDecoration: "none", background: "#ffffff0d" }}>
+                  <span style={{ position: "absolute", inset: "0 auto 0 0", width: `${fill}%`, background: "linear-gradient(90deg,#0d8178aa,#20a99b88)", borderRadius: "12px" }} />
+                  <strong style={{ position: "relative", zIndex: 1, width: "18px", fontSize: "16px" }}>{index + 1}</strong>
+                  <span style={{ position: "relative", zIndex: 1, flex: 1, minWidth: 0, fontSize: "14px", fontWeight: 750, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{displayDriverName(driver.Driver.givenName, driver.Driver.familyName)}</span>
+                  {index > 0 && <span style={{ position: "relative", zIndex: 1, color: "#c6c0c8", fontSize: "12px" }}>{gap}</span>}
+                  <strong style={{ position: "relative", zIndex: 1, fontSize: "16px", fontVariantNumeric: "tabular-nums" }}>{driver.points}<small style={{ fontSize: "10px", color: "#d2cbd4", marginLeft: "4px" }}>PTS</small></strong>
+                </a>
+              );
+            })}
           </div>
-        ))}
-      </section>
-
-      <section style={{ ...cardStyle, marginBottom: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "8px" }}>
-          <h2 style={{ margin: 0 }}>Constructors</h2>
-          <a href="/championship/constructors" style={detailLinkStyle}>View Detail →</a>
-        </div>
-        {constructors.slice(0, 5).map((team: ConstructorStanding) => (
-          <div key={team.position} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #251317" }}>
-            <span>{team.position}. {team.Constructor.name}</span>
-            <strong>{team.points}</strong>
+          <div style={{ color: muted, fontSize: "13px", margin: "20px 4px 10px" }}>컨스트럭터</div>
+          <div style={{ display: "grid", gap: "7px" }}>
+            {constructors.slice(0, 5).map((team: ConstructorStanding, index: number) => {
+              const points = Number(team.points);
+              const gap = Math.round(points - constructorLeaderPoints);
+              const fill = constructorLeaderPoints > 0 ? Math.max(0, Math.min(100, points / constructorLeaderPoints * 100)) : 0;
+              const color = teamColors[team.Constructor.name] ?? "#0d8178";
+              return (
+                <a key={team.Constructor.constructorId} href={`/championship/constructors/${team.Constructor.constructorId}`} style={{ position: "relative", display: "flex", alignItems: "center", gap: "10px", minHeight: "48px", padding: "0 12px", borderRadius: "12px", overflow: "hidden", color: "white", textDecoration: "none", background: "#ffffff0d" }}>
+                  <span style={{ position: "absolute", inset: "0 auto 0 0", width: `${fill}%`, background: `linear-gradient(90deg,${color}bb,${color}66)`, borderRadius: "12px" }} />
+                  <strong style={{ position: "relative", zIndex: 1, width: "18px", fontSize: "16px" }}>{index + 1}</strong>
+                  <span style={{ position: "relative", zIndex: 1, flex: 1, minWidth: 0, fontSize: "14px", fontWeight: 750, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{team.Constructor.name}</span>
+                  {index > 0 && <span style={{ position: "relative", zIndex: 1, color: "#c6c0c8", fontSize: "12px" }}>{gap}</span>}
+                  <strong style={{ position: "relative", zIndex: 1, fontSize: "16px", fontVariantNumeric: "tabular-nums" }}>{team.points}<small style={{ fontSize: "10px", color: "#d2cbd4", marginLeft: "4px" }}>PTS</small></strong>
+                </a>
+              );
+            })}
           </div>
-        ))}
+        </div>
       </section>
-
+      <section style={{ borderRadius: "22px", padding: "18px 16px", background: "#171719", border: "1px solid #29272b" }}>
+        <a href="/settings/notifications" style={{ display: "block", padding: "8px 4px 16px", color: "white", textDecoration: "none", borderBottom: "1px solid #343237" }}>
+          <div style={{ fontSize: "16px" }}>♧　알림 설정　›</div>
+          <div style={{ color: muted, fontSize: "12px", margin: "5px 0 0 30px" }}>세션 시작 전에 알림</div>
+        </a>
+        <a href="/widget" style={{ display: "block", padding: "16px 4px 8px", color: "white", textDecoration: "none" }}>
+          <div style={{ fontSize: "16px" }}>▦　위젯 추가　›</div>
+          <div style={{ color: muted, fontSize: "12px", margin: "5px 0 0 30px" }}>홈 화면에서 바로 확인</div>
+        </a>
+      </section>
     </main>
   );
 }

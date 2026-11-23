@@ -47,7 +47,9 @@ function getFlag(country?: string) {
   return flags[country ?? ""] ?? "🏁";
 }
 
-export default function HomeRaceCard({ race }: { race: Race | null }) {
+type LastWinner = { driverName: string; constructorName: string; raceName: string } | null;
+
+export default function HomeRaceCard({ race, lastWinner }: { race: Race | null; lastWinner: LastWinner }) {
   const [now, setNow] = useState(0);
   useEffect(() => {
     setNow(Date.now());
@@ -79,14 +81,27 @@ export default function HomeRaceCard({ race }: { race: Race | null }) {
 
   return (
     <a href="/schedule" style={{ display: "block", color: "white", textDecoration: "none", marginBottom: "16px" }}>
-      <section style={{ borderRadius: "22px", padding: "24px 22px", background: "linear-gradient(145deg,#243b59 0%,#48202b 38%,#252326 72%,#171719 100%)", border: "1px solid #343039", boxShadow: "0 16px 36px #0008" }}>
+      <section style={{ borderRadius: "22px", padding: "24px 22px", background: "linear-gradient(135deg,rgba(92,72,140,0.34),rgba(255,255,255,0.075) 48%,rgba(35,26,52,0.58))", border: "1px solid rgba(220,200,255,0.22)", boxShadow: "0 18px 42px #0009", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)" }}>
         <div style={{ color: "#c5c1ca", fontSize: "13px", marginBottom: "14px" }}>다음 그랑프리 · {dateRange}</div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "24px", lineHeight: 1.2, fontWeight: 850 }}>
           <span style={{ fontSize: "30px" }}>{getFlag(country)}</span><span>{race.raceName}</span>
         </div>
         <div style={{ color: "#c7c1ca", fontSize: "13px", marginTop: "7px" }}>{locality ?? ""}{locality && country ? " · " : ""}{country ?? ""}{circuit ? ` · ${circuit}` : ""}</div>
 
-        <div style={{ marginTop: "34px", color: "#d1cbd2", fontSize: "13px" }}>FP1 시작까지 · {fp1 ? koreaDate(fp1, { weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }) : "일정 미정"}</div>
+        {lastWinner && (
+          <div style={{ marginTop: "22px", padding: "13px 15px", borderRadius: "15px", background: "rgba(8,7,13,0.28)", border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(14px)" }}>
+            <div style={{ color: "#c9b5ef", fontSize: "11px", fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase" }}>지난 그랑프리 우승자</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", marginTop: "7px" }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: "17px", fontWeight: 850, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{lastWinner.driverName}</div>
+                <div style={{ color: "#c7c1ca", fontSize: "12px", marginTop: "3px" }}>{lastWinner.constructorName} · {lastWinner.raceName}</div>
+              </div>
+              <span style={{ fontSize: "24px", flexShrink: 0 }}>🏆</span>
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginTop: "26px", color: "#d1cbd2", fontSize: "13px" }}>FP1 시작까지 · {fp1 ? koreaDate(fp1, { weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }) : "일정 미정"}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: "10px", marginTop: "10px" }}>
           {[{ value: String(days).padStart(2,"0"), label: "일" },{ value: String(hours).padStart(2,"0"), label: "시간" },{ value: String(minutes).padStart(2,"0"), label: "분" }].map((item) => (
             <div key={item.label} style={{ borderRadius: "18px", background: "#ffffff18", padding: "15px 6px 12px", textAlign: "center", backdropFilter: "blur(8px)" }}>

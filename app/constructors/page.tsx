@@ -15,15 +15,43 @@ const pageStyle = {
   fontFamily: "Arial, sans-serif",
 };
 
-export default async function ConstructorsPage() {
-  const res = await fetch(
-    "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
-    { next: { revalidate: 3600 } }
-  );
-  const data = await res.json();
+async function getConstructorStandings(): Promise<{
+  constructors: ConstructorStanding[];
+  unavailable: boolean;
+}> {
+  try {
+    const res = await fetch(
+      "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
+      {
+        next: { revalidate: 900 },
+        headers: { Accept: "application/json" },
+      }
+    );
 
-  const constructors: ConstructorStanding[] =
-    data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
+    if (!res.ok) {
+      console.error("Constructor standings request failed:", res.status);
+      return { constructors: [], unavailable: true };
+    }
+
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      console.error("Constructor standings returned non-JSON content:", contentType);
+      return { constructors: [], unavailable: true };
+    }
+
+    const data = await res.json();
+    const constructors: ConstructorStanding[] =
+      data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
+
+    return { constructors, unavailable: false };
+  } catch (error) {
+    console.error("Could not load constructor standings:", error);
+    return { constructors: [], unavailable: true };
+  }
+}
+
+export default async function ConstructorsPage() {
+  const { constructors, unavailable } = await getConstructorStandings();
 
   return (
     <main style={pageStyle}>
@@ -81,7 +109,7 @@ export default async function ConstructorsPage() {
       >
         {constructors.map((team, index) => (
           <div
-            key={team.position}
+            key={team.Constructor?.name ?? team.position}
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -100,15 +128,19 @@ export default async function ConstructorsPage() {
                 ? "🥈"
                 : team.position === "3"
                 ? "🥉"
-                : `P${team.position}`}{" "}
-              {team.Constructor.name}
+                : `P${team.position}`}{ " " }
+              {team.Constructor?.name ?? "Unknown team"}
             </span>
             <strong>{team.points} pts</strong>
           </div>
         ))}
 
         {constructors.length === 0 && (
-          <p style={{ color: "#a9adff" }}>Constructor 데이터가 없습니다.</p>
+          <p style={{ color: "#a9adff" }}>
+            {unavailable
+              ? "컨스트럭터 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
+              : "Constructor 데이터가 없습니다."}
+          </p>
         )}
       </div>
     </main>

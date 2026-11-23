@@ -5,6 +5,7 @@ import HomeFavorites from "./components/HomeFavorites";
 type DriverStanding = { position: string; points: string; Driver: { driverId: string; givenName: string; familyName: string }; Constructors?: { name: string }[] };
 type ConstructorStanding = { position: string; points: string; Constructor: { constructorId: string; name: string } };
 type Session = { date?: string; time?: string };
+type LastWinner = { driverName: string; constructorName: string; raceName: string } | null;
 type Race = {
   raceName: string; date: string; time?: string;
   Circuit?: { circuitName?: string; Location?: { locality?: string; country?: string } };
@@ -16,6 +17,7 @@ const API = {
   drivers: "https://api.jolpi.ca/ergast/f1/current/driverstandings.json",
   constructors: "https://api.jolpi.ca/ergast/f1/current/constructorstandings.json",
   calendar: "https://api.jolpi.ca/ergast/f1/current.json",
+  lastResult: "https://api.jolpi.ca/ergast/f1/current/last/results.json",
 };
 const teamColors: Record<string, string> = {
   Mercedes: "#00a19c", Ferrari: "#e80020", "Red Bull": "#3671c6", "Red Bull Racing": "#3671c6",
@@ -32,31 +34,42 @@ function getSessionTime(session?: Session) {
   return new Date(session.time ? `${session.date}T${session.time}` : `${session.date}T00:00:00Z`).getTime();
 }
 async function getHomeData() {
-  const [driversData, constructorsData, calendarData] = await Promise.all(Object.values(API).map(fetchJsonOrNull));
+  const [driversData, constructorsData, calendarData, lastResultData] = await Promise.all(Object.values(API).map(fetchJsonOrNull));
   const calendar: Race[] = calendarData?.MRData?.RaceTable?.Races ?? [];
   const now = Date.now();
   const race = calendar.find((item) => getSessionTime({ date: item.date, time: item.time }) >= now) ?? null;
+  const lastRace = lastResultData?.MRData?.RaceTable?.Races?.[0];
+  const winner = lastRace?.Results?.[0];
+  const lastWinner: LastWinner = winner?.Driver && winner?.Constructor
+    ? {
+        driverName: winner.Driver.givenName + " " + winner.Driver.familyName,
+        constructorName: winner.Constructor.name,
+        raceName: lastRace.raceName ?? "지난 그랑프리",
+      }
+    : null;
   return {
     drivers: driversData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [],
     constructors: constructorsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [],
     race,
+    lastWinner,
   };
 }
 const cardStyle = {
-  background: "linear-gradient(145deg,#171126 0%,#211638 48%,#17151d 100%)",
-  border: "1px solid #253c39", borderRadius: "22px", padding: "18px 16px",
+  background: "linear-gradient(135deg,rgba(104,72,160,0.24),rgba(255,255,255,0.055) 55%,rgba(85,55,130,0.16))",
+  border: "1px solid rgba(205,180,255,0.18)", borderRadius: "22px", padding: "18px 16px",
+  backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
   marginBottom: "16px", boxShadow: "0 14px 30px #0007",
 };
 const muted = "#aaa5ad";
 
 export default async function HomePage() {
-  const { drivers, constructors, race } = await getHomeData();
+  const { drivers, constructors, race, lastWinner } = await getHomeData();
   const driverLeaderPoints = Number(drivers[0]?.points ?? 0);
   const constructorLeaderPoints = Number(constructors[0]?.points ?? 0);
   return (
     <main style={{ minHeight: "100vh", background: "linear-gradient(155deg,#090710 0%,#160d25 35%,#24143b 72%,#0a0810 100%)", color: "white", padding: "20px 14px 90px", fontFamily: "Arial, sans-serif" }}>
       <HomeFavorites />
-      <HomeRaceCard race={race} />
+      <HomeRaceCard race={race} lastWinner={lastWinner} />
       <section style={{ marginBottom: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 4px 12px" }}>
           <h2 style={{ margin: 0, fontSize: "21px", fontWeight: 850 }}>챔피언십 순위</h2>

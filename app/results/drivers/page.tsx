@@ -37,7 +37,7 @@ export default async function DriversPage() {
       </div>
       <h1>👨‍🏎️ Driver Championship</h1>
       {drivers.map((driver) => (
-        <div key={driver.Driver?.givenName + driver.Driver?.familyName ?? driver.position} style={{ background: "#131942", padding: "15px", marginTop: "10px", borderRadius: "12px" }}>
+        <div key={`${driver.Driver?.givenName ?? ""}-${driver.Driver?.familyName ?? driver.position}`} style={{ background: "#131942", padding: "15px", marginTop: "10px", borderRadius: "12px" }}>
           {driver.position}. {driver.Driver?.givenName ?? ""} {driver.Driver?.familyName ?? "Unknown driver"} — {driver.points} pts
         </div>
       ))}

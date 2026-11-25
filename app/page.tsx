@@ -26,8 +26,28 @@ const teamColors: Record<string, string> = {
   Haas: "#e6002b", "Haas F1 Team": "#e6002b",
 };
 async function fetchJsonOrNull(url: string) {
-  try { const response = await fetch(url, { next: { revalidate: 900 } }); return response.ok ? await response.json() : null; }
-  catch { return null; }
+  try {
+    const response = await fetch(url, {
+      next: { revalidate: 900 },
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "PurpleSector/1.0 (F1 information website)",
+      },
+    });
+    if (!response.ok) {
+      console.error("Home data request failed:", response.status, url);
+      return null;
+    }
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      console.error("Home data returned non-JSON response:", contentType, url);
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Home data fetch error:", url, error);
+    return null;
+  }
 }
 function getSessionTime(session?: Session) {
   if (!session?.date) return Number.NaN;
@@ -69,7 +89,16 @@ export default async function HomePage() {
   return (
     <main style={{ minHeight: "100vh", background: "linear-gradient(155deg,#090710 0%,#160d25 35%,#24143b 72%,#0a0810 100%)", color: "white", padding: "20px 14px 90px", fontFamily: "Arial, sans-serif" }}>
       <HomeFavorites />
-      <HomeRaceCard race={race} lastWinner={lastWinner} />
+      {race ? (
+        <HomeRaceCard race={race} lastWinner={lastWinner} />
+      ) : (
+        <section style={{ ...cardStyle, color: "#d8d1e3" }}>
+          <strong style={{ fontSize: "18px" }}>🏁 다음 그랑프리</strong>
+          <p style={{ marginBottom: 0, fontSize: "13px", lineHeight: 1.6 }}>
+            일정 정보를 불러오지 못했습니다. 데이터 제공 서버의 응답을 확인 중입니다.
+          </p>
+        </section>
+      )}
       <section style={{ marginBottom: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 4px 12px" }}>
           <h2 style={{ margin: 0, fontSize: "21px", fontWeight: 850 }}>챔피언십 순위</h2>
@@ -78,6 +107,7 @@ export default async function HomePage() {
         <div style={cardStyle}>
           <div style={{ color: muted, fontSize: "13px", margin: "0 4px 10px" }}>드라이버</div>
           <div style={{ display: "grid", gap: "7px" }}>
+            {drivers.length === 0 && <p style={{ color: muted, fontSize: "13px" }}>드라이버 포인트 정보를 불러오지 못했습니다.</p>}
             {drivers.slice(0, 5).map((driver: DriverStanding, index: number) => {
               const points = Number(driver.points);
               const gap = Math.round(points - driverLeaderPoints);
@@ -97,6 +127,7 @@ export default async function HomePage() {
           </div>
           <div style={{ color: muted, fontSize: "13px", margin: "20px 4px 10px" }}>컨스트럭터</div>
           <div style={{ display: "grid", gap: "7px" }}>
+            {constructors.length === 0 && <p style={{ color: muted, fontSize: "13px" }}>컨스트럭터 포인트 정보를 불러오지 못했습니다.</p>}
             {constructors.slice(0, 5).map((team: ConstructorStanding, index: number) => {
               const points = Number(team.points);
               const gap = Math.round(points - constructorLeaderPoints);

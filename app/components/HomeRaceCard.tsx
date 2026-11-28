@@ -67,8 +67,10 @@ export default function HomeRaceCard({ race, lastWinner }: { race: Race | null; 
   }, [race]);
 
   if (!race) return null;
-  const fp1 = sessionDate(race.FirstPractice) ?? sessions[0]?.date ?? sessionDate({ date: race.date, time: race.time });
-  const remaining = fp1 ? Math.max(0, fp1.getTime() - now) : 0;
+  const raceSession = sessionDate({ date: race.date, time: race.time });
+  const allSessions = [...sessions, ...(raceSession ? [{ label: "레이스", date: raceSession }] : [])].sort((a, b) => a.date.getTime() - b.date.getTime());
+  const nextSession = allSessions.find((item) => item.date.getTime() > now) ?? null;
+  const remaining = nextSession ? nextSession.date.getTime() - now : 0;
   const days = Math.floor(remaining / 86400000);
   const hours = Math.floor((remaining % 86400000) / 3600000);
   const minutes = Math.floor((remaining % 3600000) / 60000);
@@ -101,9 +103,9 @@ export default function HomeRaceCard({ race, lastWinner }: { race: Race | null; 
           </div>
         )}
 
-        <div style={{ marginTop: "26px", color: "#d1cbd2", fontSize: "13px" }}>FP1 시작까지 · {fp1 ? koreaDate(fp1, { weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }) : "일정 미정"}</div>
+        <div style={{ marginTop: "26px", color: "#d1cbd2", fontSize: "13px" }}>{nextSession ? `${nextSession.label} 시작까지 · ${koreaDate(nextSession.date, { weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false })}` : "이번 그랑프리 일정 종료"}</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: "10px", marginTop: "10px" }}>
-          {[{ value: String(days).padStart(2,"0"), label: "일" },{ value: String(hours).padStart(2,"0"), label: "시간" },{ value: String(minutes).padStart(2,"0"), label: "분" }].map((item) => (
+          {(nextSession ? [{ value: String(days).padStart(2,"0"), label: "일" },{ value: String(hours).padStart(2,"0"), label: "시간" },{ value: String(minutes).padStart(2,"0"), label: "분" }] : [{ value: "--", label: "일" },{ value: "--", label: "시간" },{ value: "--", label: "분" }]).map((item) => (
             <div key={item.label} style={{ borderRadius: "18px", background: "#ffffff18", padding: "15px 6px 12px", textAlign: "center", backdropFilter: "blur(8px)" }}>
               <div style={{ fontSize: "clamp(30px,8vw,48px)", fontWeight: 850, lineHeight: 1.05, fontVariantNumeric: "tabular-nums" }}>{item.value}</div>
               <div style={{ color: "#d8d1d8", fontSize: "13px", marginTop: "5px" }}>{item.label}</div>
